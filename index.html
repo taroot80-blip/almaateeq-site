@@ -292,6 +292,42 @@ footer{text-align:center;color:var(--muted);padding:32px 16px calc(32px + env(sa
 .tw{isolation:isolate}
 .tw .glow{position:absolute;inset:-35%;z-index:-2;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--tc,#F2B632) 40%,transparent),transparent 65%);opacity:.35;animation:breathe 4s ease-in-out infinite;animation-delay:calc(var(--i)*-.5s);pointer-events:none}
 @keyframes breathe{50%{opacity:.7;transform:scale(1.12)}}
+
+/* ===== التكبير والتصغير + تقليل الفراغات ===== */
+:root{--fs:1.12;--is:1.15;--all:1}
+html{font-size:calc(16px * var(--fs))}
+html{zoom:var(--all)}
+.app .tw{zoom:var(--is)}
+main .launcher{grid-template-columns:repeat(auto-fill,minmax(calc(150px * var(--is)),1fr))}
+html[data-device=portrait] main .launcher,html[data-device=landscape] main .launcher{grid-template-columns:repeat(auto-fill,minmax(calc(104px * var(--is)),1fr))}
+@media (max-width:600px){main .launcher{grid-template-columns:repeat(auto-fill,minmax(calc(100px * var(--is)),1fr))}}
+.hero{min-height:auto;padding-block:22px 10px}
+.emblem{width:min(170px,44vw)}
+.hero h1{margin-top:10px}
+.hero .cta{margin-top:18px}
+section.block{padding-block:26px;overflow-x:clip}
+html,body{overflow-x:clip}
+.hero h1{font-size:clamp(2rem,5.2vw,3.5rem)}
+.hero p.lead{margin-top:6px}
+.head{margin-bottom:16px}
+.app{padding:10px 6px 10px}
+
+.sizer{position:fixed;z-index:30;top:calc(var(--hh,64px) + 8px);inset-inline-end:10px;display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:18px;
+  background:rgba(36,24,9,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(242,182,50,.55);box-shadow:0 12px 30px rgba(0,0,0,.45),0 0 20px rgba(242,182,50,.18);
+  transform-origin:top left;transition:transform .25s var(--spring),opacity .2s}
+.sizer .row{display:flex;align-items:center;gap:6px}
+.sizer .lbl{min-width:4.6em;text-align:center;font-weight:700;font-size:.82rem;color:var(--head);line-height:1.2}
+.sizer .lbl small{display:block;font-weight:500;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+.sz{all:unset;cursor:pointer;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 1.35rem/1 system-ui,sans-serif;color:#1a120b;
+  background:linear-gradient(180deg,#ffd06a,var(--gold));box-shadow:0 3px 0 #a8730f;transition:transform .12s var(--ease-out)}
+.sz:active{transform:translateY(2px) scale(.94);box-shadow:0 1px 0 #a8730f}
+.sz:focus-visible{outline:3px solid #fff4c9;outline-offset:2px}
+.sz.ghost{background:rgba(44,29,12,.9);color:var(--head);border:1.5px solid var(--gold);box-shadow:none;font-size:1rem}
+.sizer .bar2{display:flex;gap:6px;justify-content:space-between}
+.sizer.closed .row,.sizer.closed .reset{display:none}
+.sizer.closed{padding:6px;border-radius:16px}
+.sizer .tg{width:auto;padding:0 10px;font-size:.9rem;font-family:inherit}
+@media (max-width:600px){.sizer{inset-inline-end:6px}.sz{width:38px;height:38px}}
 /* إيقاف الحركة: زر المستخدم وإعداد النظام */
 html.still *,html.still *::before,html.still *::after{animation-play-state:paused!important}
 html.still .app,html.still .book{opacity:1;transform:none}
@@ -335,6 +371,12 @@ html.still .app,html.still .book{opacity:1;transform:none}
   </div>
 </header>
 
+<div class="sizer" id="sizer" role="toolbar" aria-label="التحكم في الأحجام">
+  <div class="bar2"><button class="sz ghost tg" id="szToggle" aria-expanded="true">الأحجام ▴</button><button class="sz ghost reset" id="szReset" aria-label="إعادة الأحجام الافتراضية">↺</button></div>
+  <div class="row"><button class="sz" data-k="is" data-d="-1" aria-label="تصغير الأيقونات">−</button><span class="lbl">الأيقونات<small id="v-is"></small></span><button class="sz" data-k="is" data-d="1" aria-label="تكبير الأيقونات">+</button></div>
+  <div class="row"><button class="sz" data-k="fs" data-d="-1" aria-label="تصغير الخطوط">−</button><span class="lbl">الخطوط<small id="v-fs"></small></span><button class="sz" data-k="fs" data-d="1" aria-label="تكبير الخطوط">+</button></div>
+  <div class="row"><button class="sz" data-k="all" data-d="-1" aria-label="تصغير الكل">−</button><span class="lbl">الكل<small id="v-all"></small></span><button class="sz" data-k="all" data-d="1" aria-label="تكبير الكل">+</button></div>
+</div>
 <div class="sheet" id="devSheet" role="dialog" aria-label="نوع الجهاز">
   <h3>اعرض الموقع على</h3>
   <div class="devs">
@@ -675,6 +717,26 @@ addEventListener("keydown",e=>{if(e.key==="Escape"&&bv.classList.contains("show"
     try{cur()?exit.call(d):req.call(el)}catch(_){toast("تعذّر تفعيل ملء الشاشة")}});
   d.addEventListener("fullscreenchange",paint);d.addEventListener("webkitfullscreenchange",paint);
   addEventListener("keydown",e=>{if((e.key==="f"||e.key==="ف")&&!/INPUT|TEXTAREA/.test(d.activeElement.tagName))btn.click()});
+})();
+
+/* ===== شريط الأحجام العائم ===== */
+(()=>{const R=document.documentElement,DEF={is:1.15,fs:1.12,all:1},LIM={is:[.7,1.9],fs:[.8,1.7],all:[.7,1.5]};let V={...DEF};
+  try{Object.assign(V,JSON.parse(localStorage.getItem("sizes")||"{}"))}catch(_){}
+  const pct=n=>new Intl.NumberFormat("ar-EG").format(Math.round(n*100))+"٪";
+  const apply=()=>{for(const k in V){R.style.setProperty("--"+k,V[k]);const e=document.getElementById("v-"+k);if(e)e.textContent=pct(V[k])}
+    try{localStorage.setItem("sizes",JSON.stringify(V))}catch(_){}};
+  apply();
+  const sz=document.getElementById("sizer");
+  sz.addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(!b)return;const k=b.dataset.k,[lo,hi]=LIM[k];
+    const n=Math.round((V[k]+ +b.dataset.d*.1)*100)/100;if(n<lo-1e-9||n>hi+1e-9){toast(n<lo?"هذا أصغر حجم":"هذا أكبر حجم");return}
+    V[k]=n;apply();tone(b.dataset.d>0?740:520,b.dataset.d>0?980:400,.08,.02)});
+  document.getElementById("szReset").onclick=()=>{V={...DEF};apply();toast("عادت الأحجام إلى الوضع الافتراضي")};
+  const tg=document.getElementById("szToggle");
+  const setOpen=o=>{sz.classList.toggle("closed",!o);tg.setAttribute("aria-expanded",o);tg.textContent=o?"الأحجام ▴":"الأحجام ▾";try{localStorage.setItem("szOpen",o?"1":"0")}catch(_){}};
+  let open=true;try{const v=localStorage.getItem("szOpen");open=v?v==="1":innerWidth>600}catch(_){}
+  setOpen(open);tg.onclick=()=>setOpen(sz.classList.contains("closed"));
+  const hd=document.querySelector("header.top"),setH=()=>R.style.setProperty("--hh",hd.getBoundingClientRect().height+"px");
+  setH();if(window.ResizeObserver)new ResizeObserver(setH).observe(hd);
 })();
 </script>
 </body>

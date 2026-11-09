@@ -1,10 +1,33 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/apps/mastoor", "destination": "/apps/mastoor/", "permanent": false }
+    {
+      "source": "/apps/mastoor",
+      "destination": "/apps/mastoor/",
+      "permanent": false
+    },
+    {
+      "source": "/apps/mawarith",
+      "destination": "/apps/mawarith/",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/apps/mastoor/", "destination": "https://taroot80-blip.github.io/imam-mahdi/" },
-    { "source": "/apps/mastoor/:path*", "destination": "https://taroot80-blip.github.io/imam-mahdi/:path*" }
+    {
+      "source": "/apps/mastoor/",
+      "destination": "https://taroot80-blip.github.io/imam-mahdi/"
+    },
+    {
+      "source": "/apps/mastoor/:path*",
+      "destination": "https://taroot80-blip.github.io/imam-mahdi/:path*"
+    },
+    {
+      "source": "/apps/mawarith/",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/"
+    },
+    {
+      "source": "/apps/mawarith/:path*",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/:path*"
+    }
   ]
 }

@@ -416,7 +416,7 @@ html.still .app,html.still .book{opacity:1;transform:none}
   </section>
 
   <section class="block stage" id="games">
-    <div class="head"><h2>ألعابي العلمية</h2><p>ألعاب تعليمية تُفتح من المتصفح أو تُنزَّل على جهازك.</p><span class="line"></span></div>
+    <div class="head"><h2>ألعابي ومسابقاتي العلمية</h2><p>مسابقاتي وألعابي التعليمية، تُفتح من المتصفح أو تُنزَّل على جهازك.</p><span class="line"></span></div>
     <div class="launcher" id="gamesGrid"></div>
   </section>
 
@@ -501,8 +501,14 @@ const UTILS = [
   {name:"تذكير الاشتراكات",sub:"تنبيه قبل التجديد",icon:"bell",url:"",dl:true,download:"",tc:"#22C55E",tbg:"#13221a"}
 ];
 const GAMES = [
-  {name:"مغامرات البطل عباس",sub:"مهارات العربية للصف الخامس",icon:"star",url:"",dl:true,download:"",tc:"#F2B632",tbg:"#2a1a3a"},
-  {name:"Stickman Kombat 2D",sub:"لعبة قتال الستيكمان",icon:"stick",url:"",dl:true,download:"",tc:"#38BDF8",tbg:"#101c2a"}
+  {name:"كان وأخواتها",sub:"المربعات المقلوبة · الصف العاشر",icon:"grid",url:"https://claude.ai/artifact/UBbGa3kshpTDRj14JcvNva",tc:"#F2B632",tbg:"#2b1d0f",dl:true,download:""},
+  {name:"التشبيه الضمني",sub:"المربعات المقلوبة · البلاغة",icon:"grid",url:"https://claude.ai/artifact/GNNw3iYLe6DFjHt6z6ddRo",tc:"#F472B6",tbg:"#2a1222",dl:true,download:""},
+  {name:"تحدّي تقدّم الخبر",sub:"مسابقة في النحو",icon:"grid",url:"https://claude.ai/artifact/DiDa7sD8dWbCPVAGzLTeMM",tc:"#14B8A6",tbg:"#0f2624",dl:true,download:""},
+  {name:"English Flip Squares",sub:"المربعات المقلوبة · الصف الثاني",icon:"grid",url:"https://claude.ai/artifact/H8Fd5t6JDeGzkhAE3bpFPc",tc:"#38BDF8",tbg:"#0f2230",dl:true,download:""},
+  {name:"مغامرات البطل عباس",sub:"مهارات العربية للصف الخامس",icon:"star",url:"https://claude.ai/artifact/1xE9nKZ4V5XMUnkoAYYkLk",tc:"#F2B632",tbg:"#2a1a3a",dl:true,download:""},
+  {name:"علبة الأسماء والأفعال",sub:"تحدٍّ في أقسام الكلمة",icon:"box",url:"https://claude.ai/artifact/Eew4KtthPuT3hNU7saN1eW",tc:"#ffd77a",tbg:"#22180c",dl:true,download:""},
+  {name:"تحدّي لا للتنمر",sub:"مسابقة تربوية",icon:"hand",url:"https://claude.ai/artifact/Vfuoy5iHdTmEP9xMosPVva",tc:"#22C55E",tbg:"#13221a",dl:true,download:""},
+  {name:"Stickman Kombat 2D",sub:"لعبة قتال الستيكمان",icon:"stick",url:"https://claude.ai/artifact/CAHDfnwEPmVVrYSvX7JLG5",tc:"#38BDF8",tbg:"#101c2a",dl:true,download:""}
 ];
 const EDU = [
   {name:"علم الاجتماع",sub:"المدرسة والأسرة والمجتمع",icon:"people",url:"",tc:"#14B8A6",tbg:"#0f2624"},
@@ -533,6 +539,9 @@ const ICONS = {
   scales:`<path class="d" d="M24 7v33M14 41h20M9 14h30"/><g class="blink"><path d="M9 14l-5 12h10zM39 14l-5 12h10z"/></g>`,
   bell:`<path class="d" d="M13 33V22a11 11 0 0 1 22 0v11l3 4H10z"/><path class="blink" d="M21 41a3 3 0 0 0 6 0"/>`,
   manuscript:`<path class="d" d="M12 8h22a4 4 0 0 1 4 4v28H16a4 4 0 0 1-4-4z"/><path d="M12 36a4 4 0 0 1 4-4h22"/><g class="blink"><path d="M18 15h14M18 20h14M18 25h9"/></g><path class="d" d="M40 6l-10 14" stroke-width="1.8"/>`,
+  grid:`<rect class="d" x="7" y="7" width="15" height="15" rx="3"/><rect x="26" y="7" width="15" height="15" rx="3"/><rect x="7" y="26" width="15" height="15" rx="3"/><rect class="blink" x="26" y="26" width="15" height="15" rx="3" fill="currentColor" fill-opacity=".35"/>`,
+  box:`<path class="d" d="M8 18l16-8 16 8v18l-16 8-16-8z"/><path d="M8 18l16 8 16-8M24 26v18"/><path class="blink" d="M14 8l10 5 10-5" />`,
+  hand:`<path class="d" d="M16 26V12a3 3 0 0 1 6 0v10M22 22V9a3 3 0 0 1 6 0v13M28 22v-9a3 3 0 0 1 6 0v15c0 8-5 14-12 14-5 0-8-3-11-8l-4-7a3 3 0 0 1 5-3l4 5"/><circle class="blink" cx="38" cy="10" r="3" fill="currentColor"/>`,
   star:`<path class="d" d="M24 5l5.6 12 13 1.4-9.7 8.8 2.8 12.8L24 33.4 12.3 40l2.8-12.8L5.4 18.4l13-1.4z"/><circle class="blink" cx="24" cy="24" r="3" fill="currentColor"/>`,
   stick:`<circle cx="24" cy="9" r="4.5"/><path class="d" d="M24 14v14M24 18l-10 6M24 18l11-5M24 28l-8 12M24 28l9 11"/>`,
   people:`<circle cx="17" cy="16" r="5"/><circle cx="32" cy="18" r="4"/><path class="d" d="M7 38a10 10 0 0 1 20 0M27 37a8 8 0 0 1 14-4"/>`,
@@ -561,7 +570,7 @@ const LISTS={appsGrid:APPS,gamesGrid:GAMES,eduGrid:EDU,arGrid:ARABIC,hawzaGrid:H
 render("appsGrid",APPS);render("gamesGrid",GAMES);render("eduGrid",EDU);render("arGrid",ARABIC,true);render("hawzaGrid",HAWZA,true);render("utilsGrid",UTILS);
 
 const toArabic=n=>new Intl.NumberFormat("ar-EG").format(n);
-document.getElementById("countFact").textContent=`${toArabic(APPS.filter(a=>!a.url.startsWith("#")).length)} تطبيقات و${toArabic(GAMES.length)} لعبة علمية`;
+document.getElementById("countFact").textContent=`${toArabic(APPS.filter(a=>!a.url.startsWith("#")).length)} تطبيقات و${toArabic(GAMES.length)} ألعاب ومسابقات`;
 document.getElementById("yr").textContent=new Date().getFullYear();
 
 /* فتح التطبيق بومضة انطلاق */

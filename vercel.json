@@ -15,6 +15,11 @@
       "source": "/apps/almaalim",
       "destination": "/apps/almaalim/",
       "permanent": false
+    },
+    {
+      "source": "/apps/almisbar",
+      "destination": "/apps/almisbar/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -41,6 +46,14 @@
     {
       "source": "/apps/almaalim/:path*",
       "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almaalim/:path*"
+    },
+    {
+      "source": "/apps/almisbar/",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almisbar/"
+    },
+    {
+      "source": "/apps/almisbar/:path*",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almisbar/:path*"
     }
   ]
 }

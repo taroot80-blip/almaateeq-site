@@ -10,6 +10,11 @@
       "source": "/apps/mawarith",
       "destination": "/apps/mawarith/",
       "permanent": false
+    },
+    {
+      "source": "/apps/almaalim",
+      "destination": "/apps/almaalim/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -28,6 +33,14 @@
     {
       "source": "/apps/mawarith/:path*",
       "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/:path*"
+    },
+    {
+      "source": "/apps/almaalim/",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almaalim/"
+    },
+    {
+      "source": "/apps/almaalim/:path*",
+      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almaalim/:path*"
     }
   ]
 }

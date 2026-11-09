@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>علبة الأسماء والأفعال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --paper:#F3F6FA;
+  --ink:#1F2A44;
+  --muted:#5B6782;
+  --kraft:#C99A5B;
+  --kraft-dark:#A87B40;
+  --kraft-light:#E2C08E;
+  --noun:#17778A;
+  --noun-soft:#D6EEF2;
+  --verb:#B23A48;
+  --verb-soft:#F7DDE0;
+  --card:#FFFFFF;
+  --ok:#2E7D4F;
+  --bad:#B23A48;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#141A28;--ink:#EEF2F8;--muted:#A6B0C5;
+    --kraft:#9C7340;--kraft-dark:#7A5829;--kraft-light:#B98E55;
+    --noun:#4FB7CA;--noun-soft:#16343B;--verb:#E3707D;--verb-soft:#3B1C22;
+    --card:#1F2738;--ok:#6BCB93;--bad:#E3707D;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141A28;--ink:#EEF2F8;--muted:#A6B0C5;
+  --kraft:#9C7340;--kraft-dark:#7A5829;--kraft-light:#B98E55;
+  --noun:#4FB7CA;--noun-soft:#16343B;--verb:#E3707D;--verb-soft:#3B1C22;
+  --card:#1F2738;--ok:#6BCB93;--bad:#E3707D;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Noto Naskh Arabic","Traditional Arabic","Geeza Pro",Tahoma,serif;
+  font-size:1.125rem;line-height:1.8;
+}
+main{max-width:34rem;margin:0 auto;padding:1.25rem 1rem 3rem}
+h1{
+  font-family:"Reem Kufi","Noto Naskh Arabic",sans-serif;
+  font-size:clamp(1.9rem,7vw,2.6rem);line-height:1.2;margin:.5rem 0 .25rem;text-align:center;
+}
+.sub{margin:0 0 1.25rem;text-align:center;color:var(--muted);font-size:1rem}
+
+.stats{display:flex;justify-content:space-between;font-size:.95rem;color:var(--muted);margin-bottom:.5rem}
+.stats b{color:var(--ink)}
+
+/* الكلمة */
+.stage{position:relative;height:9.5rem;display:flex;align-items:flex-end;justify-content:center}
+.word{
+  background:var(--card);border:2px solid var(--ink);border-radius:.6rem;
+  padding:.4rem 1.6rem .6rem;min-width:9rem;text-align:center;
+  font-size:clamp(2.2rem,11vw,3rem);font-weight:700;line-height:1.5;
+  box-shadow:0 .35rem 0 var(--ink);transform:translateY(-1.2rem) rotate(-2deg);
+  transition:transform .35s ease, opacity .35s ease;
+}
+.word.drop-noun{transform:translate(35%,5rem) scale(.4);opacity:0}
+.word.drop-verb{transform:translate(-35%,5rem) scale(.4);opacity:0}
+.word.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateY(-1.2rem) rotate(-2deg)}25%{transform:translate(-8px,-1.2rem) rotate(-4deg)}75%{transform:translate(8px,-1.2rem) rotate(0)}}
+.word.enter{animation:enter .35s ease}
+@keyframes enter{from{transform:translateY(-3rem) rotate(-2deg);opacity:0}}
+
+/* العلبة */
+.box{position:relative;margin-top:-.5rem}
+.flaps{display:flex;justify-content:space-between;height:1.6rem;padding:0 .2rem}
+.flap{width:48%;background:var(--kraft-light);border:2px solid var(--kraft-dark);border-bottom:0}
+.flap:first-child{transform:skewX(22deg);transform-origin:bottom}
+.flap:last-child{transform:skewX(-22deg);transform-origin:bottom}
+.body{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;
+  background:var(--kraft);border:3px solid var(--kraft-dark);border-radius:0 0 .9rem .9rem;
+  padding:.6rem;
+}
+.slot{
+  appearance:none;border:0;cursor:pointer;font:inherit;color:inherit;text-align:center;
+  background:rgba(0,0,0,.14);margin:0 .3rem;border-radius:.5rem;
+  min-height:12rem;padding:.6rem .4rem;display:flex;flex-direction:column;align-items:center;
+  transition:background .15s, transform .1s;
+}
+.slot:active{transform:scale(.98)}
+.slot:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.slot:disabled{cursor:default}
+.label{
+  font-family:"Reem Kufi",sans-serif;font-weight:700;font-size:1.5rem;
+  background:var(--card);border-radius:.4rem;padding:.1rem 1rem;margin-bottom:.5rem;
+  border-bottom:4px solid;
+}
+.slot.noun .label{color:var(--noun);border-color:var(--noun)}
+.slot.verb .label{color:var(--verb);border-color:var(--verb)}
+.slot:not(:disabled):hover{background:rgba(0,0,0,.24)}
+.pile{display:flex;flex-wrap:wrap;justify-content:center;gap:.3rem;align-content:flex-start}
+.chip{font-size:.95rem;padding:0 .5rem;border-radius:.3rem;line-height:1.7}
+.noun .chip{background:var(--noun-soft);color:var(--noun)}
+.verb .chip{background:var(--verb-soft);color:var(--verb)}
+.chip.miss{outline:2px dashed currentColor;outline-offset:-2px}
+.hint-tap{font-size:.85rem;color:var(--ink);opacity:.75;margin-top:auto;padding-top:.4rem}
+
+/* النتيجة */
+.feedback{min-height:5.5rem;margin:1rem 0 .5rem;padding:.8rem 1rem;border-radius:.6rem;background:var(--card);border-inline-start:5px solid var(--muted)}
+.feedback.ok{border-color:var(--ok)}
+.feedback.bad{border-color:var(--bad)}
+.feedback .verdict{font-weight:700}
+.feedback.ok .verdict{color:var(--ok)}
+.feedback.bad .verdict{color:var(--bad)}
+.feedback p{margin:0}
+
+.actions{display:flex;gap:.6rem}
+.btn{
+  flex:1;font:inherit;font-weight:700;cursor:pointer;border-radius:.5rem;padding:.55rem 1rem;
+  border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:focus-visible{outline:3px solid var(--noun);outline-offset:2px}
+.btn[hidden]{display:none}
+
+/* العلامات */
+details{margin-top:1.5rem;background:var(--card);border-radius:.6rem;padding:.2rem 1rem}
+summary{cursor:pointer;font-weight:700;padding:.6rem 0}
+summary:focus-visible{outline:3px solid var(--noun);outline-offset:2px}
+.signs{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding-bottom:1rem}
+.signs h3{font-family:"Reem Kufi",sans-serif;margin:0 0 .3rem;font-size:1.2rem}
+.signs .n h3{color:var(--noun)} .signs .v h3{color:var(--verb)}
+.signs ul{margin:0;padding-inline-start:1.1rem;font-size:1rem}
+.signs li{margin-bottom:.35rem}
+.signs small{color:var(--muted)}
+
+.add{display:grid;gap:.6rem;padding-bottom:1rem}
+.add label{font-size:.95rem;display:grid;gap:.2rem}
+.add input,.add select{font:inherit;padding:.4rem .6rem;border-radius:.4rem;border:2px solid var(--muted);background:var(--paper);color:var(--ink)}
+.note{font-size:.9rem;color:var(--muted);margin:0}
+
+.done{text-align:center;padding:1rem 0}
+.done .big{font-family:"Reem Kufi",sans-serif;font-size:2.4rem;margin:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>علبة الأسماء والأفعال</h1>
+  <p class="sub">اقرأ الكلمة، ثم اضغط على الخانة التي تنتمي إليها.</p>
+
+  <div class="stats"><span>الكلمة <b id="pos">1</b> من <b id="total">0</b></span><span>الصحيح: <b id="score">0</b></span></div>
+
+  <div class="stage"><div class="word enter" id="word">…</div></div>
+
+  <div class="box" aria-label="العلبة">
+    <div class="flaps" aria-hidden="true"><div class="flap"></div><div class="flap"></div></div>
+    <div class="body">
+      <button class="slot noun" id="nounSlot" aria-label="ضع الكلمة في خانة الأسماء">
+        <span class="label">اسم</span>
+        <div class="pile" id="nounPile"></div>
+        <span class="hint-tap">اضغط هنا</span>
+      </button>
+      <button class="slot verb" id="verbSlot" aria-label="ضع الكلمة في خانة الأفعال">
+        <span class="label">فعل</span>
+        <div class="pile" id="verbPile"></div>
+        <span class="hint-tap">اضغط هنا</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback" aria-live="polite">
+    <p>محتار؟ جرّب أن تُدخل على الكلمة «ال» أو «قد». اضغط «تلميح» للمساعدة.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn ghost" id="hintBtn">تلميح</button>
+    <button class="btn" id="nextBtn" hidden>الكلمة التالية</button>
+  </div>
+
+  <details open>
+    <summary>كيف أفرّق بينهما؟</summary>
+    <div class="signs">
+      <div class="n">
+        <h3>علامات الاسم</h3>
+        <ul>
+          <li>يقبل «ال» <small>(الـقلم)</small></li>
+          <li>يقبل التنوين <small>(قلمٌ)</small></li>
+          <li>يسبقه حرف جر <small>(في البيت)</small></li>
+          <li>يقبل النداء <small>(يا أحمد)</small></li>
+        </ul>
+      </div>
+      <div class="v">
+        <h3>علامات الفعل</h3>
+        <ul>
+          <li>يقبل «قد» <small>(قد نجح)</small></li>
+          <li>يقبل السين وسوف <small>(سيلعب)</small></li>
+          <li>يقبل تاء الفاعل <small>(كتبْتُ)</small></li>
+          <li>يقبل تاء التأنيث الساكنة <small>(ذهبَتْ)</small></li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>أضف كلماتك (للمعلم)</summary>
+    <div class="add">
+      <label>الكلمة <input id="newWord" placeholder="مثال: الوردةُ"></label>
+      <label>نوعها
+        <select id="newType"><option value="noun">اسم</option><option value="verb">فعل</option></select>
+      </label>
+      <label>سبب التصنيف <input id="newWhy" placeholder="مثال: دخلت عليها «ال»"></label>
+      <button class="btn" id="addBtn">أضف إلى العلبة</button>
+      <p class="note" id="addNote">تُحفظ الكلمات في هذا المتصفح وتدخل في الجولة القادمة.</p>
+      <button class="btn ghost" id="clearBtn">احذف كلماتي المضافة</button>
+    </div>
+  </details>
+</main>
+
+<script>
+const BASE = [
+  {w:"الشَّمْسُ", t:"noun", why:"دخلت عليها «ال» التعريف."},
+  {w:"قَلَمٌ", t:"noun", why:"آخرها تنوين، والتنوين من علامات الاسم."},
+  {w:"كَتَبَ", t:"verb", why:"تقبل تاء الفاعل: كتبْتُ. وهو فعل ماضٍ."},
+  {w:"مَدْرَسَةٌ", t:"noun", why:"آخرها تنوين، ونقول: في المدرسة."},
+  {w:"يَلْعَبُ", t:"verb", why:"تقبل السين: سيلعبُ. وهو فعل مضارع."},
+  {w:"البَحْرُ", t:"noun", why:"دخلت عليها «ال» التعريف."},
+  {w:"ذَهَبَتْ", t:"verb", why:"في آخرها تاء التأنيث الساكنة."},
+  {w:"أَحْمَدُ", t:"noun", why:"اسم علم، ويقبل النداء: يا أحمدُ."},
+  {w:"اُكْتُبْ", t:"verb", why:"فعل أمر يطلب القيام بالكتابة."},
+  {w:"عُصْفُورٌ", t:"noun", why:"آخرها تنوين."},
+  {w:"نَجَحَ", t:"verb", why:"تقبل «قد»: قد نجحَ."},
+  {w:"الحَدِيقَةِ", t:"noun", why:"دخلت عليها «ال»، ونقول: في الحديقةِ."},
+  {w:"يَقْرَأُ", t:"verb", why:"تقبل «سوف»: سوف يقرأُ."},
+  {w:"تُفَّاحَةٌ", t:"noun", why:"آخرها تنوين."},
+  {w:"شَرِبْتُ", t:"verb", why:"في آخرها تاء الفاعل."},
+  {w:"فَاطِمَةُ", t:"noun", why:"اسم علم، ونقول: ذهبتُ إلى فاطمةَ."},
+  {w:"اِجْلِسْ", t:"verb", why:"فعل أمر يطلب الجلوس."},
+  {w:"مُعَلِّمٌ", t:"noun", why:"آخرها تنوين، ويقبل «ال»: المعلّم."},
+  {w:"تَرْسُمُ", t:"verb", why:"تقبل السين: سترسمُ."},
+  {w:"بَيْتٌ", t:"noun", why:"آخرها تنوين."},
+  {w:"نَامَتْ", t:"verb", why:"في آخرها تاء التأنيث الساكنة."},
+  {w:"السَّمَاءُ", t:"noun", why:"دخلت عليها «ال» التعريف."},
+  {w:"سَيَسْبَحُ", t:"verb", why:"في أولها السين، وهي لا تدخل إلا على الفعل."},
+  {w:"فَهِمَ", t:"verb", why:"تقبل تاء الفاعل وقد: قد فهمْتُ."}
+];
+const HINT = {
+  noun:"جرّب: هل تصلح بعد «في» أو «يا»؟ هل يمكن أن تُدخل عليها «ال»؟",
+  verb:"جرّب: هل يمكن أن تقول قبلها «قد» أو «سوف»؟ أو تضيف في آخرها «تُ»؟"
+};
+const KEY = "nv-box-custom";
+const $ = id => document.getElementById(id);
+let deck = [], i = 0, score = 0, answered = false;
+
+function loadCustom(){
+  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(e){ return []; }
+}
+function saveCustom(list){
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch(e){}
+}
+function shuffle(a){ for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];} return a; }
+
+function start(){
+  deck = shuffle([...BASE, ...loadCustom()]);
+  i = 0; score = 0;
+  $("nounPile").innerHTML = ""; $("verbPile").innerHTML = "";
+  $("total").textContent = deck.length;
+  $("score").textContent = 0;
+  $("feedback").className = "feedback";
+  $("feedback").innerHTML = "<p>محتار؟ جرّب أن تُدخل على الكلمة «ال» أو «قد». اضغط «تلميح» للمساعدة.</p>";
+  show();
+}
+
+function show(){
+  answered = false;
+  const w = $("word");
+  w.className = "word";
+  void w.offsetWidth;
+  w.classList.add("enter");
+  w.textContent = deck[i].w;
+  $("pos").textContent = i + 1;
+  $("nextBtn").hidden = true;
+  $("hintBtn").hidden = false;
+  $("nounSlot").disabled = false; $("verbSlot").disabled = false;
+}
+
+function answer(choice){
+  if(answered) return;
+  answered = true;
+  const item = deck[i], right = choice === item.t;
+  if(right){ score++; $("score").textContent = score; }
+  $("nounSlot").disabled = true; $("verbSlot").disabled = true;
+
+  const w = $("word");
+  const place = () => {
+    const chip = document.createElement("span");
+    chip.className = "chip" + (right ? "" : " miss");
+    chip.textContent = item.w;
+    $(item.t === "noun" ? "nounPile" : "verbPile").appendChild(chip);
+    w.className = "word drop-" + item.t;
+  };
+  if(right){ place(); }
+  else { w.classList.remove("enter"); w.classList.add("shake"); setTimeout(place, 420); }
+
+  const name = item.t === "noun" ? "اسم" : "فعل";
+  const fb = $("feedback");
+  fb.className = "feedback " + (right ? "ok" : "bad");
+  fb.innerHTML = `<p class="verdict">${right ? "أحسنت! " : "ليست هنا. "}«${item.w}» ${name}.</p><p>${item.why}</p>`;
+
+  $("hintBtn").hidden = true;
+  $("nextBtn").hidden = false;
+  $("nextBtn").textContent = i === deck.length - 1 ? "النتيجة" : "الكلمة التالية";
+  $("nextBtn").focus();
+}
+
+function next(){
+  if(i < deck.length - 1){ i++; show(); return; }
+  const pct = Math.round(score / deck.length * 100);
+  const msg = pct === 100 ? "علامة كاملة!" : pct >= 75 ? "عمل رائع!" : pct >= 50 ? "جيد، واصل التدريب." : "راجع العلامات وحاول مرة أخرى.";
+  $("word").textContent = "✓";
+  $("feedback").className = "feedback ok";
+  $("feedback").innerHTML = `<div class="done"><p class="big">${score} / ${deck.length}</p><p>${msg} الكلمات المحاطة بخط متقطّع هي التي أخطأت فيها.</p></div>`;
+  $("nextBtn").textContent = "العب مرة أخرى";
+  $("nextBtn").onclick = () => { $("nextBtn").onclick = next; start(); };
+}
+
+$("nounSlot").onclick = () => answer("noun");
+$("verbSlot").onclick = () => answer("verb");
+$("nextBtn").onclick = next;
+$("hintBtn").onclick = () => {
+  const fb = $("feedback");
+  fb.className = "feedback";
+  fb.innerHTML = `<p>${HINT.noun}</p><p>${HINT.verb}</p>`;
+};
+
+$("addBtn").onclick = () => {
+  const w = $("newWord").value.trim();
+  if(!w){ $("addNote").textContent = "اكتب الكلمة أولًا."; return; }
+  const t = $("newType").value;
+  const why = $("newWhy").value.trim() || (t === "noun" ? "هذه الكلمة اسم." : "هذه الكلمة فعل.");
+  const list = loadCustom(); list.push({w, t, why}); saveCustom(list);
+  $("newWord").value = ""; $("newWhy").value = "";
+  $("addNote").textContent = `أُضيفت «${w}». عدد كلماتك: ${list.length}. ستظهر في الجولة القادمة.`;
+};
+$("clearBtn").onclick = () => {
+  saveCustom([]);
+  $("addNote").textContent = "حُذفت كلماتك المضافة.";
+};
+
+start();
+</script>
+</body>
+</html>

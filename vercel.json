@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/apps/mastoor", "destination": "/apps/mastoor/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/apps/mastoor/", "destination": "https://taroot80-blip.github.io/imam-mahdi/" },
+    { "source": "/apps/mastoor/:path*", "destination": "https://taroot80-blip.github.io/imam-mahdi/:path*" }
+  ]
+}

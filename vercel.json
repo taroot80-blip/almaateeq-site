@@ -20,6 +20,11 @@
       "source": "/apps/almisbar",
       "destination": "/apps/almisbar/",
       "permanent": false
+    },
+    {
+      "source": "/apps/nusuk",
+      "destination": "/apps/nusuk/",
+      "permanent": false
     }
   ],
   "rewrites": [

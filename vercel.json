@@ -67,7 +67,7 @@
       "headers": [
         {
           "key": "Link",
-          "value": "<https://almaateeq.com/apps/mawarith/>; rel=\"canonical\""
+          "value": "<https://www.almaateeq.com/apps/mawarith/>; rel=\"canonical\""
         }
       ]
     },
@@ -76,7 +76,7 @@
       "headers": [
         {
           "key": "Link",
-          "value": "<https://almaateeq.com/apps/mastoor/>; rel=\"canonical\""
+          "value": "<https://www.almaateeq.com/apps/mastoor/>; rel=\"canonical\""
         }
       ]
     },
@@ -85,7 +85,7 @@
       "headers": [
         {
           "key": "Link",
-          "value": "<https://almaateeq.com/apps/almisbar/>; rel=\"canonical\""
+          "value": "<https://www.almaateeq.com/apps/almisbar/>; rel=\"canonical\""
         }
       ]
     },
@@ -94,7 +94,7 @@
       "headers": [
         {
           "key": "Link",
-          "value": "<https://almaateeq.com/apps/almaalim/>; rel=\"canonical\""
+          "value": "<https://www.almaateeq.com/apps/almaalim/>; rel=\"canonical\""
         }
       ]
     }

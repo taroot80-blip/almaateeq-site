@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://almaateeq.com/sitemap.xml
+Sitemap: https://www.almaateeq.com/sitemap.xml

@@ -60,5 +60,43 @@
       "source": "/apps/almisbar/:path*",
       "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almisbar/:path*"
     }
+  ],
+  "headers": [
+    {
+      "source": "/apps/mawarith/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://almaateeq.com/apps/mawarith/>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/apps/mastoor/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://almaateeq.com/apps/mastoor/>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/apps/almisbar/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://almaateeq.com/apps/almisbar/>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/apps/almaalim/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "<https://almaateeq.com/apps/almaalim/>; rel=\"canonical\""
+        }
+      ]
+    }
   ]
 }

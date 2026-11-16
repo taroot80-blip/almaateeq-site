@@ -572,6 +572,10 @@ function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.g
   set("hh",(h+m/60)*30);set("mh",(m+s/60)*6);set("sh",s*6)}
 
 /* ================= رسم «اليوم» ================= */
+/* بصمة حالة اليوم: يُعاد الرسم فقط حين تتغير حالة إحدى البصمات */
+let lastSig="";
+function daySig(){const d=today(),n=nowMin(),c=C();if(d.in==null)return`none|${n>=c.earliest-25&&n<=c.graceEnd}|${n>c.graceEnd&&n<c.latestOut}`;
+  const P=plan(d.in,d.est,d.cfg);const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);return`in|${d.in}|${sP}|${evState(P.out,null,d.out,n)}|${!!d.est}`}
 function evState(start,end,doneAt,n){if(doneAt!=null)return"done";if(n<start)return"wait";if(end==null||n<=end)return"open";return"miss"}
 function render(){
   const c=C();paintCard();
@@ -619,7 +623,7 @@ function render(){
       sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"");
     h+=`<p class="muted" style="text-align:center;margin-top:10px">ينبّهك التطبيق قبل ${c.lead} ثانية من فتح التواجد ومن وقت الانصراف، وقبل ${c.lastCall} دقائق من إغلاق التواجد.</p>`;
   }
-  V.innerHTML=h;
+  V.innerHTML=h;lastSig=daySig();
   bindToday();moveHands();tickCd();
 }
 function bindToday(){
@@ -655,7 +659,7 @@ function checkAlerts(){
   for(const a of list){if(!d.fired[a.k]&&n>=a.at&&n<a.at+120){d.fired[a.k]=1;save();fireAlarm(a.k,a.title,a.msg,a.secs);break}}
 }
 setInterval(()=>{moveHands();tickCd();checkAlerts();
-  const d=today(),n=nowMin();if(d.in!=null){const P=plan(d.in,d.est);const st=document.querySelector(".ev.live");const shouldLive=(d.pres==null&&!P.exempt&&n>=P.ps&&n<=P.pe);if(!!st!==shouldLive&&document.getElementById("v-today").classList.contains("on"))render()}},1000);
+  if(document.getElementById("v-today").classList.contains("on")&&daySig()!==lastSig)render()},1000);
 
 /* ================= الساعة بالعقارب ================= */
 let pickM=420;

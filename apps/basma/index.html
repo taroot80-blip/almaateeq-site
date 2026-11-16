@@ -29,7 +29,7 @@
   --ease-out:cubic-bezier(.23,1,.32,1);--spring:cubic-bezier(.34,1.56,.64,1);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100dvh;background:var(--bg);color:var(--text);font-family:Tajawal,system-ui,sans-serif}
+html,body{overflow-x:hidden;margin:0;min-height:100dvh;background:var(--bg);color:var(--text);font-family:Tajawal,system-ui,sans-serif}
 ::selection{background:var(--gold);color:var(--ink)}
 button{font-family:inherit}
 :focus-visible{outline:2px solid var(--gold2);outline-offset:3px;border-radius:12px}
@@ -172,16 +172,16 @@ nav.tabs button[aria-selected=true]{color:var(--ink)}
 .calhead h3{margin:0;font-size:20px}
 .calnav{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold2);font-size:22px;cursor:pointer;box-shadow:0 4px 0 #5a3d0a}
 .calnav:disabled{opacity:.35;box-shadow:none}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
-.cal .wd{text-align:center;font-size:12px;color:var(--muted);font-weight:700}
-.cal .d{aspect-ratio:1;border-radius:12px;border:1px solid rgba(242,182,50,.14);background:rgba(255,255,255,.03);color:var(--text);font-family:Cairo,Tajawal,sans-serif;font-weight:700;font-size:15px;
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:12px;width:100%}
+.cal .wd{text-align:center;font-size:11px;white-space:nowrap;overflow:hidden;min-width:0;color:var(--muted);font-weight:700}
+.cal .d{min-width:0;padding:0;margin:0;font-size:14px!important;aspect-ratio:1;border-radius:12px;border:1px solid rgba(242,182,50,.14);background:rgba(255,255,255,.03);color:var(--text);font-family:Cairo,Tajawal,sans-serif;font-weight:700;font-size:15px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;position:relative;animation:pop .45s var(--spring) both;animation-delay:calc(var(--i)*14ms)}
 .cal .d small{font-size:10px;line-height:1}
 .cal .d.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.55)}
 .cal .d.bad{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.65);animation:pop .45s var(--spring) both,badpulse 2.2s ease-in-out infinite;animation-delay:calc(var(--i)*14ms),0s}
 .cal .d.leave{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.5)}
 .cal .d.live{background:rgba(242,182,50,.16);border-color:var(--gold)}
-.cal .d.off{opacity:.38}
+.cal .d.off{opacity:1}
 .cal .d.empty{visibility:hidden}
 .cal .d.today{box-shadow:0 0 0 2px var(--gold),0 0 16px rgba(242,182,50,.6)}
 .cal .d.sel{outline:2px solid #fff;outline-offset:1px}
@@ -868,7 +868,7 @@ addEventListener("resize",placePill);
 /* ================= البدء ================= */
 const t=new Date();document.getElementById("today").textContent=`${arDays[t.getDay()]} ${t.getDate()}/${t.getMonth()+1}/${t.getFullYear()}`;
 if(!S.since){S.since=dkey();save()}
-purge();nativeSync();
+purge();nativeSync();paintCard();
 const start=(location.hash||"#today").slice(1);go(views[start]?start:"today");
 setTimeout(()=>document.getElementById("splash").classList.add("off"),1900);
 })();

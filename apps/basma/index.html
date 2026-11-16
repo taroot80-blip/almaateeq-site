@@ -172,6 +172,12 @@ nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
 .view{display:none}.view.on{display:block}
+.iconbtn.about{width:auto!important;padding:0 10px;font-family:Cairo,Tajawal,sans-serif;font-weight:800;font-size:14px;gap:4px;display:inline-flex;align-items:center}
+.aboutPh{width:150px;height:150px;margin:6px auto 10px;border-radius:50%;padding:4px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
+.aboutPh img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;border:3px solid #1b130c;animation:spin 6s linear infinite reverse}
+.aboutName{font-family:Cairo,Tajawal,sans-serif;font-weight:800;font-size:22px;color:var(--gold2);text-align:center}
+.aboutRole{text-align:center;color:var(--muted);margin:2px 0 12px}
+.mail{display:block;text-align:center;direction:ltr;font-weight:800;font-size:18px;color:#99f6e4;margin:6px 0 10px;word-break:break-all}
 .bsel{flex-direction:column;gap:2px;line-height:1.3}
 .bsel small{font-weight:500;color:var(--muted);font-size:12px}
 .bsel.on{background:linear-gradient(180deg,#ffd66b,var(--gold));color:var(--ink);border-color:var(--gold)}
@@ -320,7 +326,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
 </div>
 
 <main class="app">
-  <div class="hero"><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
+  <div class="hero"><div class="tools"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
     <button class="iconbtn" id="bellBtn" aria-label="تفعيل الإشعارات">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
     </button></div><h1>بصمتي المرنة</h1><p>الحضور · التواجد · الانصراف — لمعلمي وزارة التربية وإدارييها</p><small class="disc">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية</small></div>
@@ -385,6 +391,21 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <h3>اكتب وقت بصمة الحضور كما ظهر في السجل</h3>
     <div class="field" style="margin:10px 0 14px"><label for="typeIn">الوقت</label><input type="time" id="typeIn" step="1" value="07:10:00"></div>
     <div class="row"><button class="btn primary" style="flex:2" id="typeOk">اعتمد</button><button class="btn ghost" style="flex:1" data-close>إلغاء</button></div>
+  </div>
+</div>
+
+<!-- حول التطبيق -->
+<div class="modal" id="mAbout" role="dialog" aria-modal="true" aria-label="حول التطبيق">
+  <div class="sheet">
+    <h3>حول «بصمتي المرنة»</h3>
+    <div class="aboutPh"><img src="about.jpg" alt="صورة المصمم"></div>
+    <div class="aboutName">تصميم وإعداد: محمد علي المعاتيق</div>
+    <div class="aboutRole">معلم في وزارة التربية — دولة الكويت</div>
+    <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
+    <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
+    <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 1.8</p>
+    <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
 
@@ -915,6 +936,8 @@ function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName"
     save();nativeSync();pushNative();paintCard();closeM();const v=document.querySelector(".view.on");if(v&&v.id==="v-bal")renderBal();toast("حُفظت بياناتك.")};
   openM("mWho")}
 document.getElementById("empBud").onclick=openWho;
+document.getElementById("aboutBtn").onclick=()=>openM("mAbout");
+document.getElementById("copyMail").onclick=async()=>{try{await navigator.clipboard.writeText("taroot80@gmail.com");toast("نُسخ البريد: taroot80@gmail.com")}catch(e){toast("البريد: taroot80@gmail.com")}};
 function resetToday(){const k=dkey();S.days[k]={fired:{}};save();if(N){try{N.setDay(k,JSON.stringify({reset:true}))}catch(e){}}closeM();closeAlarm();go("today");toast("صُفّر اليوم. سجّل وقت بصمتك الصحيح.");launchFlash()}
 document.getElementById("resetOk").onclick=resetToday;
 const views={today:render,cal:renderCal,bal:renderBal,forgot:renderForgot,rules:renderRules};

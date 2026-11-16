@@ -1,7 +1,7 @@
 // بصمتي المرنة: يحفظ التطبيق ليفتح دون إنترنت، ويجلب التحديثات متى توفرت الشبكة
-const CACHE = 'basma-v3';
+const CACHE = 'basma-v4';
 const CORE = [
-  './', './index.html', './manifest.webmanifest', './bg.jpg',
+  './', './index.html', './manifest.webmanifest', './bg.jpg', './about.jpg',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-apple-180.png', './icon-maskable-512.png',
   './fonts/cairo-arabic-700-normal.woff2', './fonts/cairo-arabic-800-normal.woff2',
   './fonts/cairo-latin-700-normal.woff2', './fonts/cairo-latin-800-normal.woff2',

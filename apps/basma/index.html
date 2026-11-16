@@ -77,7 +77,10 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .id .who{min-width:0;flex:1}
 .id .who h2{font-size:16px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .id .who .role{display:inline-block;margin-top:4px;padding:3px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px}
-.id .who .date{display:inline;color:var(--muted);font-size:12px;margin-inline-start:6px}
+.id .who .bud{display:inline-block;margin-inline-start:5px;padding:1px 8px;border-radius:999px;border:1px solid rgba(20,184,166,.6);background:rgba(20,184,166,.16);color:#99f6e4;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}
+.id .who .bud.need{border-color:#EF4444;background:rgba(239,68,68,.18);color:#fecaca;animation:badpulse 1.8s ease-in-out infinite}
+.id .who{white-space:nowrap;overflow:hidden}
+.id .who .date{display:inline;margin-inline-start:5px!important;color:var(--muted);font-size:12px;margin-inline-start:6px}
 .iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:transform .14s var(--ease-out)}
 .iconbtn:active{transform:scale(.92)}
 
@@ -169,6 +172,10 @@ nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
 .view{display:none}.view.on{display:block}
+.bsel{flex-direction:column;gap:2px;line-height:1.3}
+.bsel small{font-weight:500;color:var(--muted);font-size:12px}
+.bsel.on{background:linear-gradient(180deg,#ffd66b,var(--gold));color:var(--ink);border-color:var(--gold)}
+.bsel.on small{color:#3a2a10}
 .btn.ghost.reset{color:#fca5a5;border-color:rgba(239,68,68,.55);background:rgba(239,68,68,.1);box-shadow:0 5px 0 #5a1414}
 .resetIcon{font-size:54px;line-height:1;margin:4px 0 6px;animation:resetspin 1.6s var(--spring) both}
 @keyframes resetspin{from{transform:rotate(-200deg) scale(.4);opacity:0}to{transform:none;opacity:1}}
@@ -321,7 +328,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <button class="avatar" id="avBtn" aria-label="اختر صورتك"><span id="avIn"></span></button><input type="file" id="avFile" accept="image/*" hidden>
     <div class="who">
       <h2 id="empName" tabindex="0" role="button"></h2>
-      <span class="role" id="empRole"></span>
+      <span class="role" id="empRole"></span><span class="bud" id="empBud" role="button" tabindex="0"></span>
       <div class="date num" id="today"></div>
     </div>
     
@@ -378,6 +385,23 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <h3>اكتب وقت بصمة الحضور كما ظهر في السجل</h3>
     <div class="field" style="margin:10px 0 14px"><label for="typeIn">الوقت</label><input type="time" id="typeIn" step="1" value="07:10:00"></div>
     <div class="row"><button class="btn primary" style="flex:2" id="typeOk">اعتمد</button><button class="btn ghost" style="flex:1" data-close>إلغاء</button></div>
+  </div>
+</div>
+
+<!-- بطاقة الموظف أول مرة -->
+<div class="modal" id="mWho" role="dialog" aria-modal="true" aria-label="بيانات الموظف">
+  <div class="sheet">
+    <h3>مرحبًا بك في «بصمتي المرنة»</h3>
+    <p class="muted" style="text-align:center;margin:0 0 10px">سجّل بياناتك مرة واحدة، ويمكنك تعديلها لاحقًا من «اللوائح».</p>
+    <div class="field"><label for="wName">الاسم</label><input id="wName" placeholder="اكتب اسمك" autocomplete="name"></div>
+    <div class="field" style="margin-top:10px"><label>التعيين على ميزانية</label>
+      <div class="row" role="radiogroup">
+        <button class="btn ghost bsel" data-b="1" role="radio" style="flex:1">ميزانية شهر 1<br><small>السنة الوظيفية من 1 يناير</small></button>
+        <button class="btn ghost bsel" data-b="7" role="radio" style="flex:1">ميزانية شهر 7<br><small>السنة الوظيفية من 1 يوليو</small></button>
+      </div></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label for="wRole">الوظيفة</label><input id="wRole" value="معلم"></div>
+      <div class="field"><label for="wStage">المرحلة</label><select id="wStage"></select></div></div>
+    <button class="btn primary wide" id="wOk" style="margin-top:14px">احفظ وابدأ</button>
   </div>
 </div>
 
@@ -537,12 +561,13 @@ function launchFlash(){const f=document.createElement("div");f.style.cssText="po
 
 /* ================= بطاقة الموظف ================= */
 function paintCard(){const c=C();const nm=document.getElementById("empName");nm.textContent=c.name||"اضغط هنا لكتابة اسمك";nm.style.opacity=c.name?1:.75;
-  document.getElementById("empRole").textContent=`${c.role||"معلم"} · المرحلة ${(STAGES[c.stage]||STAGES.sec).label}`;
+  document.getElementById("empRole").textContent=`${c.role||"معلم"} · ${(STAGES[c.stage]||STAGES.sec).label}`;
+  const bd=document.getElementById("empBud");bd.textContent=c.budget?`ميزانية ${c.budget}`:"حدّد ميزانيتك";bd.classList.toggle("need",!c.budget);
   let ph=null;try{ph=localStorage.getItem("basma-photo")}catch(e){}
   document.getElementById("avIn").innerHTML=ph?`<img src="${ph}" alt="صورة الموظف">`:`<svg viewBox="0 0 64 64">${FP}</svg>`}
 document.getElementById("avBtn").onclick=()=>document.getElementById("avFile").click();
 document.getElementById("avFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const s=280,cv=document.createElement("canvas");cv.width=cv.height=s;const k=cv.getContext("2d");const m=Math.min(img.width,img.height);k.drawImage(img,(img.width-m)/2,(img.height-m)/2.6,m,m,0,0,s,s);try{localStorage.setItem("basma-photo",cv.toDataURL("image/jpeg",.85))}catch(err){toast("تعذّر حفظ الصورة.")}paintCard();URL.revokeObjectURL(img.src)};img.src=URL.createObjectURL(f)};
-document.getElementById("empName").onclick=()=>{go("rules");setTimeout(()=>{const i=document.getElementById("cName");if(i){i.scrollIntoView({block:"center"});i.focus()}},350)};
+document.getElementById("empName").onclick=()=>openWho();
 /* ================= الساعة الحيّة ================= */
 const CX=150,CY=150;
 function pt(r,deg){const a=(deg-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
@@ -701,26 +726,33 @@ function voice(){const R=window.SpeechRecognition||window.webkitSpeechRecognitio
 
 /* ================= الأرصدة ================= */
 const ym=k=>k.slice(0,7),yy=k=>k.slice(0,4);
+/* السنة الوظيفية: تبدأ 1 يناير لميزانية شهر 1، و1 يوليو لميزانية شهر 7 */
+const budget=()=>C().budget===7?7:1;
+function lyStart(k){const y=+k.slice(0,4),m=+k.slice(5,7);if(budget()===7)return m>=7?`${y}-07-01`:`${y-1}-07-01`;return`${y}-01-01`}
+function lyEnd(k){const s=lyStart(k),y=+s.slice(0,4);return budget()===7?`${y+1}-06-30`:`${y}-12-31`}
+const ly=k=>lyStart(k);
+const dmy=k=>{const[a,b,c]=k.split("-");return`${+c}/${+b}/${a}`};
 const isWork=d=>{const w=d.getDay();return w!==5&&w!==6};
 function sickRunLen(dates,add){const set=new Set([...dates,add]);let len=1;for(const dir of[-1,1]){let d=new Date(add+"T12:00");while(true){do{d.setDate(d.getDate()+dir)}while(!isWork(d));if(set.has(dkey(d)))len++;else break}}return len}
 function renderBal(){
   const c=C(),k=dkey(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);
-  const ard=S.ard.filter(d=>yy(d)===yy(k)),sick=S.sick.filter(d=>yy(d)===yy(k));
+  const ard=S.ard.filter(d=>ly(d)===ly(k)),sick=S.sick.filter(d=>ly(d)===ly(k));
   const V=document.getElementById("v-bal");
   V.innerHTML=`<div class="stagger">
-  <div class="card" style="--i:0"><h3>الاستئذانات · هذا الشهر</h3>
+  <div class="card" style="--i:0"><h3>الاستئذانات · هذا الشهر</h3><p class="muted" style="margin:-4px 0 6px">تُصفَّر في أول كل شهر، استُهلكت أم لم تُستهلك.</p>
     <div class="row" style="justify-content:space-between"><b class="num">${mo.length} من ${c.permsMax} مرات</b><span class="muted num">${dur(used)} من ${c.permsHours} ساعة</span></div>
     <div class="meter"><b style="width:${Math.min(100,used/(c.permsHours*60)*100)}%"></b></div>
     <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="pD" value="${k}"></div><div class="field"><label>من</label><input type="time" id="pF" value="07:10"></div><div class="field"><label>إلى</label><input type="time" id="pT" value="09:10"></div></div>
     <button class="btn primary wide" id="pAdd" style="margin-top:10px">أضف الاستئذان</button>
     <div class="list">${mo.length?mo.map((p,i)=>`<div class="li"><span class="num">${niceDate(p.date)} · ${fmt(toMin(p.from))} – ${fmt(toMin(p.to))}</span><button data-del="perms" data-id="${S.perms.indexOf(p)}">حذف</button></div>`).join(""):`<div class="empty">لا استئذانات هذا الشهر.</div>`}</div>
     <p class="muted">الاستئذان الذي يقع جزء منه داخل نافذة التواجد يُعفيك من بصمتها.</p></div>
-  <div class="card" style="--i:1"><h3>الإجازة العرضية</h3>
+  <div class="card" style="--i:0"><h3>سنتك الوظيفية</h3><p class="num">من <b>${dmy(lyStart(k))}</b> إلى <b>${dmy(lyEnd(k))}</b> · ميزانية شهر ${budget()}</p><p class="muted">تُصفَّر الإجازات العرضية والمرضية مع بداية السنة الوظيفية القادمة.</p></div>
+  <div class="card" style="--i:1"><h3>الإجازة العرضية · هذه السنة الوظيفية</h3>
     <div class="row" style="justify-content:space-between"><b class="num">${ard.length} من ${c.ardiya} يوم</b><span class="muted">تُحتسب حتى بعد مرور اليوم</span></div>
     <div class="meter"><b style="width:${Math.min(100,ard.length/c.ardiya*100)}%"></b></div>
     <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="aD" value="${k}"></div><button class="btn primary" id="aAdd" style="align-self:flex-end">أضف</button></div>
     <div class="list">${ard.length?ard.map(d=>`<div class="li"><span class="num">${niceDate(d)}</span><button data-del="ard" data-id="${S.ard.indexOf(d)}">حذف</button></div>`).join(""):`<div class="empty">لم تُستعمل بعد.</div>`}</div></div>
-  <div class="card" style="--i:2"><h3>الإجازة المرضية</h3>
+  <div class="card" style="--i:2"><h3>الإجازة المرضية · هذه السنة الوظيفية</h3>
     <div class="row" style="justify-content:space-between"><b class="num">${sick.length} من ${c.sick} يومًا</b><span class="muted">لا أكثر من ${c.sickRun} أيام متصلة</span></div>
     <div class="meter"><b style="width:${Math.min(100,sick.length/c.sick*100)}%"></b></div>
     <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="sD" value="${k}"></div><button class="btn primary" id="sAdd" style="align-self:flex-end">أضف</button></div>
@@ -731,8 +763,8 @@ function renderBal(){
     if(same.length>=c.permsMax)return toast(`استنفدت ${c.permsMax} استئذانات هذا الشهر. انظر بدائلك في «إذا نسيت».`);
     if(u+m>c.permsHours*60)return toast(`يتجاوز المجموع ${c.permsHours} ساعة؛ المتبقي لك ${dur(c.permsHours*60-u)} فقط.`);
     S.perms.push({date,from,to});save();pushNative();renderBal();toast("أُضيف الاستئذان.")};
-  $("aAdd").onclick=()=>{const d=$("aD").value;if(!d)return;if(S.ard.includes(d))return toast("هذا اليوم مسجّل.");if(S.ard.filter(x=>yy(x)===yy(d)).length>=c.ardiya)return toast("رصيد العرضية مستنفد.");S.ard.push(d);save();renderBal();toast("أُضيفت الإجازة العرضية.")};
-  $("sAdd").onclick=()=>{const d=$("sD").value;if(!d)return;if(S.sick.includes(d))return toast("هذا اليوم مسجّل.");if(S.sick.filter(x=>yy(x)===yy(d)).length>=c.sick)return toast("رصيد المرضية مستنفد.");
+  $("aAdd").onclick=()=>{const d=$("aD").value;if(!d)return;if(S.ard.includes(d))return toast("هذا اليوم مسجّل.");if(S.ard.filter(x=>ly(x)===ly(d)).length>=c.ardiya)return toast("رصيد العرضية مستنفد.");S.ard.push(d);save();renderBal();toast("أُضيفت الإجازة العرضية.")};
+  $("sAdd").onclick=()=>{const d=$("sD").value;if(!d)return;if(S.sick.includes(d))return toast("هذا اليوم مسجّل.");if(S.sick.filter(x=>ly(x)===ly(d)).length>=c.sick)return toast("رصيد المرضية مستنفد.");
     if(sickRunLen(S.sick,d)>c.sickRun)return toast(`لا يجوز أكثر من ${c.sickRun} أيام مرضية متصلة؛ اترك يوم عمل فاصلًا.`);S.sick.push(d);save();renderBal();toast("أُضيفت الإجازة المرضية.")};
   V.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S[b.dataset.del].splice(+b.dataset.id,1);save();pushNative();renderBal()});
 }
@@ -740,7 +772,7 @@ function renderBal(){
 /* ================= إذا نسيت ================= */
 function renderForgot(){
   const c=C(),k=dkey(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);
-  const pl=c.permsMax-mo.length,hl=c.permsHours*60-used,al=c.ardiya-S.ard.filter(d=>yy(d)===yy(k)).length,sl=c.sick-S.sick.filter(d=>yy(d)===yy(k)).length;
+  const pl=c.permsMax-mo.length,hl=c.permsHours*60-used,al=c.ardiya-S.ard.filter(d=>ly(d)===ly(k)).length,sl=c.sick-S.sick.filter(d=>ly(d)===ly(k)).length;
   const bal=`<div class="card"><h3>رصيدك الآن</h3><p class="num">استئذانات: <b>${pl}</b> مرات و<b>${dur(hl)}</b> · عرضية: <b>${al}</b> · مرضية: <b>${sl}</b> يومًا</p><p class="muted">النصائح أدناه تراعي هذا الرصيد، فحدّثه من قسم «الأرصدة».</p></div>`;
   const T=(color,title,steps,open)=>`<details class="tip"${open?" open":""}><summary><span class="dot" style="color:${color};background:${color}"></span>${title}</summary><div class="body"><ol>${steps.map(s=>`<li>${s}</li>`).join("")}</ol></div></details>`;
   const permLine=pl>0&&hl>0?`لديك <b>${pl}</b> استئذانات و<b>${dur(hl)}</b>؛ اطلب من القسم الإداري إدخال استئذان يغطي المدة.`:`<b>رصيد الاستئذانات مستنفد</b> هذا الشهر، فلا تعتمد عليه.`;
@@ -796,7 +828,8 @@ function renderRules(){
   <div class="card"><h3>ضبط الإعدادات</h3>
   <div class="row"><div class="field"><label for="cName">الاسم</label><input id="cName" value="${esc(c.name)}" placeholder="اكتب اسمك"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label for="cRole">الوظيفة</label><input id="cRole" value="${esc(c.role)}" placeholder="معلم، إداري، رئيس قسم…"></div>
-  <div class="field"><label for="cStage">المرحلة</label><select id="cStage">${Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("")}</select></div></div>
+  <div class="field"><label for="cBud">التعيين على ميزانية</label><select id="cBud"><option value="1"${budget()===1?" selected":""}>ميزانية شهر 1</option><option value="7"${budget()===7?" selected":""}>ميزانية شهر 7</option></select></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label for="cStage">المرحلة</label><select id="cStage">${Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("")}</select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>بداية السماح</label><input type="time" id="cE" value="${toHHMM(c.earliest)}"></div><div class="field"><label>نهاية السماح</label><input type="time" id="cG" value="${toHHMM(c.graceEnd)}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="0.25" value="${c.workMin/60}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
@@ -806,7 +839,7 @@ function renderRules(){
   <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
   const $=id=>document.getElementById(id);
   $("cStage").onchange=()=>{const s=STAGES[$("cStage").value];$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
-  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),role:$("cRole").value.trim()||DEF.role,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
+  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),role:$("cRole").value.trim()||DEF.role,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
   $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role};S.cfg=Object.assign({},DEF,keep);save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
   if(N){const b=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};b("sNotif",()=>N.requestNotif());b("sExact",()=>N.openExact());b("sUsage",()=>N.openUsage());b("sMoe",()=>N.openMoe());b("sBat",()=>N.openBattery())}
   $("cTest").onclick=()=>{audio();fireAlarm("test","تجربة التنبيه المميّز","هكذا ينبّهك التطبيق قبل 30 ثانية من وقت البصمة.",C().lead)};
@@ -873,6 +906,15 @@ function renderCal(){
   if($("eDel"))$("eDel").onclick=()=>{if(calSel===dkey()){openM("mReset");return}delete S.days[calSel];save();renderCal();toast("مُسح اليوم من السجل.")};
 }
 const toHHMMSS=m=>{const s=Math.round(m*60);return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
+function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName").value=c.name||"";$("wRole").value=c.role||"معلم";
+  $("wStage").innerHTML=Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("");
+  let b=c.budget||0;const paint=()=>document.querySelectorAll(".bsel").forEach(x=>{x.classList.toggle("on",+x.dataset.b===b);x.setAttribute("aria-checked",+x.dataset.b===b)});paint();
+  document.querySelectorAll(".bsel").forEach(x=>x.onclick=()=>{b=+x.dataset.b;paint()});
+  $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const st=$("wStage").value,s=STAGES[st];
+    Object.assign(S.cfg,{name:$("wName").value.trim(),role:$("wRole").value.trim()||"معلم",budget:b,stage:st,earliest:s.earliest,graceEnd:s.graceEnd,workMin:s.workMin,latestOut:s.latestOut});
+    save();nativeSync();pushNative();paintCard();closeM();const v=document.querySelector(".view.on");if(v&&v.id==="v-bal")renderBal();toast("حُفظت بياناتك.")};
+  openM("mWho")}
+document.getElementById("empBud").onclick=openWho;
 function resetToday(){const k=dkey();S.days[k]={fired:{}};save();if(N){try{N.setDay(k,JSON.stringify({reset:true}))}catch(e){}}closeM();closeAlarm();go("today");toast("صُفّر اليوم. سجّل وقت بصمتك الصحيح.");launchFlash()}
 document.getElementById("resetOk").onclick=resetToday;
 const views={today:render,cal:renderCal,bal:renderBal,forgot:renderForgot,rules:renderRules};
@@ -882,8 +924,9 @@ document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.datas
 addEventListener("resize",placePill);
 
 /* ================= البدء ================= */
-const t=new Date();document.getElementById("today").textContent=`${arDays[t.getDay()]} ${t.getDate()}/${t.getMonth()+1}/${t.getFullYear()}`;
+const t=new Date();document.getElementById("today").textContent=`${t.getDate()}/${t.getMonth()+1}/${t.getFullYear()}`;
 if(!S.since){S.since=dkey();save()}
+if(!S.cfg.budget)setTimeout(openWho,2200);
 purge();nativeSync();paintCard();
 const start=(location.hash||"#today").slice(1);go(views[start]?start:"today");
 setTimeout(()=>document.getElementById("splash").classList.add("off"),1900);

@@ -30,6 +30,16 @@
       "source": "/apps/nusuk",
       "destination": "/apps/nusuk/",
       "permanent": false
+    },
+    {
+      "source": "/apps/basma",
+      "destination": "/apps/basma/",
+      "permanent": false
+    },
+    {
+      "source": "/basma",
+      "destination": "/apps/basma/",
+      "permanent": false
     }
   ],
   "rewrites": [

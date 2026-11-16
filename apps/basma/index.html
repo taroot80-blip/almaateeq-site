@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>بصمتي المرنة</title>
+<style>
+@font-face{font-family:Cairo;font-weight:700;font-display:swap;src:url(fonts/cairo-arabic-700-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Cairo;font-weight:700;font-display:swap;src:url(fonts/cairo-latin-700-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Cairo;font-weight:800;font-display:swap;src:url(fonts/cairo-arabic-800-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Cairo;font-weight:800;font-display:swap;src:url(fonts/cairo-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Tajawal;font-weight:400;font-display:swap;src:url(fonts/tajawal-arabic-400-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-weight:400;font-display:swap;src:url(fonts/tajawal-latin-400-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Tajawal;font-weight:500;font-display:swap;src:url(fonts/tajawal-arabic-500-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-weight:500;font-display:swap;src:url(fonts/tajawal-latin-500-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Tajawal;font-weight:700;font-display:swap;src:url(fonts/tajawal-arabic-700-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-weight:700;font-display:swap;src:url(fonts/tajawal-latin-700-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:Tajawal;font-weight:800;font-display:swap;src:url(fonts/tajawal-arabic-800-normal.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0898-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
+@font-face{font-family:Tajawal;font-weight:800;font-display:swap;src:url(fonts/tajawal-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
+</style>
+<meta name="description" content="بصمتي المرنة: مواعيد بصمات الحضور والتواجد والانصراف لمعلمي وزارة التربية في الكويت وإدارييها. تطبيق مستقل غير تابع للوزارة.">
+<meta name="theme-color" content="#0b0805">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --gold:#F2B632;--gold2:#ffd66b;--ink:#1a120b;--bg:#0b0805;--card:rgba(20,14,9,.56);
+  --line:rgba(242,182,50,.28);--text:#f6ead2;--muted:#cdb994;--green:#22C55E;--red:#EF4444;--teal:#14B8A6;--sky:#38BDF8;
+  --ease-out:cubic-bezier(.23,1,.32,1);--spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100dvh;background:var(--bg);color:var(--text);font-family:Tajawal,system-ui,sans-serif}
+::selection{background:var(--gold);color:var(--ink)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--gold2);outline-offset:3px;border-radius:12px}
+
+/* ===== الخلفية: مبنى الوزارة خافتًا واضحًا ===== */
+.scene{position:fixed;inset:0;z-index:0;overflow:hidden}
+.scene .photo{position:absolute;inset:-4%;background:url(bg.jpg) 72% center/cover no-repeat;filter:saturate(1) brightness(.95) contrast(1.06);animation:drift 38s ease-in-out infinite alternate}
+.scene .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,8,5,.3) 0%,rgba(11,8,5,.18) 30%,rgba(11,8,5,.4) 70%,rgba(11,8,5,.72) 100%)}
+@keyframes drift{from{transform:scale(1.04) translate3d(0,0,0)}to{transform:scale(1.12) translate3d(-2%,1%,0)}}
+.laser{position:absolute;height:2px;width:70%;left:-70%;border-radius:2px;filter:blur(.3px);opacity:.8;
+  background:linear-gradient(90deg,transparent,var(--gold) 60%,#fff8);box-shadow:0 0 12px var(--gold),0 0 30px rgba(242,182,50,.5);animation:sweep 7s linear infinite}
+.laser.l2{top:38%;animation-delay:2.4s;animation-duration:9s;background:linear-gradient(90deg,transparent,var(--teal) 60%,#fff8);box-shadow:0 0 12px var(--teal)}
+.laser.l3{top:71%;animation-delay:4.6s;animation-duration:8s;background:linear-gradient(90deg,transparent,var(--sky) 60%,#fff8);box-shadow:0 0 12px var(--sky)}
+.laser.l1{top:14%}
+@keyframes sweep{0%{transform:translateX(0) rotate(-6deg)}100%{transform:translateX(260%) rotate(-6deg)}}
+.spark{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--gold2);box-shadow:0 0 8px var(--gold);opacity:0;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-60vh);opacity:0}}
+
+/* ===== الهيكل ===== */
+.app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100dvh;
+  padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 96px)}
+h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
+.num{font-variant-numeric:tabular-nums}
+
+.hero{position:relative;height:150px;display:flex;flex-direction:column;justify-content:flex-end;padding:0 4px 12px;animation:pop .8s var(--spring) both}
+.hero .tools{position:absolute;top:6px;left:0;display:flex;gap:10px}
+.hero h1{font-size:30px;color:#fff3d6;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 22px rgba(242,182,50,.45)}
+.hero .disc{display:block;margin-top:4px;color:#e9d8b4;font-size:12px;text-shadow:0 1px 6px #000}
+.hero p{margin:2px 0 0;color:#f3e3c2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.95)}
+/* بطاقة الموظف */
+.id{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;background:var(--card);border:1px solid var(--line);
+  backdrop-filter:blur(6px);position:relative;overflow:hidden;animation:pop .7s var(--spring) both}
+.id::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,230,160,.16) 50%,transparent 60%);transform:translateX(-100%);animation:shine 5s 1.5s ease-in-out infinite}
+.avatar{position:relative;width:76px;height:76px;flex-shrink:0;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
+.avatar{border:0;cursor:pointer}
+.avatar #avIn{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#1b130c;border:2px solid var(--bg);animation:spin 6s linear infinite reverse}
+.avatar #avIn svg{width:70%;height:70%;margin:15%}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.id .who{min-width:0;flex:1}
+.id .who h2{font-size:19px;line-height:1.3;overflow-wrap:anywhere}
+.id .who .role{display:inline-block;margin-top:4px;padding:3px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px}
+.id .who .date{color:var(--muted);font-size:13px;margin-top:5px}
+.iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:transform .14s var(--ease-out)}
+.iconbtn:active{transform:scale(.92)}
+
+.id .who .role{white-space:nowrap;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+/* بطاقات */
+.card{margin-top:14px;padding:16px;border-radius:22px;background:var(--card);border:1px solid var(--line);position:relative;
+  backdrop-filter:blur(6px);animation:pop .7s var(--spring) both}
+.card h3{font-size:18px;color:var(--gold2);margin-bottom:8px}
+.card p{margin:.3em 0;line-height:1.75;color:#eadbbd}
+.muted{color:var(--muted);font-size:14px}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shine{0%,70%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.stagger>*{animation-delay:calc(var(--i,0) * 70ms)}
+
+/* حافة مضيئة تدور حول بطاقة الساعة */
+.glow-edge{position:relative;isolation:isolate}
+.glow-edge::before{content:"";position:absolute;inset:-1.5px;border-radius:23px;z-index:-1;
+  background:conic-gradient(from var(--a,0deg),transparent 0 70%,var(--gold) 80%,#fff 84%,var(--teal) 88%,transparent 92%);animation:edge 4s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:1.5px}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes edge{to{--a:360deg}}
+
+/* الأزرار */
+.btn{position:relative;overflow:hidden;min-height:52px;border-radius:16px;border:0;padding:12px 18px;font-weight:800;font-size:17px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .14s var(--ease-out),box-shadow .2s}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(180deg,#ffd66b,var(--gold) 55%,#d99a17);color:var(--ink);
+  box-shadow:0 6px 0 #9a6a0b,0 10px 24px rgba(242,182,50,.35);animation:float 3.2s ease-in-out infinite,pulse 2.6s ease-in-out infinite}
+.btn.primary:active{box-shadow:0 2px 0 #9a6a0b,0 4px 12px rgba(242,182,50,.35);transform:translateY(4px) scale(.98)}
+.btn.primary::after,.btn.ghost::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-120%);animation:shine 3.6s ease-in-out infinite}
+.btn.ghost{background:rgba(242,182,50,.1);color:var(--gold2);border:1px solid var(--line)}
+.btn.ok{background:var(--green);color:#06210f;box-shadow:0 5px 0 #13843d}
+.btn.wide{width:100%}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -4px}}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(242,182,50,0))}50%{filter:drop-shadow(0 0 14px rgba(242,182,50,.55))}}
+
+/* طرق الإدخال: منزلقة */
+.methods{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 10px;margin:10px -2px 0;scrollbar-width:none}
+.methods::-webkit-scrollbar{display:none}
+.m{scroll-snap-align:start;flex:0 0 132px;min-height:104px;border-radius:18px;border:1px solid var(--line);background:rgba(30,21,13,.85);color:var(--text);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-weight:700;font-size:15px;
+  animation:slidein .6s var(--spring) both,float 4s ease-in-out infinite;transition:transform .14s var(--ease-out),border-color .2s}
+.m:nth-child(2){animation-delay:.08s,.4s}.m:nth-child(3){animation-delay:.16s,.8s}.m:nth-child(4){animation-delay:.24s,1.2s}
+.m:active{transform:scale(.95)}
+.m svg{width:34px;height:34px;color:var(--gold)}
+.m small{color:var(--muted);font-weight:500;font-size:12px}
+@keyframes slidein{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+
+/* الساعة الحيّة */
+.dialwrap{display:grid;place-items:center;padding-top:4px}
+#dial{width:min(84vw,330px);height:auto;overflow:visible}
+.dial-center{font-family:Cairo,Tajawal,sans-serif;fill:var(--text)}
+.fp path{fill:none;stroke:var(--gold);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 2.2s var(--ease-out) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.fp{animation:fpglow 2.4s ease-in-out infinite}
+@keyframes fpglow{0%,100%{filter:drop-shadow(0 0 2px rgba(242,182,50,.4))}50%{filter:drop-shadow(0 0 10px rgba(242,182,50,.9))}}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
+
+/* بطاقات البصمات الثلاث */
+.ev{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start;padding:14px;border-radius:18px;background:rgba(26,18,11,.66);border:1px solid var(--line);margin-top:10px;animation:pop .6s var(--spring) both;position:relative;overflow:hidden}
+.ev .ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--ink)}
+.ev h4{margin:0;font-size:17px;font-family:Cairo}
+.ev .range{font-size:22px;font-weight:800;margin-top:2px}
+.ev .range span{color:var(--muted);font-size:14px;font-weight:500}
+.ev .stat{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700}
+.ev .cd{font-size:14px;color:var(--muted);margin-top:4px}
+.ev .act{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.ev .act .btn{min-height:44px;font-size:15px;padding:8px 14px}
+.ev.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 28px rgba(242,182,50,.25)}
+.ev.live::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(242,182,50,.12),transparent);animation:shine 2.4s linear infinite}
+.s-wait{background:rgba(56,189,248,.15);color:var(--sky)}
+.s-open{background:rgba(242,182,50,.18);color:var(--gold2)}
+.s-done{background:rgba(34,197,94,.16);color:#6ee7a0}
+.s-miss{background:rgba(239,68,68,.16);color:#fca5a5}
+.s-ex{background:rgba(20,184,166,.16);color:#5eead4}
+
+.banner{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;margin-top:12px;font-weight:700;animation:pop .5s var(--spring) both}
+.banner.warn{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.45);color:#fecaca}
+.banner.info{background:rgba(20,184,166,.13);border:1px solid rgba(20,184,166,.4);color:#ccfbf1}
+
+/* شريط التنقل */
+nav.tabs{position:fixed;bottom:0;inset-inline:0;z-index:5;display:flex;justify-content:center;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
+  background:linear-gradient(180deg,transparent,rgba(11,8,5,.95) 35%)}
+nav.tabs .in{display:flex;gap:4px;max-width:520px;width:100%;padding:6px;border-radius:22px;background:rgba(20,14,9,.92);border:1px solid var(--line);position:relative}
+nav.tabs button{flex:1;min-height:52px;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;z-index:1;transition:color .2s}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected=true]{color:var(--ink)}
+.pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
+.view{display:none}.view.on{display:block}
+
+/* الأرصدة */
+.meter{height:12px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0 4px}
+.meter b{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .8s var(--ease-out)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:110px}
+.field label{font-size:13px;color:var(--muted)}
+input,select{font-family:inherit;font-size:16px;min-height:48px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);padding:8px 10px;width:100%}
+input[type=time],input[type=date]{color-scheme:dark}
+.list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(242,182,50,.12);font-size:15px}
+.li button{border:0;background:none;color:#fca5a5;font-size:14px;cursor:pointer;min-height:40px;padding:0 8px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+
+/* إذا نسيت */
+details.tip{margin-top:10px;border-radius:16px;background:rgba(26,18,11,.7);border:1px solid var(--line);overflow:hidden;animation:pop .6s var(--spring) both}
+details.tip summary{list-style:none;cursor:pointer;padding:14px 16px;font-weight:800;font-size:16px;display:flex;align-items:center;gap:10px;min-height:52px}
+details.tip summary::-webkit-details-marker{display:none}
+details.tip summary .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;box-shadow:0 0 10px currentColor}
+details.tip[open] summary{color:var(--gold2)}
+details.tip .body{padding:0 16px 14px;line-height:1.85;color:#eadbbd}
+details.tip ol{margin:0;padding-inline-start:20px}
+.src{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:rgba(56,189,248,.12);color:var(--sky);margin-inline-start:4px}
+.mine{background:rgba(242,182,50,.14);color:var(--gold2)}
+
+/* نوافذ */
+.modal{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:rgba(5,3,2,.6);backdrop-filter:blur(3px)}
+.modal.on{display:flex}
+.sheet{width:100%;max-width:520px;border-radius:26px 26px 0 0;background:#1b130c;border:1px solid var(--line);padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);animation:sheet .45s var(--spring) both}
+@keyframes sheet{from{transform:translateY(100%)}to{transform:none}}
+.sheet h3{color:var(--gold2);font-size:20px;text-align:center;margin-bottom:6px}
+#pick{width:min(78vw,300px);touch-action:none;display:block;margin:6px auto;cursor:grab}
+.bigtime{font-size:40px;font-weight:800;text-align:center;font-family:Cairo}
+
+/* التنبيه المميز */
+.alarm{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:radial-gradient(circle at 50% 42%,rgba(90,62,16,.97),rgba(11,8,5,.985) 62%)}
+.alarm.on{display:grid}
+.alarm .box{text-align:center;padding:24px;max-width:420px;animation:pop .5s var(--spring) both}
+.alarm .ring{width:220px;height:220px;margin:0 auto 14px;position:relative}
+.alarm .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.alarm .ring .t{position:absolute;inset:0;display:grid;place-items:center;font-size:58px;font-weight:800;font-family:Cairo,Tajawal,sans-serif;color:var(--gold2)}
+.alarm .ring::before,.alarm .ring::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--gold);animation:ripple 1.6s var(--ease-out) infinite;opacity:0}
+.alarm .ring::after{animation-delay:.8s}
+@keyframes ripple{from{transform:scale(.8);opacity:.9}to{transform:scale(1.35);opacity:0}}
+.alarm h2{font-size:26px;color:var(--gold2)}
+.alarm p{color:#f1e2c4;line-height:1.7}
+
+.toast{position:fixed;top:calc(env(safe-area-inset-top) + 14px);inset-inline:16px;z-index:40;margin:0 auto;max-width:480px;padding:12px 16px;border-radius:14px;background:#22180e;border:1px solid var(--gold);color:var(--text);font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.5);transform:translateY(calc(-100% - 60px));transition:transform .4s var(--spring)}
+.toast.on{transform:none}
+
+/* الافتتاحية */
+.splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#2a1d12,#0b0805 70%);transition:opacity .5s var(--ease-out),visibility .5s}
+.splash.off{opacity:0;visibility:hidden}
+.splash .c{text-align:center}
+.splash svg{width:120px;height:120px}
+.splash h1{font-size:34px;color:var(--gold2);margin-top:12px;animation:pop .8s .6s var(--spring) both}
+.splash p{color:var(--muted);animation:pop .8s .9s var(--spring) both}
+.splash .scan{position:absolute;inset-inline:20%;height:2px;background:var(--gold);box-shadow:0 0 18px var(--gold);top:38%;animation:scan 1.4s ease-in-out infinite alternate}
+@keyframes scan{to{top:52%}}
+
+
+/* ===== الشهب ===== */
+.meteor{position:absolute;top:-10%;width:2px;height:110px;border-radius:2px;opacity:0;transform:rotate(35deg);
+  background:linear-gradient(180deg,transparent,rgba(255,240,200,.25) 40%,#fff 100%);filter:drop-shadow(0 0 6px #ffd66b);animation:meteor linear infinite}
+.meteor::after{content:"";position:absolute;bottom:-3px;left:-3px;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 12px 4px #ffd66b,0 0 26px 8px rgba(242,182,50,.6)}
+@keyframes meteor{0%{opacity:0;translate:0 0}6%{opacity:1}22%{opacity:1}30%,100%{opacity:0;translate:-55vw 85vh}}
+/* ===== ومضة شاملة دورية ===== */
+.flashsky{position:absolute;inset:0;background:radial-gradient(circle at 70% 20%,rgba(255,226,150,.28),transparent 55%);opacity:0;animation:flashsky 9s ease-in-out infinite}
+@keyframes flashsky{0%,86%,100%{opacity:0}89%{opacity:1}92%{opacity:.2}95%{opacity:.8}}
+/* ===== نبض لوني للأزرار ===== */
+@keyframes huepulse{0%,100%{box-shadow:0 6px 0 #9a6a0b,0 0 0 0 rgba(242,182,50,.0),0 10px 26px rgba(242,182,50,.45)}
+  33%{box-shadow:0 6px 0 #9a6a0b,0 0 0 4px rgba(242,182,50,.35),0 10px 34px rgba(255,214,107,.8)}
+  66%{box-shadow:0 6px 0 #9a6a0b,0 0 0 6px rgba(20,184,166,.3),0 10px 34px rgba(20,184,166,.6)}}
+.btn.primary{animation:float 3.2s ease-in-out infinite,huepulse 2.8s ease-in-out infinite!important}
+.btn.ghost{box-shadow:0 5px 0 #5a3d0a,0 8px 18px rgba(0,0,0,.35);animation:ghostglow 3.4s ease-in-out infinite}
+.btn.ghost:active{transform:translateY(3px) scale(.98);box-shadow:0 2px 0 #5a3d0a}
+@keyframes ghostglow{0%,100%{border-color:rgba(242,182,50,.28)}50%{border-color:rgba(255,214,107,.9);background-color:rgba(242,182,50,.18)}}
+.btn.ok{animation:okglow 2.6s ease-in-out infinite}
+.btn.ok:active{transform:translateY(3px) scale(.98);box-shadow:0 2px 0 #13843d}
+.btn.ok::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.6) 50%,transparent 65%);transform:translateX(-120%);animation:shine 3s ease-in-out infinite}
+@keyframes okglow{0%,100%{box-shadow:0 5px 0 #13843d,0 8px 18px rgba(34,197,94,.3)}50%{box-shadow:0 5px 0 #13843d,0 0 0 4px rgba(34,197,94,.3),0 8px 30px rgba(34,197,94,.7)}}
+.m{box-shadow:0 6px 0 #3a2708,0 10px 20px rgba(0,0,0,.4)}
+.m:active{transform:translateY(4px) scale(.97);box-shadow:0 2px 0 #3a2708}
+.m svg{filter:drop-shadow(0 0 6px rgba(242,182,50,.8));animation:iconflash 2.2s ease-in-out infinite}
+@keyframes iconflash{0%,100%{opacity:.85}50%{opacity:1;filter:drop-shadow(0 0 12px #ffd66b)}}
+.iconbtn{box-shadow:0 4px 0 #5a3d0a;animation:ghostglow 3s ease-in-out infinite}
+.iconbtn.off{color:#9b8a6a;opacity:.8}
+/* ===== انفجار شرر عند الضغط ===== */
+.burst{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:60;background:#ffd66b;box-shadow:0 0 10px #F2B632;animation:burst .7s var(--ease-out) forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .scene .photo,.laser,.spark{animation-duration:30s}
+  .btn.primary,.m{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="scan"></div>
+  <div class="c">
+    <svg viewBox="0 0 64 64" class="fp" id="fpSplash"></svg>
+    <h1>بصمتي المرنة</h1>
+    <p>مواعيد بصمات الحضور والتواجد والانصراف</p>
+  </div>
+</div>
+
+<div class="scene" aria-hidden="true">
+  <div class="photo"></div><div class="veil"></div>
+  <div class="laser l1"></div><div class="laser l2"></div><div class="laser l3"></div>
+  <div class="flashsky"></div><div id="sparks"></div><div id="meteors"></div>
+</div>
+
+<main class="app">
+  <div class="hero"><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
+    <button class="iconbtn" id="bellBtn" aria-label="تفعيل الإشعارات">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
+    </button></div><h1>بصمتي المرنة</h1><p>الحضور · التواجد · الانصراف — لمعلمي وزارة التربية وإدارييها</p><small class="disc">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية</small></div>
+  <header class="id">
+    <button class="avatar" id="avBtn" aria-label="اختر صورتك"><span id="avIn"></span></button><input type="file" id="avFile" accept="image/*" hidden>
+    <div class="who">
+      <h2 id="empName" tabindex="0" role="button"></h2>
+      <span class="role" id="empRole"></span>
+      <div class="date num" id="today"></div>
+    </div>
+    
+  </header>
+
+  <!-- ===== اليوم ===== -->
+  <section class="view on" id="v-today"></section>
+
+  <!-- ===== الأرصدة ===== -->
+  <section class="view" id="v-bal"></section>
+
+  <!-- ===== إذا نسيت ===== -->
+  <section class="view" id="v-forgot"></section>
+
+  <!-- ===== اللوائح ===== -->
+  <section class="view" id="v-rules"></section>
+</main>
+
+<nav class="tabs" aria-label="أقسام التطبيق">
+  <div class="in" role="tablist" id="tabbar">
+    <span class="pill" id="pill"></span>
+    <button role="tab" data-v="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>اليوم</button>
+    <button role="tab" data-v="bal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>الأرصدة</button>
+    <button role="tab" data-v="forgot" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>إذا نسيت</button>
+    <button role="tab" data-v="rules" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h6M8 8h4"/></svg>اللوائح</button>
+  </div>
+</nav>
+
+<!-- نافذة الساعة بالعقارب -->
+<div class="modal" id="mClock" role="dialog" aria-modal="true" aria-label="تحديد وقت الحضور بالعقارب">
+  <div class="sheet">
+    <h3>حرّك عقرب الدقائق إلى وقت بصمتك</h3>
+    <p class="muted" style="text-align:center;margin:0">إدارة العقرب دورة كاملة تنقل الساعة</p>
+    <svg id="pick" viewBox="0 0 300 300"></svg>
+    <div class="bigtime num" id="pickTxt">7:00 ص</div>
+    <div class="row" style="justify-content:center;margin:8px 0 12px">
+      <button class="btn ghost" data-step="-5">٥ دقائق −</button>
+      <button class="btn ghost" data-step="-1">دقيقة −</button>
+      <button class="btn ghost" data-step="1">دقيقة +</button>
+      <button class="btn ghost" data-step="5">٥ دقائق +</button>
+    </div>
+    <div class="row">
+      <button class="btn primary" style="flex:2" id="pickOk">اعتمد هذا الوقت</button>
+      <button class="btn ghost" style="flex:1" data-close>إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة الكتابة -->
+<div class="modal" id="mType" role="dialog" aria-modal="true" aria-label="كتابة وقت الحضور">
+  <div class="sheet">
+    <h3>اكتب وقت بصمة الحضور كما ظهر في السجل</h3>
+    <div class="field" style="margin:10px 0 14px"><label for="typeIn">الوقت</label><input type="time" id="typeIn" step="1" value="07:10:00"></div>
+    <div class="row"><button class="btn primary" style="flex:2" id="typeOk">اعتمد</button><button class="btn ghost" style="flex:1" data-close>إلغاء</button></div>
+  </div>
+</div>
+
+<!-- التنبيه المميز -->
+<div class="alarm" id="alarm" role="alertdialog" aria-live="assertive" aria-labelledby="alTitle">
+  <div class="box">
+    <div class="ring">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="rgba(242,182,50,.15)" stroke-width="8" fill="none"/>
+        <circle id="alArc" cx="60" cy="60" r="52" stroke="#F2B632" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
+      <div class="t num" id="alSec">30</div>
+    </div>
+    <h2 id="alTitle">اقترب وقت بصمة التواجد</h2>
+    <p id="alMsg"></p>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <button class="btn ok" id="alDone">بصمتُ الآن</button>
+      <button class="btn ghost" id="alClose">إخفاء التنبيه</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(()=>{
+/* ================= الإعدادات واللوائح ================= */
+const STAGES={
+  kg:{label:"رياض الأطفال",earliest:405,graceEnd:450,workMin:300,latestOut:750},
+  pri:{label:"الابتدائية",earliest:405,graceEnd:450,workMin:360,latestOut:810},
+  mid:{label:"المتوسطة",earliest:415,graceEnd:460,workMin:360,latestOut:830},
+  sec:{label:"الثانوية",earliest:430,graceEnd:475,workMin:360,latestOut:845}
+};
+const N=window.Native||null;
+const DEF={
+  name:"", role:"معلم", stage:"sec",
+  earliest:430,   // 7:10 بداية فترة السماح في الثانوية
+  graceEnd:475,   // 7:55 نهاية فترة السماح
+  workMin:360,    // 6 ساعات فعلية
+  latestOut:845,  // 2:05 نهاية فترة الانصراف المرن
+  presDelay:120, presLen:60, lead:30, lastCall:5,
+  permsMax:4, permsHours:12, ardiya:2, sick:15, sickRun:3
+};
+const KEY="basma-v2";
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
+S.cfg=Object.assign({},DEF,S.cfg||{}); S.days=S.days||{}; S.perms=S.perms||[]; S.ard=S.ard||[]; S.sick=S.sick||[];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const C=()=>S.cfg;
+
+/* ================= أدوات الوقت ================= */
+const pad=n=>String(n).padStart(2,"0");
+const dkey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()+d.getSeconds()/60+d.getMilliseconds()/60000};
+const nowS=()=>Math.round(nowMin()*60)/60;
+function fmt(m){const s=Math.round(m*60);const h=Math.floor(s/3600)%24,mi=Math.floor(s/60)%60,se=s%60;const ap=h<12?"ص":"م";const h12=h%12||12;return se?`${h12}:${pad(mi)}:${pad(se)} ${ap}`:`${h12}:${pad(mi)} ${ap}`}
+function dur(min){min=Math.max(0,Math.round(min));const h=Math.floor(min/60),m=min%60;if(!h)return `${m} دقيقة`;if(!m)return h===1?"ساعة":h===2?"ساعتان":`${h} ساعات`;return `${h}:${pad(m)} ساعة`}
+function cdTxt(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?`${h}:${pad(m)}:${pad(s)}`:`${m}:${pad(s)}`}
+const toMin=t=>{const[a,b,c=0]=t.split(":").map(Number);return a*60+b+c/60};
+const toHHMM=m=>`${pad(Math.floor(m/60))}:${pad(Math.round(m%60))}`;
+const arDays=["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+function niceDate(k){const d=new Date(k+"T12:00");return `${arDays[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`}
+
+/* ================= الحساب وفق اللوائح ================= */
+function plan(p,est){
+  const c=C(); const lo=est?est.lo:p, hi=est?est.hi:p;
+  const eff=Math.max(hi,c.earliest);
+  const late=Math.max(0,lo-c.graceEnd);
+  const out=Math.min(eff+c.workMin,c.latestOut);
+  const ps=hi+c.presDelay, pe=lo+c.presDelay+c.presLen;
+  const todays=S.perms.filter(x=>x.date===dkey());
+  const exempt=todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
+  return{p:hi,lo,hi,est:!!est,eff,late,out,ps,pe,exempt};
+}
+
+/* ================= أيقونة البصمة ================= */
+const FP=`<g class="fp"><path d="M32 8c-11 0-20 8-20 19"/><path d="M52 27c0-11-9-19-20-19"/><path d="M18 30c0-8 6-14 14-14s14 6 14 14v4"/><path d="M24 50c-3-5-5-11-5-18 0-7 6-12 13-12s13 5 13 12c0 3 0 6-1 9"/><path d="M32 26c3 0 6 3 6 6 0 8-2 15-6 21"/><path d="M26 32c0-3 3-6 6-6"/><path d="M26 32c0 7 1 13 4 18"/><path d="M38 44c-1 4-2 7-4 10"/><path d="M44 52c2-6 2-12 2-17"/></g>`;
+document.getElementById("fpSplash").innerHTML=FP;
+
+/* ================= الخلفية: جزيئات ================= */
+(()=>{const mb=document.getElementById("meteors");for(let i=0;i<6;i++){const m=document.createElement("i");m.className="meteor";m.style.left=(45+Math.random()*60)+"%";m.style.animationDuration=(5+Math.random()*6)+"s";m.style.animationDelay=(i*1.7+Math.random())+"s";mb.appendChild(m)}})();
+(()=>{const box=document.getElementById("sparks");for(let i=0;i<18;i++){const s=document.createElement("i");s.className="spark";s.style.left=Math.random()*100+"%";s.style.top=(60+Math.random()*45)+"%";s.style.animationDuration=(6+Math.random()*8)+"s";s.style.animationDelay=(-Math.random()*10)+"s";box.appendChild(s)}})();
+
+/* ================= الصوت والتنبيه ================= */
+let AC=null;
+function audio(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
+addEventListener("pointerdown",audio,{once:true});
+function chime(){const a=audio();if(!a)return;const t=a.currentTime;[784,988,1319,1568].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(0,t+i*.13);g.gain.linearRampToValueAtTime(.28,t+i*.13+.02);g.gain.exponentialRampToValueAtTime(.001,t+i*.13+.45);o.connect(g).connect(a.destination);o.start(t+i*.13);o.stop(t+i*.13+.5)})}
+
+function tone(freqs,type="sine",gap=.07,len=.22,vol=.16){if(S.mute)return;const a=audio();if(!a)return;const t=a.currentTime;freqs.forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t+i*gap);g.gain.linearRampToValueAtTime(vol,t+i*gap+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*gap+len);o.connect(g).connect(a.destination);o.start(t+i*gap);o.stop(t+i*gap+len+.02)})}
+const sfx={tap:()=>tone([660,990],"triangle",.04,.09,.1),tab:()=>tone([523,784],"sine",.05,.16,.1),ok:()=>tone([523,659,784,1047],"triangle",.08,.35,.15),err:()=>tone([330,247],"square",.09,.18,.06)};
+function burstAt(x,y){for(let i=0;i<12;i++){const b=document.createElement("i");b.className="burst";const a=i/12*Math.PI*2,r=40+Math.random()*30;b.style.left=x+"px";b.style.top=y+"px";b.style.setProperty("--dx",Math.cos(a)*r+"px");b.style.setProperty("--dy",Math.sin(a)*r+"px");if(i%3===0)b.style.background="#5eead4";document.body.appendChild(b);setTimeout(()=>b.remove(),750)}}
+document.addEventListener("click",e=>{const b=e.target.closest("button,.m,summary");if(!b)return;burstAt(e.clientX||innerWidth/2,e.clientY||innerHeight/2);if(b.closest("nav.tabs"))sfx.tab();else if(b.matches(".ok,#nowBtn,#pickOk,#typeOk"))sfx.ok();else sfx.tap()},true);
+function paintSnd(){const b=document.getElementById("sndBtn");b.classList.toggle("off",!!S.mute);b.querySelector(".w").style.display=S.mute?"none":"";b.querySelector(".x").style.display=S.mute?"":"none";b.setAttribute("aria-label",S.mute?"تشغيل الأصوات":"إطفاء الأصوات")}
+document.getElementById("sndBtn").onclick=()=>{S.mute=!S.mute;save();paintSnd();if(!S.mute)sfx.ok();toast(S.mute?"أُطفئت أصوات الأزرار. يبقى صوت تنبيه البصمة.":"شُغّلت الأصوات.")};
+paintSnd();window.__sfx=sfx;
+let alarmTimer=null,alarmKey=null;
+function fireAlarm(key,title,msg,secs){
+  alarmKey=key;const el=document.getElementById("alarm");
+  document.getElementById("alTitle").textContent=title;document.getElementById("alMsg").textContent=msg;
+  el.classList.add("on");let left=secs;const arc=document.getElementById("alArc"),sec=document.getElementById("alSec");
+  clearInterval(alarmTimer);const tick=()=>{sec.textContent=left;arc.style.strokeDashoffset=326.7*(1-left/secs);if(left%2===0&&!N)chime();if(navigator.vibrate)navigator.vibrate([220,90,220]);if(left<=0){clearInterval(alarmTimer);sec.textContent="الآن"}left--};tick();alarmTimer=setInterval(tick,1000);
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body:msg,tag:key,requireInteraction:true})}catch(e){}
+}
+function closeAlarm(){clearInterval(alarmTimer);document.getElementById("alarm").classList.remove("on")}
+document.getElementById("alClose").onclick=closeAlarm;
+document.getElementById("alDone").onclick=()=>{const d=today();if(alarmKey&&alarmKey.startsWith("pres"))d.pres=nowS();if(alarmKey==="out")d.out=nowS();save();pushNative();closeAlarm();toast("سُجّلت البصمة. أحسنت.");render()};
+document.getElementById("bellBtn").onclick=async()=>{audio();chime();
+  try{if("Notification" in window){const r=await Notification.requestPermission();toast(r==="granted"?"فُعّلت إشعارات الهاتف مع التنبيه داخل التطبيق.":"الإشعارات غير متاحة هنا، وسيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}else toast("سيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}catch(e){toast("سيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}};
+
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(t){if(/استنفد|يتجاوز|لا يجوز|أكمل|يجب|غير|تعذّر|لم أفهم/.test(t)&&window.__sfx)window.__sfx.err();const el=document.getElementById("toast");el.textContent=t;el.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("on"),3800)}
+
+/* ================= بيانات اليوم ================= */
+function today(){const k=dkey();S.days[k]=S.days[k]||{fired:{}};S.days[k].fired=S.days[k].fired||{};return S.days[k]}
+function setPunch(m){const d=today();d.in=Math.round(m*60)/60;delete d.est;d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
+/* ===== الجسر مع نسخة أندرويد ===== */
+function nativeSync(){if(!N)return;try{N.setConfig(JSON.stringify(C()))}catch(e){}
+  try{const n=JSON.parse(N.getDay(dkey())||"{}"),d=today();
+    if(n.in!=null&&(d.in==null||d.est)){d.in=n.in;delete d.est}
+    else if(d.in==null&&n.lo!=null){d.est={lo:n.lo,hi:n.hi!=null?n.hi:n.lo};d.in=d.est.hi}
+    if(n.pres!=null&&d.pres==null)d.pres=n.pres;if(n.out!=null&&d.out==null)d.out=n.out;save()}catch(e){}}
+function pushNative(reset){if(!N)return;const d=today(),o={reset:!!reset};
+  if(d.in!=null){if(d.est){o.lo=d.est.lo;o.hi=d.est.hi}else o.in=d.in;const P=plan(d.in,d.est);if(P.exempt)o.exempt=true}
+  if(d.pres!=null)o.pres=d.pres;if(d.out!=null)o.out=d.out;try{N.setDay(dkey(),JSON.stringify(o))}catch(e){}}
+window.onNativeResume=()=>{nativeSync();const v=document.querySelector(".view.on");if(v&&v.id==="v-today")render();else if(v&&v.id==="v-rules")renderRules()};
+window.onOcr=function(js){let r;try{r=JSON.parse(js)}catch(e){r={error:1}}
+  if(r.error||!r.items||!r.items.length){toast("لم أجد أوقاتًا في الصورة. صوّر شاشة «الحضور والانصراف» وفيها سطور اليوم.");return}
+  const k=dkey();const ts=[...new Set(r.items.filter(x=>x.date===k).map(x=>x.time))].map(toMin).sort((a,b)=>a-b);
+  if(!ts.length){toast("لا توجد في الصورة بصمات بتاريخ اليوم.");return}
+  const d=today();d.in=ts[0];delete d.est;d.pres=null;d.out=null;d.fired={};const P=plan(d.in,null);
+  for(const t of ts.slice(1)){if(d.pres==null&&t>=P.ps&&t<=P.pe)d.pres=t;else if(d.out==null&&t>=P.out)d.out=t}
+  save();pushNative(true);render();launchFlash();toast(`قُرئت بصمات اليوم من الصورة: الحضور ${fmt(d.in)}${d.pres!=null?" · التواجد "+fmt(d.pres):""}${d.out!=null?" · الانصراف "+fmt(d.out):""}`)};
+window.onVoice=function(js){let a=[];try{a=JSON.parse(js)}catch(e){}for(const t of a){const m=parseSpoken(t);if(m!=null){setPunch(m);return}}toast(a.length?`لم أفهم الوقت من: «${a[0]}». جرّب «سبعة وخمسة وعشرين».`:"لم يُسمع شيء. حاول مرة أخرى.")};
+window.basmaBack=function(){if(document.getElementById("alarm").classList.contains("on")){closeAlarm();return 1}const m=document.querySelector(".modal.on");if(m){closeM();return 1}if(!document.getElementById("v-today").classList.contains("on")){go("today");return 1}return 0};
+function launchFlash(){const f=document.createElement("div");f.style.cssText="position:fixed;inset:0;z-index:25;pointer-events:none;background:radial-gradient(circle at 50% 40%,rgba(255,220,120,.55),transparent 60%);animation:pop .1s both;transition:opacity .7s";document.body.appendChild(f);requestAnimationFrame(()=>{f.style.opacity="0"});setTimeout(()=>f.remove(),800)}
+
+/* ================= بطاقة الموظف ================= */
+function paintCard(){const c=C();const nm=document.getElementById("empName");nm.textContent=c.name||"اضغط هنا لكتابة اسمك";nm.style.opacity=c.name?1:.75;
+  document.getElementById("empRole").textContent=`${c.role||"معلم"} · المرحلة ${(STAGES[c.stage]||STAGES.sec).label}`;
+  let ph=null;try{ph=localStorage.getItem("basma-photo")}catch(e){}
+  document.getElementById("avIn").innerHTML=ph?`<img src="${ph}" alt="صورة الموظف">`:`<svg viewBox="0 0 64 64">${FP}</svg>`}
+document.getElementById("avBtn").onclick=()=>document.getElementById("avFile").click();
+document.getElementById("avFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const s=280,cv=document.createElement("canvas");cv.width=cv.height=s;const k=cv.getContext("2d");const m=Math.min(img.width,img.height);k.drawImage(img,(img.width-m)/2,(img.height-m)/2.6,m,m,0,0,s,s);try{localStorage.setItem("basma-photo",cv.toDataURL("image/jpeg",.85))}catch(err){toast("تعذّر حفظ الصورة.")}paintCard();URL.revokeObjectURL(img.src)};img.src=URL.createObjectURL(f)};
+document.getElementById("empName").onclick=()=>{go("rules");setTimeout(()=>{const i=document.getElementById("cName");if(i){i.scrollIntoView({block:"center"});i.focus()}},350)};
+/* ================= الساعة الحيّة ================= */
+const CX=150,CY=150;
+function pt(r,deg){const a=(deg-90)*Math.PI/180;return[CX+r*Math.cos(a),CY+r*Math.sin(a)]}
+const ang=m=>(m%720)/720*360;
+function arc(r,m1,m2){const a1=ang(m1),a2=a1+((m2-m1)/720*360);const[x1,y1]=pt(r,a1),[x2,y2]=pt(r,a2);const large=a2-a1>180?1:0;return`M${x1} ${y1}A${r} ${r} 0 ${large} 1 ${x2} ${y2}`}
+function dialSVG(P){
+  let ticks="";for(let i=0;i<60;i++){const L=i%5?6:12,[x1,y1]=pt(132,i*6),[x2,y2]=pt(132-L,i*6);ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i%5?"rgba(242,182,50,.3)":"rgba(242,182,50,.8)"}" stroke-width="${i%5?1:2}"/>`}
+  let nums="";[12,1,2,3,4,5,6,7,8,9,10,11].forEach((n,i)=>{const[x,y]=pt(108,i*30);nums+=`<text x="${x}" y="${y+5}" text-anchor="middle" font-size="14" fill="#cdb994" font-family="Tajawal" font-weight="700">${n}</text>`});
+  let arcs="";
+  if(P){arcs+=`<path d="${arc(140,P.ps,P.pe)}" stroke="#14B8A6" stroke-width="10" fill="none" stroke-linecap="round" filter="url(#gl)"/>`;
+    const oe=Math.max(P.out+2,C().latestOut);arcs+=`<path d="${arc(140,P.out,oe)}" stroke="#F2B632" stroke-width="10" fill="none" stroke-linecap="round" filter="url(#gl)"/>`;
+    const[ix,iy]=pt(140,ang(P.p));arcs+=`<circle cx="${ix}" cy="${iy}" r="8" fill="#22C55E" stroke="#0b0805" stroke-width="3"/>`}
+  return`<svg id="dial" viewBox="-10 -10 320 320" role="img" aria-label="ساعة اليوم ومواعيد البصمات">
+  <defs><filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <radialGradient id="face"><stop offset="0" stop-color="#2a1d12"/><stop offset="1" stop-color="#120c07"/></radialGradient></defs>
+  <circle cx="150" cy="150" r="146" fill="url(#face)" stroke="rgba(242,182,50,.35)"/>
+  ${ticks}${nums}${arcs}
+  <g id="hands"><line id="hh" x1="150" y1="150" x2="150" y2="92" stroke="#f6ead2" stroke-width="5" stroke-linecap="round"/>
+  <line id="mh" x1="150" y1="150" x2="150" y2="62" stroke="#f6ead2" stroke-width="3" stroke-linecap="round"/>
+  <line id="sh" x1="150" y1="162" x2="150" y2="44" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"/></g>
+  <g transform="translate(126 120) scale(.75)">${FP}</g>
+  <circle cx="150" cy="150" r="4" fill="#F2B632"/>
+  <text class="dial-center num" id="dialCd" x="150" y="200" text-anchor="middle" font-size="22" font-weight="700" fill="#ffd66b"></text>
+  <text id="dialLb" x="150" y="220" text-anchor="middle" font-size="12" fill="#cdb994" font-family="Tajawal"></text></svg>`}
+function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.getSeconds();
+  const set=(id,deg)=>{const el=document.getElementById(id);if(el)el.setAttribute("transform",`rotate(${deg} 150 150)`)};
+  set("hh",(h+m/60)*30);set("mh",(m+s/60)*6);set("sh",s*6)}
+
+/* ================= رسم «اليوم» ================= */
+function evState(start,end,doneAt,n){if(doneAt!=null)return"done";if(n<start)return"wait";if(end==null||n<=end)return"open";return"miss"}
+function render(){
+  const c=C();paintCard();
+  const d=today(),V=document.getElementById("v-today");
+  const n=nowMin();
+  let h="";
+  if(d.in==null){
+    const late=n>c.graceEnd&&n<c.latestOut;
+    h+=`<div class="card glow-edge" style="text-align:center">
+      <div class="dialwrap">${dialSVG(null)}</div>
+      <h3 style="margin-top:6px">سجّل وقت بصمة الحضور</h3>
+      <p class="muted">أسرع طريقة: اضغط الزر لحظة وضع إصبعك على جهاز البصمة، فيأخذ التطبيق الوقت بنفسه.</p>
+      <button class="btn primary wide" id="nowBtn" style="margin-top:10px;font-size:19px;min-height:60px">
+        <svg width="26" height="26" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M18 30c0-8 6-14 14-14s14 6 14 14v4"/><path d="M24 50c-3-5-5-11-5-18"/><path d="M32 26c3 0 6 3 6 6 0 8-2 15-6 21"/><path d="M44 52c2-6 2-12 2-17"/></svg>
+        بصمتُ الحضور الآن</button>
+      ${N?`<button class="btn ghost wide" id="moeBtn" style="margin-top:12px">افتح تطبيق الوزارة للبصمة</button>`:""}
+      <p class="muted" style="margin-top:12px">أو أدخل وقتًا سابقًا بإحدى هذه الطرق:</p>
+      <div class="methods">
+        <button class="m" id="mClockBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>ساعة بالعقارب<small>حرّك العقرب</small></button>
+        <button class="m" id="mVoiceBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>تلقين صوتي<small>«سبعة وعشرين»</small></button>
+        ${N?`<button class="m" id="mShotBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>لقطة الشاشة<small>من سجل الحضور</small></button>`:""}
+        <button class="m" id="mTypeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>كتابة الوقت<small>كما في النظام</small></button>
+      </div>
+    </div>`;
+    if(n>=c.earliest-25&&n<=c.graceEnd)h+=`<div class="banner info">⏰ هذا وقت بصمة الحضور. إن بصمت فاضغط «بصمتُ الحضور الآن».</div>`;
+    if(late)h+=`<div class="banner warn">تجاوزتَ نهاية فترة السماح (${fmt(c.graceEnd)}). إن لم تبصم بعد فابصم فورًا، وراجع قسم «إذا نسيت».</div>`;
+  }else{
+    const P=plan(d.in,d.est);
+    const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);
+    const sO=evState(P.out,null,d.out,n);
+    const next=sP==="wait"?{t:P.ps,l:"حتى فتح بصمة التواجد"}:sP==="open"?{t:P.pe,l:"حتى إغلاق بصمة التواجد"}:sO==="wait"?{t:P.out,l:"حتى وقت الانصراف"}:null;
+    h+=`<div class="card glow-edge"><div class="dialwrap">${dialSVG(P)}</div>
+      <div class="legend"><span><i style="background:#22C55E"></i>الحضور</span><span><i style="background:#14B8A6"></i>نافذة التواجد</span><span><i style="background:#F2B632"></i>الانصراف</span></div></div>`;
+    if(P.est)h+=`<div class="banner info" style="flex-direction:column;align-items:stretch">وقت تقديري من فتحك تطبيق الوزارة: بين ${fmt(P.lo)} و${fmt(P.hi)}. حُسبت النوافذ بالأحوط. ولاعتماد الوقت الدقيق اقرأ لقطة شاشة «الحضور والانصراف».${N?`<button class="btn ghost" id="shotBtn2" style="margin-top:8px">قراءة لقطة الشاشة</button>`:""}</div>`;
+    if(P.late)h+=`<div class="banner warn">حضورك بعد نهاية فترة السماح بـ ${dur(P.late)}؛ تُحتسب هذه المدة تأخيرًا. ويمكن تغطيتها باستئذان إن بقي رصيد.</div>`;
+    const stTxt={wait:["s-wait","لم يحن بعد"],open:["s-open","مفتوحة الآن"],done:["s-done","تمت"],miss:["s-miss","فاتت"],ex:["s-ex","معفاة باستئذان"]};
+    const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="ic" style="background:${col}">${ic}</div><div>
+      <h4>${title}</h4><div class="range num">${range}</div>
+      <span class="stat ${stTxt[st][0]}">${stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}</div></div>`;
+    h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>تعديل الوقت</button>");
+    h+=ev(1,"٢","#14B8A6","بصمة التواجد",`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
+      sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها":"راجع قسم «إذا نسيت» الآن",
+      sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"");
+    h+=ev(2,"٣","#F2B632","بصمة الانصراف",`من ${fmt(P.out)}`,sO,
+      sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`,
+      sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"");
+    h+=`<p class="muted" style="text-align:center;margin-top:10px">ينبّهك التطبيق قبل ${c.lead} ثانية من فتح التواجد ومن وقت الانصراف، وقبل ${c.lastCall} دقائق من إغلاق التواجد.</p>`;
+  }
+  V.innerHTML=h;
+  bindToday();moveHands();tickCd();
+}
+function bindToday(){
+  const $=id=>document.getElementById(id);
+  $("nowBtn")&&($("nowBtn").onclick=()=>setPunch(nowMin()));
+  $("mClockBtn")&&($("mClockBtn").onclick=()=>openClock());
+  $("mTypeBtn")&&($("mTypeBtn").onclick=()=>openM("mType"));
+  $("mVoiceBtn")&&($("mVoiceBtn").onclick=()=>{if(N){try{N.voice()}catch(e){voice()}}else voice()});
+  $("mShotBtn")&&($("mShotBtn").onclick=()=>N.pickImage());
+  $("shotBtn2")&&($("shotBtn2").onclick=()=>N.pickImage());
+  $("moeBtn")&&($("moeBtn").onclick=()=>N.openMoe());
+  $("editIn")&&($("editIn").onclick=()=>openClock(today().in));
+  $("presDone")&&($("presDone").onclick=()=>{today().pres=nowS();save();pushNative();render();toast("سُجّلت بصمة التواجد.");launchFlash()});
+  $("outDone")&&($("outDone").onclick=()=>{today().out=nowS();save();pushNative();render();toast("سُجّلت بصمة الانصراف. يومًا موفقًا.");launchFlash()});
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+}
+function tickCd(){const n=nowMin()*60;document.querySelectorAll("[data-cd]").forEach(b=>b.textContent=cdTxt(+b.dataset.cd*60-n));
+  const d=today(),cd=document.getElementById("dialCd"),lb=document.getElementById("dialLb");if(!cd)return;
+  if(d.in==null){cd.textContent=fmt(nowMin());lb.textContent="الوقت الآن";return}
+  const P=plan(d.in,d.est),c=C();let t=null,l="";
+  if(d.pres==null&&!P.exempt&&n<P.ps*60){t=P.ps;l="حتى فتح التواجد"}else if(d.pres==null&&!P.exempt&&n<=P.pe*60){t=P.pe;l="حتى إغلاق التواجد"}else if(d.out==null&&n<P.out*60){t=P.out;l="حتى الانصراف"}
+  if(t!=null){cd.textContent=cdTxt(t*60-n);lb.textContent=l}else{cd.textContent=d.out!=null?"اكتمل":fmt(nowMin());lb.textContent=d.out!=null?"بصماتك الثلاث":"الانصراف متاح"}
+}
+
+/* ================= فحص التنبيهات كل ثانية ================= */
+function checkAlerts(){
+  const d=today();if(d.in==null)return;const P=plan(d.in,d.est),c=C(),n=nowMin()*60;
+  const list=[];
+  if(d.pres==null&&!P.exempt){list.push({k:"pres",at:P.ps*60-c.lead,title:"اقترب وقت بصمة التواجد",msg:`تُفتح بصمة التواجد ${fmt(P.ps)} وتبقى حتى ${fmt(P.pe)}. توجّه إلى جهاز البصمة.`,secs:c.lead});
+    list.push({k:"presLast",at:(P.pe-c.lastCall)*60,title:"تنبيه أخير: التواجد يُغلق",msg:`بقيت ${c.lastCall} دقائق على إغلاق بصمة التواجد (${fmt(P.pe)}).`,secs:30})}
+  if(d.out==null)list.push({k:"out",at:P.out*60-c.lead,title:"اقترب وقت بصمة الانصراف",msg:`تصح بصمة الانصراف من ${fmt(P.out)}. الانصراف قبلها يُحتسب نقصًا.`,secs:c.lead});
+  for(const a of list){if(!d.fired[a.k]&&n>=a.at&&n<a.at+120){d.fired[a.k]=1;save();fireAlarm(a.k,a.title,a.msg,a.secs);break}}
+}
+setInterval(()=>{moveHands();tickCd();checkAlerts();
+  const d=today(),n=nowMin();if(d.in!=null){const P=plan(d.in,d.est);const st=document.querySelector(".ev.live");const shouldLive=(d.pres==null&&!P.exempt&&n>=P.ps&&n<=P.pe);if(!!st!==shouldLive&&document.getElementById("v-today").classList.contains("on"))render()}},1000);
+
+/* ================= الساعة بالعقارب ================= */
+let pickM=420;
+function openClock(m){pickM=m??Math.max(420,Math.min(Math.round(nowMin()),480));drawPick();openM("mClock")}
+function drawPick(){const svg=document.getElementById("pick");let t="";
+  t+=`<circle cx="150" cy="150" r="140" fill="#120c07" stroke="rgba(242,182,50,.5)" stroke-width="2"/>`;
+  for(let i=0;i<60;i++){const L=i%5?6:13,[x1,y1]=pt(136,i*6),[x2,y2]=pt(136-L,i*6);t+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i%5?"rgba(242,182,50,.35)":"#F2B632"}" stroke-width="${i%5?1:2.5}"/>`}
+  [12,1,2,3,4,5,6,7,8,9,10,11].forEach((n,i)=>{const[x,y]=pt(106,i*30);t+=`<text x="${x}" y="${y+6}" text-anchor="middle" font-size="18" fill="#f6ead2" font-family="Tajawal" font-weight="800">${n}</text>`});
+  const h=Math.floor(pickM/60)%12,mi=pickM%60;const[hx,hy]=pt(70,(h+mi/60)*30),[mx,my]=pt(118,mi*6);
+  t+=`<line x1="150" y1="150" x2="${hx}" y2="${hy}" stroke="#f6ead2" stroke-width="7" stroke-linecap="round"/>`;
+  t+=`<line x1="150" y1="150" x2="${mx}" y2="${my}" stroke="#F2B632" stroke-width="4" stroke-linecap="round"/><circle cx="${mx}" cy="${my}" r="16" fill="#F2B632" opacity=".9"><animate attributeName="r" values="14;18;14" dur="1.6s" repeatCount="indefinite"/></circle><circle cx="150" cy="150" r="6" fill="#F2B632"/>`;
+  svg.innerHTML=t;document.getElementById("pickTxt").textContent=fmt(pickM)}
+(()=>{const svg=document.getElementById("pick");let drag=false,lastMin=null;
+  const angAt=e=>{const r=svg.getBoundingClientRect();const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;let a=Math.atan2(y,x)*180/Math.PI+90;if(a<0)a+=360;return a};
+  const upd=e=>{const m=Math.round(angAt(e)/6)%60;const cur=pickM%60;let base=pickM-cur;if(lastMin!=null){if(lastMin>45&&m<15)base+=60;else if(lastMin<15&&m>45)base-=60}lastMin=m;pickM=Math.max(300,Math.min(660,base+m));drawPick();if(navigator.vibrate)navigator.vibrate(4)};
+  svg.addEventListener("pointerdown",e=>{drag=true;lastMin=pickM%60;svg.setPointerCapture(e.pointerId);upd(e)});
+  svg.addEventListener("pointermove",e=>{if(drag)upd(e)});
+  svg.addEventListener("pointerup",()=>{drag=false;lastMin=null});
+  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{pickM=Math.max(300,Math.min(660,pickM+ +b.dataset.step));drawPick()});
+  document.getElementById("pickOk").onclick=()=>{closeM();setPunch(pickM)};
+  document.getElementById("typeOk").onclick=()=>{const v=document.getElementById("typeIn").value;if(!v){toast("اكتب الوقت أولًا.");return}closeM();setPunch(toMin(v))};
+})();
+function openM(id){document.getElementById(id).classList.add("on")}
+function closeM(){document.querySelectorAll(".modal.on").forEach(m=>m.classList.remove("on"))}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeM);
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeM()}));
+
+/* ================= التلقين الصوتي ================= */
+const W={"واحد":1,"وحدة":1,"اثنين":2,"ثنتين":2,"ثلاث":3,"ثلاثة":3,"اربع":4,"أربع":4,"اربعة":4,"أربعة":4,"خمس":5,"خمسة":5,"ست":6,"ستة":6,"سبع":7,"سبعة":7,"ثمان":8,"ثمانية":8,"ثماني":8,"تسع":9,"تسعة":9,"عشر":10,"عشرة":10,"عشرين":20,"عشرون":20,"ثلاثين":30,"ثلاثون":30,"اربعين":40,"أربعين":40,"خمسين":50,"خمسون":50,"ربع":15,"نص":30,"نصف":30,"الربع":15,"النص":30,"النصف":30,"ثلث":20,"الثلث":20,"إلا":-1,"الا":-1};
+function parseSpoken(s){s=s.replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));const m=s.match(/(\d{1,2})\s*[:٫.,]\s*(\d{1,2})/);if(m)return norm(+m[1],+m[2]);
+  const ds=s.match(/\d+/g);if(ds&&ds.length>=2)return norm(+ds[0],+ds[1]);
+  const toks=s.replace(/و/g," ").split(/\s+/).filter(Boolean);let nums=[],minus=false;for(const t of toks){if(W[t]===-1){minus=true;continue}if(W[t]!=null)nums.push(W[t]);else if(/^\d+$/.test(t))nums.push(+t)}
+  if(!nums.length)return null;const h=nums[0];let mi=nums.slice(1).reduce((a,b)=>a+b,0);if(minus)return norm(h-1,60-mi);return norm(h,mi)}
+function norm(h,m){if(h<1||h>12||m<0||m>59)return null;if(h<5)h+=12;return h*60+m}
+function voice(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){toast("التلقين الصوتي غير مدعوم في هذا المتصفح. استعمل الساعة بالعقارب.");return}
+  try{const r=new R();r.lang="ar-KW";r.interimResults=false;r.maxAlternatives=3;toast("🎙️ تكلّم الآن: مثلًا «سبعة وعشرين»");
+    r.onresult=e=>{for(const alt of e.results[0]){const m=parseSpoken(alt.transcript);if(m!=null){setPunch(m);return}}toast(`لم أفهم الوقت من: «${e.results[0][0].transcript}». جرّب «سبعة وخمسة وعشرين».`)};
+    r.onerror=()=>toast("المايكروفون غير متاح في هذه المعاينة. يعمل في نسخة التطبيق المثبّتة؛ استعمل الآن الساعة بالعقارب.");r.start()}catch(e){toast("تعذّر تشغيل التلقين الصوتي. استعمل الساعة بالعقارب.")}}
+
+/* ================= الأرصدة ================= */
+const ym=k=>k.slice(0,7),yy=k=>k.slice(0,4);
+const isWork=d=>{const w=d.getDay();return w!==5&&w!==6};
+function sickRunLen(dates,add){const set=new Set([...dates,add]);let len=1;for(const dir of[-1,1]){let d=new Date(add+"T12:00");while(true){do{d.setDate(d.getDate()+dir)}while(!isWork(d));if(set.has(dkey(d)))len++;else break}}return len}
+function renderBal(){
+  const c=C(),k=dkey(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);
+  const ard=S.ard.filter(d=>yy(d)===yy(k)),sick=S.sick.filter(d=>yy(d)===yy(k));
+  const V=document.getElementById("v-bal");
+  V.innerHTML=`<div class="stagger">
+  <div class="card" style="--i:0"><h3>الاستئذانات · هذا الشهر</h3>
+    <div class="row" style="justify-content:space-between"><b class="num">${mo.length} من ${c.permsMax} مرات</b><span class="muted num">${dur(used)} من ${c.permsHours} ساعة</span></div>
+    <div class="meter"><b style="width:${Math.min(100,used/(c.permsHours*60)*100)}%"></b></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="pD" value="${k}"></div><div class="field"><label>من</label><input type="time" id="pF" value="07:10"></div><div class="field"><label>إلى</label><input type="time" id="pT" value="09:10"></div></div>
+    <button class="btn primary wide" id="pAdd" style="margin-top:10px">أضف الاستئذان</button>
+    <div class="list">${mo.length?mo.map((p,i)=>`<div class="li"><span class="num">${niceDate(p.date)} · ${fmt(toMin(p.from))} – ${fmt(toMin(p.to))}</span><button data-del="perms" data-id="${S.perms.indexOf(p)}">حذف</button></div>`).join(""):`<div class="empty">لا استئذانات هذا الشهر.</div>`}</div>
+    <p class="muted">الاستئذان الذي يقع جزء منه داخل نافذة التواجد يُعفيك من بصمتها.</p></div>
+  <div class="card" style="--i:1"><h3>الإجازة العرضية</h3>
+    <div class="row" style="justify-content:space-between"><b class="num">${ard.length} من ${c.ardiya} يوم</b><span class="muted">تُحتسب حتى بعد مرور اليوم</span></div>
+    <div class="meter"><b style="width:${Math.min(100,ard.length/c.ardiya*100)}%"></b></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="aD" value="${k}"></div><button class="btn primary" id="aAdd" style="align-self:flex-end">أضف</button></div>
+    <div class="list">${ard.length?ard.map(d=>`<div class="li"><span class="num">${niceDate(d)}</span><button data-del="ard" data-id="${S.ard.indexOf(d)}">حذف</button></div>`).join(""):`<div class="empty">لم تُستعمل بعد.</div>`}</div></div>
+  <div class="card" style="--i:2"><h3>الإجازة المرضية</h3>
+    <div class="row" style="justify-content:space-between"><b class="num">${sick.length} من ${c.sick} يومًا</b><span class="muted">لا أكثر من ${c.sickRun} أيام متصلة</span></div>
+    <div class="meter"><b style="width:${Math.min(100,sick.length/c.sick*100)}%"></b></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label>اليوم</label><input type="date" id="sD" value="${k}"></div><button class="btn primary" id="sAdd" style="align-self:flex-end">أضف</button></div>
+    <div class="list">${sick.length?[...sick].sort().map(d=>`<div class="li"><span class="num">${niceDate(d)}</span><button data-del="sick" data-id="${S.sick.indexOf(d)}">حذف</button></div>`).join(""):`<div class="empty">لم تُستعمل بعد.</div>`}</div></div></div>`;
+  const $=id=>document.getElementById(id);
+  $("pAdd").onclick=()=>{const date=$("pD").value,from=$("pF").value,to=$("pT").value;if(!date||!from||!to)return toast("أكمل اليوم والوقتين.");const m=toMin(to)-toMin(from);if(m<=0)return toast("وقت النهاية يجب أن يكون بعد وقت البداية.");
+    const same=S.perms.filter(p=>ym(p.date)===ym(date));const u=same.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);
+    if(same.length>=c.permsMax)return toast(`استنفدت ${c.permsMax} استئذانات هذا الشهر. انظر بدائلك في «إذا نسيت».`);
+    if(u+m>c.permsHours*60)return toast(`يتجاوز المجموع ${c.permsHours} ساعة؛ المتبقي لك ${dur(c.permsHours*60-u)} فقط.`);
+    S.perms.push({date,from,to});save();pushNative();renderBal();toast("أُضيف الاستئذان.")};
+  $("aAdd").onclick=()=>{const d=$("aD").value;if(!d)return;if(S.ard.includes(d))return toast("هذا اليوم مسجّل.");if(S.ard.filter(x=>yy(x)===yy(d)).length>=c.ardiya)return toast("رصيد العرضية مستنفد.");S.ard.push(d);save();renderBal();toast("أُضيفت الإجازة العرضية.")};
+  $("sAdd").onclick=()=>{const d=$("sD").value;if(!d)return;if(S.sick.includes(d))return toast("هذا اليوم مسجّل.");if(S.sick.filter(x=>yy(x)===yy(d)).length>=c.sick)return toast("رصيد المرضية مستنفد.");
+    if(sickRunLen(S.sick,d)>c.sickRun)return toast(`لا يجوز أكثر من ${c.sickRun} أيام مرضية متصلة؛ اترك يوم عمل فاصلًا.`);S.sick.push(d);save();renderBal();toast("أُضيفت الإجازة المرضية.")};
+  V.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S[b.dataset.del].splice(+b.dataset.id,1);save();pushNative();renderBal()});
+}
+
+/* ================= إذا نسيت ================= */
+function renderForgot(){
+  const c=C(),k=dkey(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);
+  const pl=c.permsMax-mo.length,hl=c.permsHours*60-used,al=c.ardiya-S.ard.filter(d=>yy(d)===yy(k)).length,sl=c.sick-S.sick.filter(d=>yy(d)===yy(k)).length;
+  const bal=`<div class="card"><h3>رصيدك الآن</h3><p class="num">استئذانات: <b>${pl}</b> مرات و<b>${dur(hl)}</b> · عرضية: <b>${al}</b> · مرضية: <b>${sl}</b> يومًا</p><p class="muted">النصائح أدناه تراعي هذا الرصيد، فحدّثه من قسم «الأرصدة».</p></div>`;
+  const T=(color,title,steps,open)=>`<details class="tip"${open?" open":""}><summary><span class="dot" style="color:${color};background:${color}"></span>${title}</summary><div class="body"><ol>${steps.map(s=>`<li>${s}</li>`).join("")}</ol></div></details>`;
+  const permLine=pl>0&&hl>0?`لديك <b>${pl}</b> استئذانات و<b>${dur(hl)}</b>؛ اطلب من القسم الإداري إدخال استئذان يغطي المدة.`:`<b>رصيد الاستئذانات مستنفد</b> هذا الشهر، فلا تعتمد عليه.`;
+  document.getElementById("v-forgot").innerHTML=bal+
+  T("#22C55E","نسيت بصمة الحضور",[
+    "ابصم فورًا عند انتباهك؛ فالبصمة المتأخرة تُحسب تأخيرًا، وهو أخف من يوم بلا حضور.",
+    "أبلغ رئيسك المباشر والقسم الإداري في اليوم نفسه، واطلب نموذج معالجة البصمة يعتمده الرئيس المباشر، مع ما يثبت حضورك (جدول الحصص، توقيعك في كشف المناوبة).",
+    permLine,
+    al>0?`إن سُجّل اليوم غيابًا ولم تُعالَج البصمة، فلديك <b>${al}</b> من العرضية، وتُحتسب حتى بعد مرور اليوم.`:"رصيد العرضية مستنفد؛ فركّز على النموذج المعتمد من الرئيس المباشر."],true)+
+  T("#14B8A6","نسيت بصمة التواجد",[
+    "إن كان لك استئذان يقع جزء منه داخل نافذة التواجد فأنت معفى منها؛ تأكد أن القسم الإداري أدخله في النظام.",
+    "إن فاتت النافذة فابصم فور انتباهك، ثم اطلب من رئيسك المباشر اعتماد «نموذج بصمة التواجد»؛ فقد أجاز ديوان الخدمة المدنية للرئيس المباشر أو من يليه اعتماده لمن بصم في غير الوقت الصحيح.",
+    `عدم بصمة التواجد يُحتسب فترة تأخير؛ ${pl>0&&hl>0?"ويمكن تغطيتها باستئذان من رصيدك":"ورصيد استئذاناتك مستنفد، فلا يبقى إلا النموذج"}.`,
+    "تكرار عدم الالتزام بمواعيد البصمة مخالفة تجيز المساءلة، ففعّل التنبيه ولا تُغلق التطبيق قبل وقت التواجد."])+
+  T("#F2B632","نسيت بصمة الانصراف أو انصرفت مبكرًا",[
+    "ارجع وابصم إن أمكن قبل نهاية اليوم؛ فالانصراف بلا بصمة يُحتسب نقصًا في ساعات العمل.",
+    permLine.replace("تغطي المدة","يغطي آخر الدوام"),
+    "إن كنت داخل المدرسة ونسيت فقط، فاطلب نموذج المعالجة من رئيسك المباشر في اليوم التالي مبكرًا.",
+    al>0?`إن كان النقص كبيرًا ولم يكفِ الاستئذان، فالعرضية (المتبقي <b>${al}</b>) تغطي اليوم كاملًا.`:"العرضية مستنفدة؛ فاحرص على النموذج."])+
+  T("#EF4444","تعبتَ أو مرضتَ اليوم",[
+    sl>0?`لك <b>${sl}</b> يومًا مرضيًا، وتؤخذ في اليوم نفسه.`:"رصيد المرضية مستنفد.",
+    `لا تأخذ أكثر من ${c.sickRun} أيام متصلة، واترك يوم عمل فاصلًا بعد كل ${c.sickRun} أيام؛ والتطبيق يمنعك من تجاوز ذلك في «الأرصدة».`,
+    "إن خرجت أثناء الدوام فالأفضل استئذان رسمي إن بقي رصيد، أو مرضية لليوم كله."])+
+  `<p class="muted" style="margin-top:12px">هذه إرشادات تنظيمية لا فتوى إدارية؛ والمرجع النهائي القسم الإداري في مدرستك.</p>`;
+}
+
+/* ================= اللوائح والإعدادات ================= */
+function renderRules(){
+  const c=C();
+  let setup="";
+  if(N){let I={};try{I=JSON.parse(N.info())}catch(e){}
+    const row=(ok,t,sub,id)=>`<div class="li"><span>${ok?"✅":"⚠️"} <b>${t}</b><br><small class="muted">${sub}</small></span>${ok?"":`<button class="btn ghost" style="min-height:40px;font-size:14px;padding:6px 12px" id="${id}">اضبط</button>`}</div>`;
+    setup=`<div class="card"><h3>إعداد الهاتف</h3><p class="muted">ليعمل الالتقاط التلقائي والتنبيه والتطبيق مغلق.</p><div class="list">
+      ${row(I.notif,"الإشعارات","ليصلك التنبيه قبل البصمة","sNotif")}
+      ${row(I.exact,"المنبهات الدقيقة","ليرنّ التنبيه في ثانيته بالضبط","sExact")}
+      ${row(I.usage,"الوصول إلى الاستخدام","ليعرف التطبيق متى فتحت تطبيق الوزارة","sUsage")}
+      ${row(I.moe,"تطبيق «وزارة التربية - الكويت»",I.moe?"مثبّت على هاتفك":"غير مثبّت","sMoe")}
+      <div class="li"><span>🔋 <b>البطارية</b><br><small class="muted">في Honor وHuawei: تشغيل التطبيقات ← بصمتي المرنة ← إدارة يدوية وفعّل الخيارات الثلاثة</small></span><button class="btn ghost" style="min-height:40px;font-size:14px;padding:6px 12px" id="sBat">افتح</button></div>
+    </div></div>`}
+  document.getElementById("v-rules").innerHTML=setup+`
+  <div class="card"><h3>ما يعتمده التطبيق</h3>
+  <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور. <span class="src">قرار مجلس الخدمة المدنية</span></p>
+  <p>٢. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية ٢٠٢٤</span></p>
+  <p>٣. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة ٢٠٢٥</span></p>
+  <p>٤. الدوام الفعلي في المدارس <b>٦ ساعات</b>، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
+  <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف حتى <b>${fmt(c.latestOut)}</b>. <span class="src">مقترح الوزارة ٢٠٢٤</span></p>
+  <p>٦. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
+  <div class="card"><h3>ملاحظات مهمة</h3>
+  <p>• التطبيق مستقل للمساعدة وغير تابع لوزارة التربية، والمرجع النهائي سجلك الرسمي والقسم الإداري في مدرستك.</p>
+  <p>• مواعيد السماح لكل مرحلة منشورة صحفيًا على أنها «مقترح» للوزارة في سبتمبر ٢٠٢٤؛ فطابِقها مع النشرة المعتمدة في مدرستك، وعدّلها أدناه إن اختلفت.</p>
+  <p>• في مايو ٢٠٢٦ نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي ٢٠٢٥/٢٠٢٦؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
+  <p>• أرصدة الاستئذانات والعرضية والمرضية قابلة للتعديل بحسب ما يقرره القسم الإداري لك.</p></div>
+  <div class="card"><h3>ضبط الإعدادات</h3>
+  <div class="row"><div class="field"><label for="cName">الاسم</label><input id="cName" value="${esc(c.name)}" placeholder="اكتب اسمك"></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label for="cRole">الوظيفة</label><input id="cRole" value="${esc(c.role)}" placeholder="معلم، إداري، رئيس قسم…"></div>
+  <div class="field"><label for="cStage">المرحلة</label><select id="cStage">${Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("")}</select></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label>بداية السماح</label><input type="time" id="cE" value="${toHHMM(c.earliest)}"></div><div class="field"><label>نهاية السماح</label><input type="time" id="cG" value="${toHHMM(c.graceEnd)}"></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="0.25" value="${c.workMin/60}"></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
+  <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:2" id="cSave">احفظ الإعدادات</button><button class="btn ghost" style="flex:1" id="cReset">الافتراضي</button></div>
+  <button class="btn ghost wide" id="cTest" style="margin-top:10px">جرّب التنبيه المميّز</button></div>
+  ${N?"":`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
+  <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
+  const $=id=>document.getElementById(id);
+  $("cStage").onchange=()=>{const s=STAGES[$("cStage").value];$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
+  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),role:$("cRole").value.trim()||DEF.role,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
+  $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role};S.cfg=Object.assign({},DEF,keep);save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
+  if(N){const b=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};b("sNotif",()=>N.requestNotif());b("sExact",()=>N.openExact());b("sUsage",()=>N.openUsage());b("sMoe",()=>N.openMoe());b("sBat",()=>N.openBattery())}
+  $("cTest").onclick=()=>{audio();fireAlarm("test","تجربة التنبيه المميّز","هكذا ينبّهك التطبيق قبل 30 ثانية من وقت البصمة.",C().lead)};
+}
+
+/* ================= التنقل ================= */
+const views={today:render,bal:renderBal,forgot:renderForgot,rules:renderRules};
+function placePill(){const b=document.querySelector('nav.tabs button[aria-selected=true]'),p=document.getElementById("pill"),bar=document.getElementById("tabbar");const r=b.getBoundingClientRect(),br=bar.getBoundingClientRect();p.style.width=r.width+"px";p.style.insetInlineStart=(br.right-r.right)+"px"}
+function go(v){document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));views[v]();placePill();scrollTo({top:0,behavior:"smooth"});try{history.replaceState(null,"","#"+v)}catch(e){}}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+addEventListener("resize",placePill);
+
+/* ================= البدء ================= */
+const t=new Date();document.getElementById("today").textContent=`${arDays[t.getDay()]} ${t.getDate()}/${t.getMonth()+1}/${t.getFullYear()}`;
+nativeSync();
+const start=(location.hash||"#today").slice(1);go(views[start]?start:"today");
+setTimeout(()=>document.getElementById("splash").classList.add("off"),1900);
+})();
+</script>
+</body>
+</html>

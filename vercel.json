@@ -37,6 +37,16 @@
       "permanent": false
     },
     {
+      "source": "/basma/android",
+      "destination": "https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk",
+      "permanent": false
+    },
+    {
+      "source": "/basma/iphone",
+      "destination": "/apps/basma/",
+      "permanent": false
+    },
+    {
       "source": "/basma",
       "destination": "/apps/basma/",
       "permanent": false

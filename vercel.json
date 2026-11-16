@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/mawarith",
+      "destination": "https://play.google.com/store/apps/details?id=org.daralemaam.mawarith",
+      "permanent": false
+    },
+    {
       "source": "/apps/mastoor",
       "destination": "/apps/mastoor/",
       "permanent": false

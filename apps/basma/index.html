@@ -50,34 +50,35 @@ button{font-family:inherit}
 
 /* ===== الهيكل ===== */
 .app{position:relative;z-index:1;max-width:520px;margin:0 auto;min-height:100dvh;
-  padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 96px)}
+  padding:calc(env(safe-area-inset-top) + 8px) 14px calc(env(safe-area-inset-bottom) + 96px)}
 h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .num{font-variant-numeric:tabular-nums}
 
-.hero{position:relative;height:150px;display:flex;flex-direction:column;justify-content:flex-end;padding:0 4px 12px;animation:pop .8s var(--spring) both}
-.hero .tools{position:absolute;top:6px;left:0;display:flex;gap:10px}
-.hero h1{font-size:30px;color:#fff3d6;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 22px rgba(242,182,50,.45)}
-.hero .disc{display:block;margin-top:4px;color:#e9d8b4;font-size:12px;text-shadow:0 1px 6px #000}
-.hero p{margin:2px 0 0;color:#f3e3c2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.95)}
+.hero{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;padding:2px 4px 4px;animation:pop .8s var(--spring) both}
+.hero .tools{grid-column:2;grid-row:1;display:flex;gap:8px}
+.hero .tools .iconbtn{width:40px;height:40px}
+.hero h1{grid-column:1;grid-row:1;font-size:25px;line-height:1.2;color:#fff3d6;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 22px rgba(242,182,50,.45)}
+.hero .disc{grid-column:1/-1;display:block;margin-top:1px;color:#e9d8b4;font-size:11px;text-shadow:0 1px 6px #000}
+.hero p{grid-column:1/-1;margin:2px 0 0;font-size:13px;line-height:1.5;color:#f3e3c2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.95)}
 /* بطاقة الموظف */
-.id{display:flex;align-items:center;gap:14px;padding:14px;border-radius:22px;background:var(--card);border:1px solid var(--line);
+.id{display:flex;align-items:center;gap:10px;padding:6px 10px;margin-top:2px;border-radius:22px;background:var(--card);border:1px solid var(--line);
   backdrop-filter:blur(6px);position:relative;overflow:hidden;animation:pop .7s var(--spring) both}
 .id::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,230,160,.16) 50%,transparent 60%);transform:translateX(-100%);animation:shine 5s 1.5s ease-in-out infinite}
-.avatar{position:relative;width:76px;height:76px;flex-shrink:0;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
+.avatar{position:relative;width:46px;height:46px;flex-shrink:0;border-radius:50%;padding:3px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
 .avatar{border:0;cursor:pointer}
 .avatar #avIn{display:block;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#1b130c;border:2px solid var(--bg);animation:spin 6s linear infinite reverse}
 .avatar #avIn svg{width:70%;height:70%;margin:15%}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .id .who{min-width:0;flex:1}
-.id .who h2{font-size:19px;line-height:1.3;overflow-wrap:anywhere}
+.id .who h2{font-size:16px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .id .who .role{display:inline-block;margin-top:4px;padding:3px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px}
-.id .who .date{color:var(--muted);font-size:13px;margin-top:5px}
+.id .who .date{display:inline;color:var(--muted);font-size:12px;margin-inline-start:6px}
 .iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:transform .14s var(--ease-out)}
 .iconbtn:active{transform:scale(.92)}
 
-.id .who .role{white-space:nowrap;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.id .who .role{white-space:nowrap;font-size:11px;padding:1px 9px;margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 /* بطاقات */
-.card{margin-top:14px;padding:16px;border-radius:22px;background:var(--card);border:1px solid var(--line);position:relative;
+.card{margin-top:8px;padding:12px;border-radius:22px;background:var(--card);border:1px solid var(--line);position:relative;
   backdrop-filter:blur(6px);animation:pop .7s var(--spring) both}
 .card h3{font-size:18px;color:var(--gold2);margin-bottom:8px}
 .card p{margin:.3em 0;line-height:1.75;color:#eadbbd}
@@ -123,7 +124,7 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 
 /* الساعة الحيّة */
 .dialwrap{display:grid;place-items:center;padding-top:4px}
-#dial{width:min(84vw,330px);height:auto;overflow:visible}
+#dial{width:min(84vw,330px);height:auto;overflow:visible;margin:-10px 0 -6px}
 .dial-center{font-family:Cairo,Tajawal,sans-serif;fill:var(--text)}
 .fp path{fill:none;stroke:var(--gold);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:draw 2.2s var(--ease-out) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -155,10 +156,10 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .banner.info{background:rgba(20,184,166,.13);border:1px solid rgba(20,184,166,.4);color:#ccfbf1}
 
 /* شريط التنقل */
-nav.tabs{position:fixed;bottom:0;inset-inline:0;z-index:5;display:flex;justify-content:center;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
+nav.tabs{position:fixed;bottom:0;inset-inline:0;z-index:5;display:flex;justify-content:center;padding:6px 10px calc(env(safe-area-inset-bottom) + 6px);
   background:linear-gradient(180deg,transparent,rgba(11,8,5,.95) 35%)}
 nav.tabs .in{display:flex;gap:4px;max-width:520px;width:100%;padding:6px;border-radius:22px;background:rgba(20,14,9,.92);border:1px solid var(--line);position:relative}
-nav.tabs button{flex:1;min-width:0;min-height:52px;font-size:12px!important;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;z-index:1;transition:color .2s}
+nav.tabs button{flex:1;min-width:0;min-height:44px;font-size:12px!important;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;z-index:1;transition:color .2s}
 nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
@@ -569,11 +570,10 @@ function render(){
     const late=n>c.graceEnd&&n<c.latestOut;
     h+=`<div class="card glow-edge" style="text-align:center">
       <div class="dialwrap">${dialSVG(null)}</div>
-      <h3 style="margin-top:6px">سجّل وقت بصمة الحضور</h3>
-      <p class="muted">أسرع طريقة: اضغط الزر لحظة وضع إصبعك على جهاز البصمة، فيأخذ التطبيق الوقت بنفسه.</p>
-      <button class="btn primary wide" id="nowBtn" style="margin-top:10px;font-size:19px;min-height:60px">
+      <button class="btn primary wide" id="nowBtn" style="margin-top:2px;font-size:19px;min-height:54px">
         <svg width="26" height="26" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M18 30c0-8 6-14 14-14s14 6 14 14v4"/><path d="M24 50c-3-5-5-11-5-18"/><path d="M32 26c3 0 6 3 6 6 0 8-2 15-6 21"/><path d="M44 52c2-6 2-12 2-17"/></svg>
         بصمتُ الحضور الآن</button>
+      <p class="muted" style="margin:10px 0 0">اضغط الزر لحظة وضع إصبعك على جهاز البصمة، فيأخذ التطبيق الوقت بنفسه.</p>
       ${N?`<button class="btn ghost wide" id="moeBtn" style="margin-top:12px">افتح تطبيق الوزارة للبصمة</button>`:""}
       <p class="muted" style="margin-top:12px">أو أدخل وقتًا سابقًا بإحدى هذه الطرق:</p>
       <div class="methods">

@@ -158,11 +158,41 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 nav.tabs{position:fixed;bottom:0;inset-inline:0;z-index:5;display:flex;justify-content:center;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
   background:linear-gradient(180deg,transparent,rgba(11,8,5,.95) 35%)}
 nav.tabs .in{display:flex;gap:4px;max-width:520px;width:100%;padding:6px;border-radius:22px;background:rgba(20,14,9,.92);border:1px solid var(--line);position:relative}
-nav.tabs button{flex:1;min-height:52px;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;z-index:1;transition:color .2s}
+nav.tabs button{flex:1;min-width:0;min-height:52px;font-size:12px!important;border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;z-index:1;transition:color .2s}
 nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
 .view{display:none}.view.on{display:block}
+.btn.ghost.reset{color:#fca5a5;border-color:rgba(239,68,68,.55);background:rgba(239,68,68,.1);box-shadow:0 5px 0 #5a1414}
+.resetIcon{font-size:54px;line-height:1;margin:4px 0 6px;animation:resetspin 1.6s var(--spring) both}
+@keyframes resetspin{from{transform:rotate(-200deg) scale(.4);opacity:0}to{transform:none;opacity:1}}
+/* ===== التقويم ===== */
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.calhead h3{margin:0;font-size:20px}
+.calnav{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold2);font-size:22px;cursor:pointer;box-shadow:0 4px 0 #5a3d0a}
+.calnav:disabled{opacity:.35;box-shadow:none}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.cal .wd{text-align:center;font-size:12px;color:var(--muted);font-weight:700}
+.cal .d{aspect-ratio:1;border-radius:12px;border:1px solid rgba(242,182,50,.14);background:rgba(255,255,255,.03);color:var(--text);font-family:Cairo,Tajawal,sans-serif;font-weight:700;font-size:15px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;position:relative;animation:pop .45s var(--spring) both;animation-delay:calc(var(--i)*14ms)}
+.cal .d small{font-size:10px;line-height:1}
+.cal .d.ok{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.55)}
+.cal .d.bad{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.65);animation:pop .45s var(--spring) both,badpulse 2.2s ease-in-out infinite;animation-delay:calc(var(--i)*14ms),0s}
+.cal .d.leave{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.5)}
+.cal .d.live{background:rgba(242,182,50,.16);border-color:var(--gold)}
+.cal .d.off{opacity:.38}
+.cal .d.empty{visibility:hidden}
+.cal .d.today{box-shadow:0 0 0 2px var(--gold),0 0 16px rgba(242,182,50,.6)}
+.cal .d.sel{outline:2px solid #fff;outline-offset:1px}
+@keyframes badpulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 14px 2px rgba(239,68,68,.55)}}
+.verdict{margin-top:6px;padding:14px;border-radius:16px;text-align:center;font-family:Cairo,Tajawal,sans-serif;font-weight:800;font-size:22px;animation:pop .5s var(--spring) both}
+.verdict.ok{background:rgba(34,197,94,.16);color:#86efac;border:1px solid rgba(34,197,94,.5)}
+.verdict.bad{background:rgba(239,68,68,.16);color:#fca5a5;border:1px solid rgba(239,68,68,.6)}
+.verdict.leave,.verdict.live,.verdict.none{background:rgba(242,182,50,.1);color:var(--gold2);border:1px solid var(--line)}
+.notes{margin:10px 0 0;padding-inline-start:20px;line-height:1.9}
+.notes li.b{color:#fca5a5}.notes li.g{color:#86efac}
+.legend2{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:12px;color:var(--muted);margin-top:10px}
+.legend2 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px;vertical-align:middle}
 
 /* الأرصدة */
 .meter{height:12px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0 4px}
@@ -295,6 +325,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
   <section class="view on" id="v-today"></section>
 
   <!-- ===== الأرصدة ===== -->
+  <section class="view" id="v-cal"></section>
   <section class="view" id="v-bal"></section>
 
   <!-- ===== إذا نسيت ===== -->
@@ -308,7 +339,8 @@ details.tip ol{margin:0;padding-inline-start:20px}
   <div class="in" role="tablist" id="tabbar">
     <span class="pill" id="pill"></span>
     <button role="tab" data-v="today" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>اليوم</button>
-    <button role="tab" data-v="bal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>الأرصدة</button>
+    <button role="tab" data-v="cal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M8.5 15l2.2 2.2L15.5 12.5"/></svg>التقويم</button>
+    <button role="tab" data-v="bal" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M7 14h4M7 17h7M15 13.5v4"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>الأرصدة</button>
     <button role="tab" data-v="forgot" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>إذا نسيت</button>
     <button role="tab" data-v="rules" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h6M8 8h4"/></svg>اللوائح</button>
   </div>
@@ -343,6 +375,16 @@ details.tip ol{margin:0;padding-inline-start:20px}
   </div>
 </div>
 
+<!-- تأكيد التصفير -->
+<div class="modal" id="mReset" role="dialog" aria-modal="true" aria-label="تصفير اليوم">
+  <div class="sheet" style="text-align:center">
+    <div class="resetIcon">🔘</div>
+    <h3>تصفير بصمات اليوم ومسحها؟</h3>
+    <p class="muted" style="line-height:1.8">يُمسح وقت الحضور والتواجد والانصراف لهذا اليوم، وتُلغى تنبيهاته، ويعود زر «بصمتُ الحضور الآن» كأول مرة لتسجّل الوقت الصحيح.</p>
+    <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:2;background:linear-gradient(180deg,#ff8a8a,#EF4444 55%,#b91c1c);color:#fff;box-shadow:0 6px 0 #7f1d1d" id="resetOk">نعم، صفّر وامسح</button><button class="btn ghost" style="flex:1" data-close>إلغاء</button></div>
+  </div>
+</div>
+
 <!-- التنبيه المميز -->
 <div class="alarm" id="alarm" role="alertdialog" aria-live="assertive" aria-labelledby="alTitle">
   <div class="box">
@@ -373,7 +415,7 @@ const STAGES={
 };
 const N=window.Native||null;
 const DEF={
-  name:"", role:"معلم", stage:"sec",
+  name:"", role:"معلم", stage:"sec", keepMonths:1,
   earliest:430,   // 7:10 بداية فترة السماح في الثانوية
   graceEnd:475,   // 7:55 نهاية فترة السماح
   workMin:360,    // 6 ساعات فعلية
@@ -402,13 +444,13 @@ const arDays=["الأحد","الإثنين","الثلاثاء","الأربعاء
 function niceDate(k){const d=new Date(k+"T12:00");return `${arDays[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`}
 
 /* ================= الحساب وفق اللوائح ================= */
-function plan(p,est){
-  const c=C(); const lo=est?est.lo:p, hi=est?est.hi:p;
+function plan(p,est,cc,date){
+  const c=cc||C(); const lo=est?est.lo:p, hi=est?est.hi:p;
   const eff=Math.max(hi,c.earliest);
   const late=Math.max(0,lo-c.graceEnd);
   const out=Math.min(eff+c.workMin,c.latestOut);
   const ps=hi+c.presDelay, pe=lo+c.presDelay+c.presLen;
-  const todays=S.perms.filter(x=>x.date===dkey());
+  const todays=S.perms.filter(x=>x.date===(date||dkey()));
   const exempt=todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
   return{p:hi,lo,hi,est:!!est,eff,late,out,ps,pe,exempt};
 }
@@ -453,7 +495,8 @@ let toastT;function toast(t){if(/استنفد|يتجاوز|لا يجوز|أكم�
 
 /* ================= بيانات اليوم ================= */
 function today(){const k=dkey();S.days[k]=S.days[k]||{fired:{}};S.days[k].fired=S.days[k].fired||{};return S.days[k]}
-function setPunch(m){const d=today();d.in=Math.round(m*60)/60;delete d.est;d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
+const snap=()=>{const c=C();return{earliest:c.earliest,graceEnd:c.graceEnd,workMin:c.workMin,latestOut:c.latestOut,presDelay:c.presDelay,presLen:c.presLen}};
+function setPunch(m){const d=today();d.in=Math.round(m*60)/60;delete d.est;d.cfg=snap();d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
 /* ===== الجسر مع نسخة أندرويد ===== */
 function nativeSync(){if(!N)return;try{N.setConfig(JSON.stringify(C()))}catch(e){}
   try{const n=JSON.parse(N.getDay(dkey())||"{}"),d=today();
@@ -466,11 +509,15 @@ function pushNative(reset){if(!N)return;const d=today(),o={reset:!!reset};
 window.onNativeResume=()=>{nativeSync();const v=document.querySelector(".view.on");if(v&&v.id==="v-today")render();else if(v&&v.id==="v-rules")renderRules()};
 window.onOcr=function(js){let r;try{r=JSON.parse(js)}catch(e){r={error:1}}
   if(r.error||!r.items||!r.items.length){toast("لم أجد أوقاتًا في الصورة. صوّر شاشة «الحضور والانصراف» وفيها سطور اليوم.");return}
-  const k=dkey();const ts=[...new Set(r.items.filter(x=>x.date===k).map(x=>x.time))].map(toMin).sort((a,b)=>a-b);
-  if(!ts.length){toast("لا توجد في الصورة بصمات بتاريخ اليوم.");return}
-  const d=today();d.in=ts[0];delete d.est;d.pres=null;d.out=null;d.fired={};const P=plan(d.in,null);
-  for(const t of ts.slice(1)){if(d.pres==null&&t>=P.ps&&t<=P.pe)d.pres=t;else if(d.out==null&&t>=P.out)d.out=t}
-  save();pushNative(true);render();launchFlash();toast(`قُرئت بصمات اليوم من الصورة: الحضور ${fmt(d.in)}${d.pres!=null?" · التواجد "+fmt(d.pres):""}${d.out!=null?" · الانصراف "+fmt(d.out):""}`)};
+  const k=dkey(),byDate={};r.items.forEach(x=>{(byDate[x.date]=byDate[x.date]||new Set()).add(x.time)});
+  const fill=(d,ts,date)=>{d.in=ts[0];delete d.est;d.pres=null;d.out=null;d.cfg=d.cfg||snap();const P=plan(d.in,null,d.cfg,date);
+    for(const t of ts.slice(1)){if(d.pres==null&&t>=P.ps-1&&t<=P.pe+1)d.pres=t;else if(d.out==null&&t>P.pe+1)d.out=t}};
+  let past=0;const cut=cutoffKey();
+  for(const [date,set] of Object.entries(byDate)){if(date===k||date<cut||date>k)continue;const ts=[...set].map(toMin).sort((a,b)=>a-b);
+    const d=S.days[date]=S.days[date]||{fired:{}};if(d.in==null){fill(d,ts,date);past++}}
+  if(byDate[k]){const ts=[...byDate[k]].map(toMin).sort((a,b)=>a-b);const d=today();d.fired={};fill(d,ts,k);save();pushNative(true);render();launchFlash();
+    toast(`قُرئت بصمات اليوم: الحضور ${fmt(d.in)}${d.pres!=null?" · التواجد "+fmt(d.pres):""}${d.out!=null?" · الانصراف "+fmt(d.out):""}${past?` · وسُجّلت ${past} أيام سابقة في التقويم`:""}`)}
+  else{save();toast(past?`لا بصمات لليوم في الصورة، وسُجّلت ${past} أيام سابقة في التقويم.`:"لا توجد في الصورة بصمات بتاريخ اليوم.")}};
 window.onVoice=function(js){let a=[];try{a=JSON.parse(js)}catch(e){}for(const t of a){const m=parseSpoken(t);if(m!=null){setPunch(m);return}}toast(a.length?`لم أفهم الوقت من: «${a[0]}». جرّب «سبعة وخمسة وعشرين».`:"لم يُسمع شيء. حاول مرة أخرى.")};
 window.basmaBack=function(){if(document.getElementById("alarm").classList.contains("on")){closeAlarm();return 1}const m=document.querySelector(".modal.on");if(m){closeM();return 1}if(!document.getElementById("v-today").classList.contains("on")){go("today");return 1}return 0};
 function launchFlash(){const f=document.createElement("div");f.style.cssText="position:fixed;inset:0;z-index:25;pointer-events:none;background:radial-gradient(circle at 50% 40%,rgba(255,220,120,.55),transparent 60%);animation:pop .1s both;transition:opacity .7s";document.body.appendChild(f);requestAnimationFrame(()=>{f.style.opacity="0"});setTimeout(()=>f.remove(),800)}
@@ -539,7 +586,7 @@ function render(){
     if(n>=c.earliest-25&&n<=c.graceEnd)h+=`<div class="banner info">⏰ هذا وقت بصمة الحضور. إن بصمت فاضغط «بصمتُ الحضور الآن».</div>`;
     if(late)h+=`<div class="banner warn">تجاوزتَ نهاية فترة السماح (${fmt(c.graceEnd)}). إن لم تبصم بعد فابصم فورًا، وراجع قسم «إذا نسيت».</div>`;
   }else{
-    const P=plan(d.in,d.est);
+    const P=plan(d.in,d.est,d.cfg);
     const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);
     const sO=evState(P.out,null,d.out,n);
     const next=sP==="wait"?{t:P.ps,l:"حتى فتح بصمة التواجد"}:sP==="open"?{t:P.pe,l:"حتى إغلاق بصمة التواجد"}:sO==="wait"?{t:P.out,l:"حتى وقت الانصراف"}:null;
@@ -551,7 +598,7 @@ function render(){
     const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="ic" style="background:${col}">${ic}</div><div>
       <h4>${title}</h4><div class="range num">${range}</div>
       <span class="stat ${stTxt[st][0]}">${stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}</div></div>`;
-    h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>تعديل الوقت</button>");
+    h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>تعديل الوقت</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
       sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها":"راجع قسم «إذا نسيت» الآن",
       sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"");
@@ -573,6 +620,7 @@ function bindToday(){
   $("shotBtn2")&&($("shotBtn2").onclick=()=>N.pickImage());
   $("moeBtn")&&($("moeBtn").onclick=()=>N.openMoe());
   $("editIn")&&($("editIn").onclick=()=>openClock(today().in));
+  $("resetDay")&&($("resetDay").onclick=()=>openM("mReset"));
   $("presDone")&&($("presDone").onclick=()=>{today().pres=nowS();save();pushNative();render();toast("سُجّلت بصمة التواجد.");launchFlash()});
   $("outDone")&&($("outDone").onclick=()=>{today().out=nowS();save();pushNative();render();toast("سُجّلت بصمة الانصراف. يومًا موفقًا.");launchFlash()});
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
@@ -749,7 +797,69 @@ function renderRules(){
 }
 
 /* ================= التنقل ================= */
-const views={today:render,bal:renderBal,forgot:renderForgot,rules:renderRules};
+/* ================= التقويم الداخلي ================= */
+const keepM=()=>Math.max(1,Math.min(24,+C().keepMonths||1));
+function cutoffKey(){const d=new Date();d.setMonth(d.getMonth()-keepM());d.setDate(d.getDate()+1);return dkey(d)}
+function purge(){const cut=cutoffKey();let n=0;for(const k of Object.keys(S.days)){if(k<cut){delete S.days[k];n++}}if(n)save()}
+function isWorkKey(k){const w=new Date(k+"T12:00").getDay();return w!==5&&w!==6}
+function evalDay(k){
+  const d=S.days[k]||{},c=Object.assign({},C(),d.cfg||{}),todayK=dkey(),isToday=k===todayK,future=k>todayK;
+  const notes=[];const leave=S.ard.includes(k)?"إجازة عرضية":S.sick.includes(k)?"إجازة مرضية":null;
+  if(!isWorkKey(k))return{st:"off",notes:["عطلة نهاية الأسبوع"]};
+  if(future)return{st:"none",notes:[]};
+  if(leave&&d.in==null)return{st:"leave",notes:[`${leave} — لا تحتاج بصمات`]};
+  const n=isToday?nowMin():1e9;const perms=S.perms.filter(x=>x.date===k);
+  if(d.in==null){if(isToday&&n<c.latestOut)return{st:"live",notes:["لم تُسجَّل بصمة الحضور بعد"]};if(k<(S.since||k))return{st:"none",notes:["قبل بدء استعمال التطبيق — اقرأ لقطة شاشة لملئه"]};return{st:"bad",notes:["لا توجد بصمة حضور مسجّلة"]}}
+  const P=plan(d.in,d.est,c,k);let bad=false;const B=t=>{bad=true;notes.push({t,b:1})},G=t=>notes.push({t,g:1});
+  G(`الحضور ${fmt(d.in)}${d.est?" (تقديري)":""}`);
+  if(P.late>0){const cov=perms.some(x=>toMin(x.from)<=c.graceEnd+1&&toMin(x.to)>=P.lo-1);cov?G(`تأخير ${dur(P.late)} مغطّى باستئذان`):B(`تأخير ${dur(P.late)} بعد نهاية فترة السماح`)}
+  if(P.exempt&&d.pres==null)G("التواجد: معفى باستئذان");
+  else if(d.pres!=null){(d.pres>=P.ps-0.02&&d.pres<=P.pe+0.02)?G(`التواجد ${fmt(d.pres)} في وقته`):B(`التواجد ${fmt(d.pres)} خارج نافذته (${fmt(P.ps)}–${fmt(P.pe)})`)}
+  else if(n>P.pe)B("لم تُسجَّل بصمة التواجد");
+  if(d.out!=null){if(d.out<P.out-0.02){const cov=perms.some(x=>toMin(x.from)<=d.out+1&&toMin(x.to)>=P.out-1);cov?G(`انصراف مبكر ${fmt(d.out)} مغطّى باستئذان`):B(`انصراف مبكر ${fmt(d.out)} قبل ${fmt(P.out)} بـ ${dur(P.out-d.out)}`)}else G(`الانصراف ${fmt(d.out)}`)}
+  else if(n>c.latestOut+30)B("لم تُسجَّل بصمة الانصراف");
+  if(perms.length)notes.push({t:`استئذان: ${perms.map(x=>fmt(toMin(x.from))+"–"+fmt(toMin(x.to))).join("، ")}`});
+  if(leave)notes.push({t:leave});
+  const done=d.out!=null||n>c.latestOut+30;
+  return{st:bad?"bad":(isToday&&!done?"live":"ok"),notes,P,d}
+}
+let calMonth=null,calSel=null;
+function renderCal(){
+  purge();const now=new Date();if(!calMonth)calMonth=new Date(now.getFullYear(),now.getMonth(),1);calSel=calSel||dkey();
+  const y=calMonth.getFullYear(),m=calMonth.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate();
+  const cut=cutoffKey(),mk=`${y}-${pad(m+1)}`;const canPrev=mk>cut.slice(0,7);const canNext=mk<dkey().slice(0,7);
+  const months=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  let g=["أحد","إثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"].map(x=>`<div class="wd">${x}</div>`).join("");
+  for(let i=0;i<first.getDay();i++)g+=`<div class="d empty"></div>`;
+  let ok=0,bad=0,lv=0;
+  for(let dd=1;dd<=days;dd++){const k=`${mk}-${pad(dd)}`;const old=k<cut;const e=old?{st:"none"}:evalDay(k);
+    if(e.st==="ok")ok++;if(e.st==="bad")bad++;if(e.st==="leave")lv++;
+    const sym={ok:"✓",bad:"!",leave:"إجازة",live:"جارٍ",off:"",none:""}[e.st]||"";
+    g+=`<button class="d ${e.st}${k===dkey()?" today":""}${k===calSel?" sel":""}" style="--i:${dd}" data-k="${k}" ${old?"disabled":""}><span class="num">${dd}</span><small>${sym}</small></button>`}
+  const e=evalDay(calSel);const vt={ok:"✅ الأمور على ما يرام",bad:"⚠️ هناك مشكلة ما !",leave:"🌿 "+(e.notes[0]||"إجازة"),live:"⏳ اليوم جارٍ",off:"عطلة",none:(e.notes&&e.notes[0])||"لا بيانات لهذا اليوم"}[e.st];
+  const d=S.days[calSel]||{};const v=x=>x!=null?toHHMMSS(x):"";
+  document.getElementById("v-cal").innerHTML=`<div class="card"><div class="calhead"><button class="calnav" id="cPrev" ${canPrev?"":"disabled"} aria-label="الشهر السابق">›</button><h3>${months[m]} ${y}</h3><button class="calnav" id="cNext" ${canNext?"":"disabled"} aria-label="الشهر التالي">‹</button></div>
+    <div class="cal">${g}</div>
+    <div class="legend2"><span><i style="background:#22C55E"></i>على ما يرام: ${ok}</span><span><i style="background:#EF4444"></i>فيه مشكلة: ${bad}</span><span><i style="background:#14B8A6"></i>إجازة: ${lv}</span></div></div>
+  <div class="card"><h3 class="num">${niceDate(calSel)}</h3><div class="verdict ${e.st}">${vt}</div>
+    ${e.notes&&e.notes.length&&e.st!=="leave"&&e.st!=="off"?`<ul class="notes">${e.notes.map(n=>typeof n==="string"?`<li>${n}</li>`:`<li class="${n.b?"b":n.g?"g":""}">${n.t}</li>`).join("")}</ul>`:""}
+    ${isWorkKey(calSel)&&calSel<=dkey()?`<details style="margin-top:12px"><summary class="muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center">✏️ تعديل أوقات هذا اليوم</summary>
+      <div class="row" style="margin-top:8px"><div class="field"><label>الحضور</label><input type="time" step="1" id="eIn" value="${v(d.in)}"></div><div class="field"><label>التواجد</label><input type="time" step="1" id="ePr" value="${v(d.pres)}"></div><div class="field"><label>الانصراف</label><input type="time" step="1" id="eOut" value="${v(d.out)}"></div></div>
+      <div class="row" style="margin-top:10px"><button class="btn primary" style="flex:2" id="eSave">احفظ أوقات اليوم</button><button class="btn ghost reset" style="flex:1" id="eDel">🔘 مسح</button></div></details>`:""}
+  </div>
+  <div class="card"><h3>مدة حفظ السجل</h3><div class="row"><div class="field"><label for="keepSel">يحفظ التطبيق بصماتك لمدة</label><select id="keepSel">${[1,2,3,6,12].map(x=>`<option value="${x}"${x===keepM()?" selected":""}>${x===1?"شهر واحد":x===2?"شهرين":x+" أشهر"}</option>`).join("")}</select></div></div><p class="muted">ما قبل هذه المدة يُمسح تلقائيًا. ويمكنك ملء الأيام السابقة بقراءة لقطة شاشة «الحضور والانصراف».</p></div>`;
+  const $=id=>document.getElementById(id);
+  $("cPrev").onclick=()=>{calMonth=new Date(y,m-1,1);renderCal()};$("cNext").onclick=()=>{calMonth=new Date(y,m+1,1);renderCal()};
+  document.querySelectorAll(".cal .d[data-k]").forEach(b=>b.onclick=()=>{calSel=b.dataset.k;renderCal()});
+  $("keepSel").onchange=()=>{S.cfg.keepMonths=+$("keepSel").value;save();renderCal();toast("ضُبطت مدة الحفظ.")};
+  if($("eSave"))$("eSave").onclick=()=>{const k=calSel,isT=k===dkey();const g=id=>$(id).value?toMin($(id).value):null;const dd=S.days[k]=S.days[k]||{fired:{}};
+    dd.in=g("eIn");dd.pres=g("ePr");dd.out=g("eOut");delete dd.est;dd.cfg=dd.cfg||snap();if(dd.in==null){delete S.days[k]}save();if(isT)pushNative(true);renderCal();toast("حُفظت أوقات اليوم.")};
+  if($("eDel"))$("eDel").onclick=()=>{if(calSel===dkey()){openM("mReset");return}delete S.days[calSel];save();renderCal();toast("مُسح اليوم من السجل.")};
+}
+const toHHMMSS=m=>{const s=Math.round(m*60);return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
+function resetToday(){const k=dkey();S.days[k]={fired:{}};save();if(N){try{N.setDay(k,JSON.stringify({reset:true}))}catch(e){}}closeM();closeAlarm();go("today");toast("صُفّر اليوم. سجّل وقت بصمتك الصحيح.");launchFlash()}
+document.getElementById("resetOk").onclick=resetToday;
+const views={today:render,cal:renderCal,bal:renderBal,forgot:renderForgot,rules:renderRules};
 function placePill(){const b=document.querySelector('nav.tabs button[aria-selected=true]'),p=document.getElementById("pill"),bar=document.getElementById("tabbar");const r=b.getBoundingClientRect(),br=bar.getBoundingClientRect();p.style.width=r.width+"px";p.style.insetInlineStart=(br.right-r.right)+"px"}
 function go(v){document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));views[v]();placePill();scrollTo({top:0,behavior:"smooth"});try{history.replaceState(null,"","#"+v)}catch(e){}}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.v));
@@ -757,7 +867,8 @@ addEventListener("resize",placePill);
 
 /* ================= البدء ================= */
 const t=new Date();document.getElementById("today").textContent=`${arDays[t.getDay()]} ${t.getDate()}/${t.getMonth()+1}/${t.getFullYear()}`;
-nativeSync();
+if(!S.since){S.since=dkey();save()}
+purge();nativeSync();
 const start=(location.hash||"#today").slice(1);go(views[start]?start:"today");
 setTimeout(()=>document.getElementById("splash").classList.add("off"),1900);
 })();

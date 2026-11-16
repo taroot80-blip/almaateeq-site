@@ -1,0 +1,20 @@
+{
+  "name": "بصمتي المرنة",
+  "short_name": "بصمتي",
+  "description": "مواعيد بصمات الحضور والتواجد والانصراف لمعلمي وزارة التربية في الكويت وإدارييها.",
+  "id": "/apps/basma/",
+  "start_url": "/apps/basma/",
+  "scope": "/apps/basma/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "background_color": "#0b0805",
+  "theme_color": "#0b0805",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-apple-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

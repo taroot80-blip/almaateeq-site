@@ -21,7 +21,12 @@
 <meta name="description" content="بصمتي المرنة: مواعيد بصمات الحضور والتواجد والانصراف لمعلمي وزارة التربية في الكويت وإدارييها. تطبيق مستقل غير تابع للوزارة.">
 <meta name="theme-color" content="#0b0805">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-apple-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="بصمتي">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
   --gold:#F2B632;--gold2:#ffd66b;--ink:#1a120b;--bg:#0b0805;--card:rgba(20,14,9,.56);
@@ -415,6 +420,9 @@ const STAGES={
   sec:{label:"الثانوية",earliest:430,graceEnd:475,workMin:360,latestOut:845}
 };
 const N=window.Native||null;
+const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+if(!N&&"serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 const DEF={
   name:"", role:"معلم", stage:"sec", keepMonths:1,
   earliest:430,   // 7:10 بداية فترة السماح في الثانوية
@@ -477,18 +485,22 @@ document.addEventListener("click",e=>{const b=e.target.closest("button,.m,summar
 function paintSnd(){const b=document.getElementById("sndBtn");b.classList.toggle("off",!!S.mute);b.querySelector(".w").style.display=S.mute?"none":"";b.querySelector(".x").style.display=S.mute?"":"none";b.setAttribute("aria-label",S.mute?"تشغيل الأصوات":"إطفاء الأصوات")}
 document.getElementById("sndBtn").onclick=()=>{S.mute=!S.mute;save();paintSnd();if(!S.mute)sfx.ok();toast(S.mute?"أُطفئت أصوات الأزرار. يبقى صوت تنبيه البصمة.":"شُغّلت الأصوات.")};
 paintSnd();window.__sfx=sfx;
+if(IOS&&!STANDALONE&&!N){let seen=0;try{seen=+localStorage.getItem("basma-ios-tip")||0}catch(e){}if(seen<2){try{localStorage.setItem("basma-ios-tip",seen+1)}catch(e){}setTimeout(()=>toast("لتثبيته على الآيفون: زر المشاركة ⬆︎ ثم «إضافة إلى الشاشة الرئيسية». الشرح في تبويب «اللوائح»."),2200)}}
 let alarmTimer=null,alarmKey=null;
 function fireAlarm(key,title,msg,secs){
   alarmKey=key;const el=document.getElementById("alarm");
   document.getElementById("alTitle").textContent=title;document.getElementById("alMsg").textContent=msg;
   el.classList.add("on");let left=secs;const arc=document.getElementById("alArc"),sec=document.getElementById("alSec");
   clearInterval(alarmTimer);const tick=()=>{sec.textContent=left;arc.style.strokeDashoffset=326.7*(1-left/secs);if(left%2===0&&!N)chime();if(navigator.vibrate)navigator.vibrate([220,90,220]);if(left<=0){clearInterval(alarmTimer);sec.textContent="الآن"}left--};tick();alarmTimer=setInterval(tick,1000);
-  try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body:msg,tag:key,requireInteraction:true})}catch(e){}
+  try{if("Notification" in window&&Notification.permission==="granted"){const o={body:msg,tag:key,requireInteraction:true,icon:"icon-192.png"};
+    // الآيفون والآيباد لا يعرضان الإشعار إلا عبر عامل الخدمة
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(r=>r.showNotification(title,o)).catch(()=>{});else new Notification(title,o)}}catch(e){}
 }
 function closeAlarm(){clearInterval(alarmTimer);document.getElementById("alarm").classList.remove("on")}
 document.getElementById("alClose").onclick=closeAlarm;
 document.getElementById("alDone").onclick=()=>{const d=today();if(alarmKey&&alarmKey.startsWith("pres"))d.pres=nowS();if(alarmKey==="out")d.out=nowS();save();pushNative();closeAlarm();toast("سُجّلت البصمة. أحسنت.");render()};
 document.getElementById("bellBtn").onclick=async()=>{audio();chime();
+  if(IOS&&!STANDALONE){toast("على الآيفون والآيباد: ثبّت التطبيق أولًا من Safari بزر المشاركة ثم «إضافة إلى الشاشة الرئيسية»، ثم فعّل الإشعارات من داخله.");return}
   try{if("Notification" in window){const r=await Notification.requestPermission();toast(r==="granted"?"فُعّلت إشعارات الهاتف مع التنبيه داخل التطبيق.":"الإشعارات غير متاحة هنا، وسيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}else toast("سيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}catch(e){toast("سيعمل التنبيه داخل التطبيق بالصوت والاهتزاز ما دام مفتوحًا.")}};
 
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -786,7 +798,7 @@ function renderRules(){
   <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
   <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:2" id="cSave">احفظ الإعدادات</button><button class="btn ghost" style="flex:1" id="cReset">الافتراضي</button></div>
   <button class="btn ghost wide" id="cTest" style="margin-top:10px">جرّب التنبيه المميّز</button></div>
-  ${N?"":`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
+  ${N?"":IOS?(STANDALONE?"":`<div class="card"><h3>ثبّته على الآيفون والآيباد</h3><p>١. افتح هذه الصفحة في متصفح Safari.<br>٢. اضغط زر المشاركة <b>⬆︎</b> أسفل الشاشة (وفي الآيباد أعلاها).<br>٣. اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».<br>بعدها يفتح «بصمتي» من أيقونته بملء الشاشة، ويعمل دون إنترنت، وتستطيع تفعيل إشعاراته من زر الجرس.</p></div>`):`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
   <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
   const $=id=>document.getElementById(id);
   $("cStage").onchange=()=>{const s=STAGES[$("cStage").value];$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};

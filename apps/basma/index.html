@@ -426,6 +426,17 @@ details.tip ol{margin:0;padding-inline-start:20px}
   </div>
 </div>
 
+<!-- تعديل بصمة التواجد -->
+<div class="modal" id="mPres" role="dialog" aria-modal="true" aria-label="تعديل وقت بصمة التواجد">
+  <div class="sheet">
+    <h3>تعديل وقت بصمة التواجد</h3>
+    <p class="muted" style="text-align:center;margin:0 0 8px">اكتب الوقت كما ظهر في سجل «الحضور والانصراف»، أو امسحه إن سُجّل خطأً.</p>
+    <div class="field" style="margin:6px 0 14px"><label for="presIn">وقت بصمة التواجد</label><input type="time" id="presIn" step="1"></div>
+    <div class="row"><button class="btn primary" style="flex:2" id="presSave">احفظ</button><button class="btn ghost reset" style="flex:1" id="presClear">🔘 مسح</button></div>
+    <button class="btn ghost wide" data-close style="margin-top:10px">إلغاء</button>
+  </div>
+</div>
+
 <!-- تأكيد التصفير -->
 <div class="modal" id="mReset" role="dialog" aria-modal="true" aria-label="تصفير اليوم">
   <div class="sheet" style="text-align:center">
@@ -462,7 +473,7 @@ const STAGES={
   kg:{label:"رياض الأطفال",earliest:405,graceEnd:450,workMin:300,latestOut:750},
   pri:{label:"الابتدائية",earliest:405,graceEnd:450,workMin:360,latestOut:810},
   mid:{label:"المتوسطة",earliest:415,graceEnd:460,workMin:360,latestOut:830},
-  sec:{label:"الثانوية",earliest:430,graceEnd:475,workMin:360,latestOut:845}
+  sec:{label:"الثانوية",earliest:430,graceEnd:475,workMin:370,latestOut:845}
 };
 const N=window.Native||null;
 const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
@@ -481,6 +492,9 @@ const KEY="basma-v2";
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
 S.cfg=Object.assign({},DEF,S.cfg||{}); S.days=S.days||{}; S.perms=S.perms||[]; S.ard=S.ard||[]; S.sick=S.sick||[];
+/* ترقية: الثانوية 6:10 ساعة */
+if((S.cfg.stage||'sec')==='sec'&&S.cfg.workMin===360)S.cfg.workMin=370;
+for(const k in S.days){const x=S.days[k].cfg;if(x&&x.earliest===430&&x.workMin===360)x.workMin=370}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const C=()=>S.cfg;
 
@@ -503,7 +517,8 @@ function plan(p,est,cc,date){
   const eff=Math.max(hi,c.earliest);
   const late=Math.max(0,lo-c.graceEnd);
   const out=Math.min(eff+c.workMin,c.latestOut);
-  const ps=hi+c.presDelay, pe=lo+c.presDelay+c.presLen;
+  const base=x=>Math.max(x,c.earliest);
+  const ps=base(hi)+c.presDelay, pe=base(lo)+c.presDelay+c.presLen;
   const todays=S.perms.filter(x=>x.date===(date||dkey()));
   const exempt=todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
   return{p:hi,lo,hi,est:!!est,eff,late,out,ps,pe,exempt};
@@ -663,7 +678,7 @@ function render(){
     h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>تعديل الوقت</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
       sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها":"راجع قسم «إذا نسيت» الآن",
-      sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"");
+      (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+"<button class='btn ghost' id='presEdit'>✏️ تعديل</button>");
     h+=ev(2,"٣","#F2B632","بصمة الانصراف",`من ${fmt(P.out)}`,sO,
       sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`,
       sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"");
@@ -683,6 +698,7 @@ function bindToday(){
   $("moeBtn")&&($("moeBtn").onclick=()=>N.openMoe());
   $("editIn")&&($("editIn").onclick=()=>openClock(today().in));
   $("resetDay")&&($("resetDay").onclick=()=>openM("mReset"));
+  $("presEdit")&&($("presEdit").onclick=()=>{const d=today();$("presIn").value=d.pres!=null?toHHMMSS(d.pres):"";openM("mPres")});
   $("presDone")&&($("presDone").onclick=()=>{today().pres=nowS();save();pushNative();render();toast("سُجّلت بصمة التواجد.");launchFlash()});
   $("outDone")&&($("outDone").onclick=()=>{today().out=nowS();save();pushNative();render();toast("سُجّلت بصمة الانصراف. يومًا موفقًا.");launchFlash()});
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
@@ -835,10 +851,10 @@ function renderRules(){
     </div></div>`}
   document.getElementById("v-rules").innerHTML=setup+`
   <div class="card"><h3>ما يعتمده التطبيق</h3>
-  <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور. <span class="src">قرار مجلس الخدمة المدنية</span></p>
+  <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور، ويُحتسب الحضور قبل ${fmt(c.earliest)} كأنه في ${fmt(c.earliest)}. <span class="src">قرار مجلس الخدمة المدنية</span></p>
   <p>٢. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية ٢٠٢٤</span></p>
   <p>٣. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة ٢٠٢٥</span></p>
-  <p>٤. الدوام الفعلي في المدارس <b>٦ ساعات</b>، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
+  <p>٤. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
   <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف حتى <b>${fmt(c.latestOut)}</b>. <span class="src">مقترح الوزارة ٢٠٢٤</span></p>
   <p>٦. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
   <div class="card"><h3>ملاحظات مهمة</h3>
@@ -852,7 +868,7 @@ function renderRules(){
   <div class="field"><label for="cBud">التعيين على ميزانية</label><select id="cBud"><option value="1"${budget()===1?" selected":""}>ميزانية شهر 1</option><option value="7"${budget()===7?" selected":""}>ميزانية شهر 7</option></select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label for="cStage">المرحلة</label><select id="cStage">${Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("")}</select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>بداية السماح</label><input type="time" id="cE" value="${toHHMM(c.earliest)}"></div><div class="field"><label>نهاية السماح</label><input type="time" id="cG" value="${toHHMM(c.graceEnd)}"></div></div>
-  <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="0.25" value="${c.workMin/60}"></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="any" value="${c.workMin/60}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
   <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:2" id="cSave">احفظ الإعدادات</button><button class="btn ghost" style="flex:1" id="cReset">الافتراضي</button></div>
   <button class="btn ghost wide" id="cTest" style="margin-top:10px">جرّب التنبيه المميّز</button></div>
@@ -940,6 +956,8 @@ document.getElementById("aboutBtn").onclick=()=>openM("mAbout");
 document.getElementById("copyMail").onclick=async()=>{try{await navigator.clipboard.writeText("taroot80@gmail.com");toast("نُسخ البريد: taroot80@gmail.com")}catch(e){toast("البريد: taroot80@gmail.com")}};
 function resetToday(){const k=dkey();S.days[k]={fired:{}};save();if(N){try{N.setDay(k,JSON.stringify({reset:true}))}catch(e){}}closeM();closeAlarm();go("today");toast("صُفّر اليوم. سجّل وقت بصمتك الصحيح.");launchFlash()}
 document.getElementById("resetOk").onclick=resetToday;
+document.getElementById("presSave").onclick=()=>{const v=document.getElementById("presIn").value;if(!v){toast("اكتب الوقت أولًا، أو اضغط «مسح».");return}const d=today();d.pres=toMin(v);save();pushNative(true);closeM();render();toast(`حُفظ وقت التواجد ${fmt(d.pres)}`)};
+document.getElementById("presClear").onclick=()=>{const d=today();d.pres=null;if(d.fired){delete d.fired.pres;delete d.fired.presLast}save();pushNative(true);closeM();render();toast("مُسح وقت التواجد.")};
 const views={today:render,cal:renderCal,bal:renderBal,forgot:renderForgot,rules:renderRules};
 function placePill(){const b=document.querySelector('nav.tabs button[aria-selected=true]'),p=document.getElementById("pill"),bar=document.getElementById("tabbar");const r=b.getBoundingClientRect(),br=bar.getBoundingClientRect();p.style.width=r.width+"px";p.style.insetInlineStart=(br.right-r.right)+"px"}
 function go(v){document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));views[v]();placePill();scrollTo({top:0,behavior:"smooth"});try{history.replaceState(null,"","#"+v)}catch(e){}}

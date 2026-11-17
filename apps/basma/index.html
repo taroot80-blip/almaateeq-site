@@ -172,6 +172,7 @@ nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
 .view{display:none}.view.on{display:block}
+body.offhours :is(#nowBtn,#mClockBtn,#mVoiceBtn,#mTypeBtn,#mShotBtn,#shotBtn2,#presDone,#presEdit,#outDone,#editIn){opacity:.42;filter:grayscale(.7);animation:none!important;box-shadow:none!important}
 .iconbtn.about{width:auto!important;padding:0 10px;font-family:Cairo,Tajawal,sans-serif;font-weight:800;font-size:14px;gap:4px;display:inline-flex;align-items:center}
 .aboutPh{width:150px;height:150px;margin:6px auto 10px;border-radius:50%;padding:4px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
 .aboutPh img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;border:3px solid #1b130c;animation:spin 6s linear infinite reverse}
@@ -368,7 +369,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
 <!-- نافذة الساعة بالعقارب -->
 <div class="modal" id="mClock" role="dialog" aria-modal="true" aria-label="تحديد وقت الحضور بالعقارب">
   <div class="sheet">
-    <h3>حرّك عقرب الدقائق إلى وقت بصمتك</h3>
+    <h3 id="pickTitle">حرّك عقرب الدقائق إلى وقت بصمتك</h3>
     <p class="muted" style="text-align:center;margin:0">إدارة العقرب دورة كاملة تنقل الساعة</p>
     <svg id="pick" viewBox="0 0 300 300"></svg>
     <div class="bigtime num" id="pickTxt">7:00 ص</div>
@@ -380,6 +381,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     </div>
     <div class="row">
       <button class="btn primary" style="flex:2" id="pickOk">اعتمد هذا الوقت</button>
+      <button class="btn ghost reset" style="flex:1;display:none" id="pickClear">🔘 مسح</button>
       <button class="btn ghost" style="flex:1" data-close>إلغاء</button>
     </div>
   </div>
@@ -404,7 +406,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 1.9</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.1</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -541,6 +543,8 @@ function chime(){const a=audio();if(!a)return;const t=a.currentTime;[784,988,131
 function tone(freqs,type="sine",gap=.07,len=.22,vol=.16){if(S.mute)return;const a=audio();if(!a)return;const t=a.currentTime;freqs.forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t+i*gap);g.gain.linearRampToValueAtTime(vol,t+i*gap+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*gap+len);o.connect(g).connect(a.destination);o.start(t+i*gap);o.stop(t+i*gap+len+.02)})}
 const sfx={tap:()=>tone([660,990],"triangle",.04,.09,.1),tab:()=>tone([523,784],"sine",.05,.16,.1),ok:()=>tone([523,659,784,1047],"triangle",.08,.35,.15),err:()=>tone([330,247],"square",.09,.18,.06)};
 function burstAt(x,y){for(let i=0;i<12;i++){const b=document.createElement("i");b.className="burst";const a=i/12*Math.PI*2,r=40+Math.random()*30;b.style.left=x+"px";b.style.top=y+"px";b.style.setProperty("--dx",Math.cos(a)*r+"px");b.style.setProperty("--dy",Math.sin(a)*r+"px");if(i%3===0)b.style.background="#5eead4";document.body.appendChild(b);setTimeout(()=>b.remove(),750)}}
+const GUARD="#nowBtn,#mClockBtn,#mVoiceBtn,#mTypeBtn,#mShotBtn,#shotBtn2,#presDone,#presEdit,#outDone,#editIn,#alDone,#pickOk,#pickClear,#typeOk,#presSave,#presClear";
+document.addEventListener("click",e=>{const g=e.target.closest(GUARD);if(g&&!inHours()){e.preventDefault();e.stopImmediatePropagation();if(window.__sfx)window.__sfx.err();toast(OFF_MSG)}},true);
 document.addEventListener("click",e=>{const b=e.target.closest("button,.m,summary");if(!b)return;burstAt(e.clientX||innerWidth/2,e.clientY||innerHeight/2);if(b.closest("nav.tabs"))sfx.tab();else if(b.matches(".ok,#nowBtn,#pickOk,#typeOk"))sfx.ok();else sfx.tap()},true);
 function paintSnd(){const b=document.getElementById("sndBtn");b.classList.toggle("off",!!S.mute);b.querySelector(".w").style.display=S.mute?"none":"";b.querySelector(".x").style.display=S.mute?"":"none";b.setAttribute("aria-label",S.mute?"تشغيل الأصوات":"إطفاء الأصوات")}
 document.getElementById("sndBtn").onclick=()=>{S.mute=!S.mute;save();paintSnd();if(!S.mute)sfx.ok();toast(S.mute?"أُطفئت أصوات الأزرار. يبقى صوت تنبيه البصمة.":"شُغّلت الأصوات.")};
@@ -635,8 +639,11 @@ function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.g
 /* ================= رسم «اليوم» ================= */
 /* بصمة حالة اليوم: يُعاد الرسم فقط حين تتغير حالة إحدى البصمات */
 let lastSig="";
-function daySig(){const d=today(),n=nowMin(),c=C();if(d.in==null)return`none|${n>=c.earliest-25&&n<=c.graceEnd}|${n>c.graceEnd&&n<c.latestOut}`;
-  const P=plan(d.in,d.est,d.cfg);const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);return`in|${d.in}|${sP}|${evState(P.out,null,d.out,n)}|${!!d.est}`}
+const WORK_FROM=360,WORK_TO=900;
+const inHours=()=>{const n=nowMin();return n>=WORK_FROM&&n<WORK_TO};
+const OFF_MSG="أنت خارج نطاق الدوام. تعمل أزرار البصمة من 6:00 صباحًا إلى 3:00 عصرًا فقط.";
+function daySig(){const d=today(),n=nowMin(),c=C();if(d.in==null)return`${inHours()}|none|${n>=c.earliest-25&&n<=c.graceEnd}|${n>c.graceEnd&&n<c.latestOut}`;
+  const P=plan(d.in,d.est,d.cfg);const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);return`${inHours()}|in|${d.in}|${sP}|${evState(P.out,null,d.out,n)}|${!!d.est}`}
 function evState(start,end,doneAt,n){if(doneAt!=null)return"done";if(n<start)return"wait";if(end==null||n<=end)return"open";return"miss"}
 function render(){
   const c=C();paintCard();
@@ -684,6 +691,8 @@ function render(){
       sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"");
     h+=`<p class="muted" style="text-align:center;margin-top:10px">ينبّهك التطبيق قبل ${c.lead} ثانية من فتح التواجد ومن وقت الانصراف، وقبل ${c.lastCall} دقائق من إغلاق التواجد.</p>`;
   }
+  if(!inHours())h=`<div class="banner warn" style="justify-content:center;text-align:center">⏸️ أنت خارج نطاق الدوام<br><small style="font-weight:500">تعمل أزرار البصمة من 6:00 صباحًا إلى 3:00 عصرًا</small></div>`+h;
+  document.body.classList.toggle("offhours",!inHours());
   V.innerHTML=h;lastSig=daySig();
   bindToday();moveHands();tickCd();
 }
@@ -698,13 +707,14 @@ function bindToday(){
   $("moeBtn")&&($("moeBtn").onclick=()=>N.openMoe());
   $("editIn")&&($("editIn").onclick=()=>openClock(today().in));
   $("resetDay")&&($("resetDay").onclick=()=>openM("mReset"));
-  $("presEdit")&&($("presEdit").onclick=()=>{const d=today();$("presIn").value=d.pres!=null?toHHMMSS(d.pres):"";openM("mPres")});
+  $("presEdit")&&($("presEdit").onclick=()=>{const d=today(),P=plan(d.in,d.est,d.cfg);openClock(Math.round(d.pres!=null?d.pres:Math.min(Math.max(nowMin(),P.ps),P.pe)),"pres")});
   $("presDone")&&($("presDone").onclick=()=>{today().pres=nowS();save();pushNative();render();toast("سُجّلت بصمة التواجد.");launchFlash()});
   $("outDone")&&($("outDone").onclick=()=>{today().out=nowS();save();pushNative();render();toast("سُجّلت بصمة الانصراف. يومًا موفقًا.");launchFlash()});
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
 function tickCd(){const n=nowMin()*60;document.querySelectorAll("[data-cd]").forEach(b=>b.textContent=cdTxt(+b.dataset.cd*60-n));
   const d=today(),cd=document.getElementById("dialCd"),lb=document.getElementById("dialLb");if(!cd)return;
+  if(!inHours()){cd.textContent=fmt(nowMin());lb.textContent="خارج نطاق الدوام";return}
   if(d.in==null){cd.textContent=fmt(nowMin());lb.textContent="الوقت الآن";return}
   const P=plan(d.in,d.est),c=C();let t=null,l="";
   if(d.pres==null&&!P.exempt&&n<P.ps*60){t=P.ps;l="حتى فتح التواجد"}else if(d.pres==null&&!P.exempt&&n<=P.pe*60){t=P.pe;l="حتى إغلاق التواجد"}else if(d.out==null&&n<P.out*60){t=P.out;l="حتى الانصراف"}
@@ -721,11 +731,15 @@ function checkAlerts(){
   for(const a of list){if(!d.fired[a.k]&&n>=a.at&&n<a.at+120){d.fired[a.k]=1;save();fireAlarm(a.k,a.title,a.msg,a.secs);break}}
 }
 setInterval(()=>{moveHands();tickCd();checkAlerts();
+  document.body.classList.toggle("offhours",!inHours());
   if(document.getElementById("v-today").classList.contains("on")&&daySig()!==lastSig)render()},1000);
 
 /* ================= الساعة بالعقارب ================= */
 let pickM=420;
-function openClock(m){pickM=m??Math.max(420,Math.min(Math.round(nowMin()),480));drawPick();openM("mClock")}
+let pickMode="in";
+function openClock(m,mode){pickMode=mode||"in";pickM=m??Math.max(420,Math.min(Math.round(nowMin()),480));
+  document.getElementById("pickTitle").textContent=pickMode==="pres"?"حرّك العقرب إلى وقت بصمة التواجد":"حرّك عقرب الدقائق إلى وقت بصمتك";
+  document.getElementById("pickClear").style.display=pickMode==="pres"&&today().pres!=null?"":"none";drawPick();openM("mClock")}
 function drawPick(){const svg=document.getElementById("pick");let t="";
   t+=`<circle cx="150" cy="150" r="140" fill="#120c07" stroke="rgba(242,182,50,.5)" stroke-width="2"/>`;
   for(let i=0;i<60;i++){const L=i%5?6:13,[x1,y1]=pt(136,i*6),[x2,y2]=pt(136-L,i*6);t+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i%5?"rgba(242,182,50,.35)":"#F2B632"}" stroke-width="${i%5?1:2.5}"/>`}
@@ -736,12 +750,13 @@ function drawPick(){const svg=document.getElementById("pick");let t="";
   svg.innerHTML=t;document.getElementById("pickTxt").textContent=fmt(pickM)}
 (()=>{const svg=document.getElementById("pick");let drag=false,lastMin=null;
   const angAt=e=>{const r=svg.getBoundingClientRect();const x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;let a=Math.atan2(y,x)*180/Math.PI+90;if(a<0)a+=360;return a};
-  const upd=e=>{const m=Math.round(angAt(e)/6)%60;const cur=pickM%60;let base=pickM-cur;if(lastMin!=null){if(lastMin>45&&m<15)base+=60;else if(lastMin<15&&m>45)base-=60}lastMin=m;pickM=Math.max(300,Math.min(660,base+m));drawPick();if(navigator.vibrate)navigator.vibrate(4)};
+  const upd=e=>{const m=Math.round(angAt(e)/6)%60;const cur=pickM%60;let base=pickM-cur;if(lastMin!=null){if(lastMin>45&&m<15)base+=60;else if(lastMin<15&&m>45)base-=60}lastMin=m;pickM=Math.max(300,Math.min(900,base+m));drawPick();if(navigator.vibrate)navigator.vibrate(4)};
   svg.addEventListener("pointerdown",e=>{drag=true;lastMin=pickM%60;svg.setPointerCapture(e.pointerId);upd(e)});
   svg.addEventListener("pointermove",e=>{if(drag)upd(e)});
   svg.addEventListener("pointerup",()=>{drag=false;lastMin=null});
-  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{pickM=Math.max(300,Math.min(660,pickM+ +b.dataset.step));drawPick()});
-  document.getElementById("pickOk").onclick=()=>{closeM();setPunch(pickM)};
+  document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{pickM=Math.max(300,Math.min(900,pickM+ +b.dataset.step));drawPick()});
+  document.getElementById("pickOk").onclick=()=>{closeM();if(pickMode==="pres"){const d=today();d.pres=pickM;if(d.fired){delete d.fired.pres;delete d.fired.presLast}save();pushNative(true);render();launchFlash();toast(`اعتُمد وقت التواجد ${fmt(pickM)}`)}else setPunch(pickM)};
+  document.getElementById("pickClear").onclick=()=>{const d=today();d.pres=null;save();pushNative(true);closeM();render();toast("مُسح وقت التواجد.")};
   document.getElementById("typeOk").onclick=()=>{const v=document.getElementById("typeIn").value;if(!v){toast("اكتب الوقت أولًا.");return}closeM();setPunch(toMin(v))};
 })();
 function openM(id){document.getElementById(id).classList.add("on")}

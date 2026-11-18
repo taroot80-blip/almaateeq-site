@@ -1,0 +1,37 @@
+name: الجامعة الحوزوية — بناء APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/hawza-university/**'
+      - 'android/hawza-university/**'
+      - '.github/workflows/hawza-university-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.14.3' }
+      - run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+      - name: Build
+        working-directory: android/hawza-university
+        run: |
+          mkdir -p app/src/main/assets/www
+          cp -r ../../apps/hawza-university/. app/src/main/assets/www/
+          gradle :app:assembleRelease --no-daemon --stacktrace
+          mkdir -p ../../out && cp app/build/outputs/apk/release/app-release.apk ../../out/hawza-university.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: hawza-university, path: out/ }
+      - name: Publish latest APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete hawza-university-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create hawza-university-latest out/hawza-university.apk --title "الجامعة الحوزوية — أحدث نسخة" \
+            --notes "تطبيق أندرويد للجامعة الحوزوية، يفتح دائمًا آخر تحديث من almaateeq.com." --latest=false

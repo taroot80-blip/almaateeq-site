@@ -65,6 +65,26 @@
       "source": "/basma",
       "destination": "/apps/basma/",
       "permanent": false
+    },
+    {
+      "source": "/apps/hawza-university",
+      "destination": "/apps/hawza-university/",
+      "permanent": false
+    },
+    {
+      "source": "/hawza-university/android",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/hawza-university-latest/hawza-university.apk",
+      "permanent": false
+    },
+    {
+      "source": "/hawza-university",
+      "destination": "/apps/hawza-university/",
+      "permanent": false
+    },
+    {
+      "source": "/jamia",
+      "destination": "/apps/hawza-university/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -135,6 +155,15 @@
         {
           "key": "Link",
           "value": "<https://www.almaateeq.com/apps/almaalim/>; rel=\"canonical\""
+        }
+      ]
+    },
+    {
+      "source": "/apps/hawza-university/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }

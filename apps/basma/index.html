@@ -59,10 +59,11 @@ button{font-family:inherit}
 h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .num{font-variant-numeric:tabular-nums}
 
-.hero{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px;padding:2px 4px 4px;animation:pop .8s var(--spring) both}
-.hero .tools{grid-column:2;grid-row:1;display:flex;gap:8px}
+.hero{position:relative;display:grid;grid-template-columns:auto 1fr auto;text-align:center;align-items:center;column-gap:8px;padding:2px 4px 4px;animation:pop .8s var(--spring) both}
+.hero .tools{grid-column:3;grid-row:1;display:flex;gap:8px}
+.hero .tools.t1{grid-column:1}
 .hero .tools .iconbtn{width:40px;height:40px}
-.hero h1{grid-column:1;grid-row:1;font-size:25px;line-height:1.2;color:#fff3d6;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 22px rgba(242,182,50,.45)}
+.hero h1{grid-column:2;grid-row:1;text-align:center;font-size:25px;line-height:1.2;color:#fff3d6;text-shadow:0 2px 14px rgba(0,0,0,.9),0 0 22px rgba(242,182,50,.45)}
 .hero .disc{grid-column:1/-1;display:block;margin-top:1px;color:#e9d8b4;font-size:11px;text-shadow:0 1px 6px #000}
 .hero p{grid-column:1/-1;margin:2px 0 0;font-size:13px;line-height:1.5;color:#f3e3c2;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.95)}
 /* بطاقة الموظف */
@@ -79,7 +80,7 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .id .who .role{display:inline-block;margin-top:4px;padding:3px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px}
 .id .who .bud{display:inline-block;margin-inline-start:5px;padding:1px 8px;border-radius:999px;border:1px solid rgba(20,184,166,.6);background:rgba(20,184,166,.16);color:#99f6e4;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap}
 .id .who .bud.need{border-color:#EF4444;background:rgba(239,68,68,.18);color:#fecaca;animation:badpulse 1.8s ease-in-out infinite}
-.id .who{white-space:nowrap;overflow:hidden}
+.id .who{white-space:nowrap;overflow:hidden;text-align:center}
 .id .who .date{display:inline;margin-inline-start:5px!important;color:var(--muted);font-size:12px;margin-inline-start:6px}
 .iconbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:rgba(242,182,50,.1);color:var(--gold);display:grid;place-items:center;cursor:pointer;flex-shrink:0;transition:transform .14s var(--ease-out)}
 .iconbtn:active{transform:scale(.92)}
@@ -142,15 +143,19 @@ h1,h2,h3{font-family:Cairo,Tajawal,sans-serif;margin:0;font-weight:700}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
 
 /* بطاقات البصمات الثلاث */
-.ev{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start;padding:14px;border-radius:18px;background:rgba(26,18,11,.66);border:1px solid var(--line);margin-top:10px;animation:pop .6s var(--spring) both;position:relative;overflow:hidden}
-.ev .ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--ink)}
+.ev{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:10px 12px;border-radius:18px;background:rgba(26,18,11,.66);border:1px solid var(--line);margin-top:8px;animation:pop .6s var(--spring) both;position:relative;overflow:hidden}
+.ev .head{display:flex;align-items:center;justify-content:center;gap:8px}
+.ev .ic{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:16px;color:var(--ink);flex-shrink:0}
 .ev h4{margin:0;font-size:17px;font-family:Cairo}
-.ev .range{font-size:22px;font-weight:800;margin-top:2px}
+.ev .range{font-size:20px;font-weight:800;line-height:1.3}
 .ev .range span{color:var(--muted);font-size:14px;font-weight:500}
-.ev .stat{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700}
-.ev .cd{font-size:14px;color:var(--muted);margin-top:4px}
-.ev .act{grid-column:1/-1;margin-top:4px;display:flex;flex-direction:column;align-items:stretch;gap:10px}
-.ev .act .btn{width:100%;min-height:48px;font-size:16px;padding:8px 14px}
+.ev .stat{display:inline-flex;align-items:center;gap:6px;margin-top:2px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700}
+.ev .cd{font-size:13px;color:var(--muted);line-height:1.5}
+.ev .act{width:100%;margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ev .act .btn:only-child,.ev .act .btn.full{grid-column:1/-1}
+.ev .act .btn{width:100%;min-height:44px;font-size:15px;padding:6px 10px}
+.btn.moe{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:40px;margin-top:8px;font-size:14px;padding:4px 12px}
+.btn.moe img{width:26px;height:26px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(255,214,107,.5))}
 .ev.live{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 28px rgba(242,182,50,.25)}
 .ev.live::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(242,182,50,.12),transparent);animation:shine 2.4s linear infinite}
 .s-wait{background:rgba(56,189,248,.15);color:var(--sky)}
@@ -172,6 +177,16 @@ nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-selected=true]{color:var(--ink)}
 .pill{position:absolute;top:6px;bottom:6px;border-radius:16px;background:linear-gradient(180deg,#ffd66b,var(--gold));box-shadow:0 0 18px rgba(242,182,50,.5);transition:inset-inline-start .45s var(--spring),width .45s var(--spring)}
 .view{display:none}.view.on{display:block}
+.card,.card p,.card h3{text-align:center}
+.card .row{justify-content:center}
+.field label{text-align:center}
+input,select{text-align:center;text-align-last:center}
+.banner{justify-content:center;text-align:center}
+details.tip summary{justify-content:center;text-align:center}
+details.tip .body{text-align:center}
+details.tip ol{list-style-position:inside;padding-inline-start:0}
+.notes{list-style-position:inside;padding-inline-start:0!important;text-align:center}
+.li{justify-content:center;text-align:center;gap:12px}
 body.offhours :is(#outEdit,#nowBtn,#mClockBtn,#mVoiceBtn,#mTypeBtn,#mShotBtn,#shotBtn2,#presDone,#presEdit,#outDone,#editIn){opacity:.42;filter:grayscale(.7);animation:none!important;box-shadow:none!important}
 .iconbtn.about{width:auto!important;padding:0 10px;font-family:Cairo,Tajawal,sans-serif;font-weight:800;font-size:14px;gap:4px;display:inline-flex;align-items:center}
 .aboutPh{width:150px;height:150px;margin:6px auto 10px;border-radius:50%;padding:4px;background:conic-gradient(from 0deg,var(--gold),transparent 30%,var(--teal) 50%,transparent 70%,var(--gold));animation:spin 6s linear infinite}
@@ -327,7 +342,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
 </div>
 
 <main class="app">
-  <div class="hero"><div class="tools"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
+  <div class="hero"><div class="tools t1"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button></div><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
     <button class="iconbtn" id="bellBtn" aria-label="تفعيل الإشعارات">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
     </button></div><h1>بصمتي المرنة</h1><p>الحضور · التواجد · الانصراف — لمعلمي وزارة التربية وإدارييها</p><small class="disc">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية</small></div>
@@ -406,7 +421,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.2</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.3</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -543,6 +558,14 @@ function chime(){const a=audio();if(!a)return;const t=a.currentTime;[784,988,131
 function tone(freqs,type="sine",gap=.07,len=.22,vol=.16){if(S.mute)return;const a=audio();if(!a)return;const t=a.currentTime;freqs.forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t+i*gap);g.gain.linearRampToValueAtTime(vol,t+i*gap+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*gap+len);o.connect(g).connect(a.destination);o.start(t+i*gap);o.stop(t+i*gap+len+.02)})}
 const sfx={tap:()=>tone([660,990],"triangle",.04,.09,.1),tab:()=>tone([523,784],"sine",.05,.16,.1),ok:()=>tone([523,659,784,1047],"triangle",.08,.35,.15),err:()=>tone([330,247],"square",.09,.18,.06)};
 function burstAt(x,y){for(let i=0;i<12;i++){const b=document.createElement("i");b.className="burst";const a=i/12*Math.PI*2,r=40+Math.random()*30;b.style.left=x+"px";b.style.top=y+"px";b.style.setProperty("--dx",Math.cos(a)*r+"px");b.style.setProperty("--dy",Math.sin(a)*r+"px");if(i%3===0)b.style.background="#5eead4";document.body.appendChild(b);setTimeout(()=>b.remove(),750)}}
+const MOE_URL_IOS="https://apps.apple.com/app/id6482999354",MOE_URL_PLAY="https://play.google.com/store/apps/details?id=com.moe.moemobileapp";
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const MOE_BTN=`<button class="btn ghost moe" data-moe><img src="moe-logo.png" alt="">افتح بصمة تطبيق الوزارة</button>`;
+function openMoeApp(){if(N){N.openMoe();return}
+  if(IS_IOS){location.href=MOE_URL_IOS;return}
+  if(/Android/.test(navigator.userAgent)){location.href="intent://#Intent;package=com.moe.moemobileapp;S.browser_fallback_url="+encodeURIComponent(MOE_URL_PLAY)+";end";return}
+  window.open(MOE_URL_PLAY,"_blank")}
+document.addEventListener("click",e=>{if(e.target.closest("[data-moe]"))openMoeApp()});
 const GUARD="#outEdit,#nowBtn,#mClockBtn,#mVoiceBtn,#mTypeBtn,#mShotBtn,#shotBtn2,#presDone,#presEdit,#outDone,#editIn,#alDone,#pickOk,#pickClear,#typeOk,#presSave,#presClear";
 document.addEventListener("click",e=>{const g=e.target.closest(GUARD);if(g&&!inHours()){e.preventDefault();e.stopImmediatePropagation();if(window.__sfx)window.__sfx.err();toast(OFF_MSG)}},true);
 document.addEventListener("click",e=>{const b=e.target.closest("button,.m,summary");if(!b)return;burstAt(e.clientX||innerWidth/2,e.clientY||innerHeight/2);if(b.closest("nav.tabs"))sfx.tab();else if(b.matches(".ok,#nowBtn,#pickOk,#typeOk"))sfx.ok();else sfx.tap()},true);
@@ -658,7 +681,7 @@ function render(){
         <svg width="26" height="26" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M18 30c0-8 6-14 14-14s14 6 14 14v4"/><path d="M24 50c-3-5-5-11-5-18"/><path d="M32 26c3 0 6 3 6 6 0 8-2 15-6 21"/><path d="M44 52c2-6 2-12 2-17"/></svg>
         بصمتُ الحضور الآن</button>
       <p class="muted" style="margin:10px 0 0">اضغط الزر لحظة وضع إصبعك على جهاز البصمة، فيأخذ التطبيق الوقت بنفسه.</p>
-      ${N?`<button class="btn ghost wide" id="moeBtn" style="margin-top:12px">افتح تطبيق الوزارة للبصمة</button>`:""}
+      ${MOE_BTN}
       <p class="muted" style="margin-top:12px">أو أدخل وقتًا سابقًا بإحدى هذه الطرق:</p>
       <div class="methods">
         <button class="m" id="mClockBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>ساعة بالعقارب<small>حرّك العقرب</small></button>
@@ -679,13 +702,13 @@ function render(){
     if(P.est)h+=`<div class="banner info" style="flex-direction:column;align-items:stretch">وقت تقديري من فتحك تطبيق الوزارة: بين ${fmt(P.lo)} و${fmt(P.hi)}. حُسبت النوافذ بالأحوط. ولاعتماد الوقت الدقيق اقرأ لقطة شاشة «الحضور والانصراف».${N?`<button class="btn ghost" id="shotBtn2" style="margin-top:8px">قراءة لقطة الشاشة</button>`:""}</div>`;
     if(P.late)h+=`<div class="banner warn">حضورك بعد نهاية فترة السماح بـ ${dur(P.late)}؛ تُحتسب هذه المدة تأخيرًا. ويمكن تغطيتها باستئذان إن بقي رصيد.</div>`;
     const stTxt={wait:["s-wait","لم يحن بعد"],open:["s-open","مفتوحة الآن"],done:["s-done","تمت"],miss:["s-miss","فاتت"],ex:["s-ex","معفاة باستئذان"]};
-    const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="ic" style="background:${col}">${ic}</div><div>
-      <h4>${title}</h4><div class="range num">${range}</div>
-      <span class="stat ${stTxt[st][0]}">${stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}</div>${act?`<div class="act">${act}</div>`:""}</div>`;
+    const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="head"><div class="ic" style="background:${col}">${ic}</div><h4>${title}</h4></div>
+      <div class="range num">${range}</div>
+      <span class="stat ${stTxt[st][0]}">${stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
     h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
       sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها":"راجع قسم «إذا نسيت» الآن",
-      (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+"<button class='btn ghost' id='presEdit'>✏️ تعديل</button>");
+      (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+`<button class='btn ghost${sP==="miss"?" full":""}' id='presEdit'>✏️ تعديل</button>`);
     h+=ev(2,"٣","#F2B632","بصمة الانصراف",`من ${fmt(P.out)}`,sO,
       sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`,
       (sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"")+"<button class='btn ghost' id='outEdit'>✏️ تعديل</button>");

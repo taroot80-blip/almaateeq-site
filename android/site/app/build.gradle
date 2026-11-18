@@ -1,0 +1,28 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.almaateeq.site'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.almaateeq.site'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+    signingConfigs {
+        // مفتاح ثابت لنسخ التجربة، حتى يُثبَّت كل تحديث فوق سابقه.
+        test {
+            storeFile rootProject.file('site-test.keystore')
+            storePassword 'site-test'
+            keyAlias 'sitetest'
+            keyPassword 'site-test'
+        }
+    }
+    buildTypes {
+        debug { signingConfig signingConfigs.test }
+        release { minifyEnabled false; signingConfig signingConfigs.test }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError false; checkReleaseBuilds false }
+}

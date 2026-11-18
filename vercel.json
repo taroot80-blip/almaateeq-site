@@ -85,40 +85,36 @@
       "source": "/jamia",
       "destination": "/apps/hawza-university/",
       "permanent": false
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/apps/mastoor/",
-      "destination": "https://taroot80-blip.github.io/imam-mahdi/"
     },
     {
-      "source": "/apps/mastoor/:path*",
-      "destination": "https://taroot80-blip.github.io/imam-mahdi/:path*"
+      "source": "/apps/ahraz",
+      "destination": "/apps/ahraz/",
+      "permanent": false
     },
     {
-      "source": "/apps/mawarith/",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/"
+      "source": "/apps/hawza-sadiq",
+      "destination": "/apps/hawza-sadiq/",
+      "permanent": false
     },
     {
-      "source": "/apps/mawarith/:path*",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/:path*"
+      "source": "/ahraz",
+      "destination": "/apps/ahraz/",
+      "permanent": false
     },
     {
-      "source": "/apps/almaalim/",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almaalim/"
+      "source": "/hawza-sadiq",
+      "destination": "/apps/hawza-sadiq/",
+      "permanent": false
     },
     {
-      "source": "/apps/almaalim/:path*",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almaalim/:path*"
+      "source": "/android",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/site-latest/almaateeq.apk",
+      "permanent": false
     },
     {
-      "source": "/apps/almisbar/",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almisbar/"
-    },
-    {
-      "source": "/apps/almisbar/:path*",
-      "destination": "https://taroot80-blip.github.io/Dar-alemaam-alsadig/almisbar/:path*"
+      "source": "/app",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/site-latest/almaateeq.apk",
+      "permanent": false
     }
   ],
   "headers": [

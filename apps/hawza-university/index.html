@@ -9,7 +9,8 @@
 <link rel="canonical" href="https://www.almaateeq.com/apps/hawza-university/">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-180.png"><link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="الجامعة الحوزوية">
-<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.hl-sub{animation:hlsub 2.4s ease}@keyframes hlsub{0%,60%{box-shadow:0 0 0 2px #F2B632,0 0 28px rgba(242,182,50,.55)}100%{box-shadow:none}}
+</style></head><body>
 <title>الجامعة الحوزوية</title>
 <script>document.documentElement.setAttribute("dir","rtl");document.documentElement.setAttribute("lang","ar");</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1009,6 +1010,11 @@ if(window.__PREVIEW) $("#previewBtn").hidden=true;
 addEventListener("hashchange", ()=>{ const i=D.levels.findIndex(l=>l.id===location.hash.slice(1)); if(i>=0) setLevel(i); });
 
 renderLevels(); renderStage(); renderTabs(); renderBooks(); renderMeta();
+
+/* فتح مادة بعينها من رابط الموقع: ?m=الفقه */
+try{ const m=new URLSearchParams(location.search).get("m");
+  if(m){ const i=D.levels[cur].subjects.findIndex(x=>x.name===m||x.name.startsWith(m));
+    if(i>=0){ const go=(n)=>{ const el=document.getElementById("sub-"+i); if(el&&el.offsetParent){ el.scrollIntoView({behavior:"smooth",block:"start"}); el.classList.add("hl-sub"); setTimeout(()=>el.classList.remove("hl-sub"),2400);} else if(n<40) setTimeout(()=>go(n+1),200); }; setTimeout(()=>go(0),900); } } }catch(e){}
 
 })();
 </script>

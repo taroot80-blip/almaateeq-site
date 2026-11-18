@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.DownloadListener;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -47,6 +48,10 @@ public class MainActivity extends Activity {
             @Override public void onReceivedError(WebView v, WebResourceRequest r, WebResourceError e) {
                 if (r.isForMainFrame() && !fellBack) { fellBack = true; v.loadUrl(LOCAL); }
             }
+        });
+        // ملفات التنزيل (الألعاب والتطبيقات) تفتح في المتصفح ليحفظها
+        web.setDownloadListener((url, ua, cd, mime, len) -> {
+            try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); } catch (Exception e) { }
         });
         if (b != null) web.restoreState(b); else web.loadUrl(LIVE);
     }

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ساعة عقارب ذهبية حيّة بالأرقام العربية والتاريخ الهجري والميلادي">
+<meta property="og:title" content="ساعة العقارب الذهبية">
+<meta property="og:description" content="ساعة عقارب حيّة بالوقت الحقيقي — almaateeq.com">
+<meta property="og:image" content="https://almaateeq.com/apps/clock/preview.jpg">
+<meta property="og:url" content="https://almaateeq.com/clock">
+<meta property="og:type" content="website">
+<link rel="icon" href="tray_icon.png">
+<title>ساعة العقارب الذهبية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#F2B632;--gold-l:#ffde8c;--bg:#0b0805;--red:#EF4444;--ease-out:cubic-bezier(0.23,1,0.32,1)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+    font-family:Tajawal,sans-serif;color:#f6ead2;overflow:hidden;
+    background:radial-gradient(circle at 50% 40%,#2a1d12 0%,#1a120b 45%,#0b0805 100%);padding:20px}
+  body::before{content:"";position:fixed;inset:0;opacity:.07;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23F2B632' stroke-width='1'%3E%3Crect x='20' y='20' width='40' height='40'/%3E%3Crect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/%3E%3C/g%3E%3C/svg%3E")}
+  .laser{position:fixed;height:1px;width:60vw;left:-60vw;pointer-events:none;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);filter:drop-shadow(0 0 6px var(--gold));opacity:.55;
+    animation:sweep 7s linear infinite}
+  .laser.b{top:78%;animation-delay:3.5s;background:linear-gradient(90deg,transparent,#38BDF8,transparent);filter:drop-shadow(0 0 6px #38BDF8)}
+  .laser.a{top:18%}
+  @keyframes sweep{to{transform:translateX(220vw)}}
+  h1{font-family:"El Messiri",serif;font-weight:700;margin:0;font-size:clamp(22px,5vw,32px);color:var(--gold);
+    animation:rise .7s var(--ease-out) both}
+  .wrap{position:relative;width:min(84vw,62dvh,440px);aspect-ratio:1;animation:pop .9s var(--ease-out) .15s both}
+  .ring{position:absolute;inset:-6px;border-radius:50%;
+    background:conic-gradient(from 0deg,transparent 0 70%,rgba(255,240,190,.9) 82%,transparent 90%);
+    -webkit-mask:radial-gradient(circle,transparent 66%,#000 67.5%,#000 70.5%,transparent 72%);
+            mask:radial-gradient(circle,transparent 66%,#000 67.5%,#000 70.5%,transparent 72%);
+    animation:spin 4s linear infinite;filter:blur(1px)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  svg{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+  .num{font-family:Tajawal,sans-serif;font-weight:700;font-size:21px;fill:#fae8be}
+  .digital{font-family:Tajawal;font-weight:700;font-size:clamp(20px,5vw,26px);font-variant-numeric:tabular-nums;
+    letter-spacing:0;padding:8px 22px;border-radius:14px;background:rgba(20,14,9,.75);border:1px solid rgba(242,182,50,.45);
+    animation:rise .7s var(--ease-out) .3s both}
+  .date{font-size:15px;color:#d8c49a;animation:rise .7s var(--ease-out) .4s both;text-align:center}
+  @media (prefers-reduced-motion:reduce){.laser,.ring{animation:none;opacity:0}h1,.wrap,.digital,.date{animation:none}}
+</style>
+</head>
+<body>
+<div class="laser a"></div><div class="laser b"></div>
+<h1>ساعة العقارب الذهبية</h1>
+<div class="wrap">
+  <div class="ring"></div>
+  <svg viewBox="0 0 400 400" aria-label="ساعة بعقارب">
+    <defs>
+      <radialGradient id="face" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#34241a"/><stop offset="1" stop-color="#0b0805"/></radialGradient>
+      <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffde8c"/><stop offset=".5" stop-color="#F2B632"/><stop offset="1" stop-color="#8a5c14"/></linearGradient>
+    </defs>
+    <circle cx="200" cy="200" r="196" fill="url(#rim)"/>
+    <circle cx="200" cy="200" r="184" fill="#6e4a12"/>
+    <circle cx="200" cy="200" r="180" fill="url(#face)"/>
+    <g fill="none" stroke="#F2B632" stroke-opacity=".16" stroke-width="1.5">
+      <rect x="145" y="145" width="110" height="110"/><rect x="145" y="145" width="110" height="110" transform="rotate(45 200 200)"/>
+      <circle cx="200" cy="200" r="70"/>
+    </g>
+    <g id="ticks"></g><g id="nums"></g>
+    <g style="filter:drop-shadow(3px 5px 4px rgba(0,0,0,.6))">
+      <line id="h" x1="200" y1="214" x2="200" y2="112" stroke="#F2B632" stroke-width="11" stroke-linecap="round"/>
+      <line id="m" x1="200" y1="218" x2="200" y2="70" stroke="#ffde8c" stroke-width="7" stroke-linecap="round"/>
+      <g id="s"><line x1="200" y1="228" x2="200" y2="52" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="200" cy="52" r="5" fill="#EF4444" opacity=".5"/></g>
+    </g>
+    <circle cx="200" cy="200" r="12" fill="#F2B632"/><circle cx="200" cy="200" r="5" fill="#EF4444"/>
+  </svg>
+</div>
+<div class="digital" id="dig">--:--:--</div>
+<div class="date" id="date"></div>
+<script>
+const NS="http://www.w3.org/2000/svg",ticks=document.getElementById('ticks'),nums=document.getElementById('nums');
+for(let i=0;i<60;i++){const big=i%5===0,l=document.createElementNS(NS,'line');
+  l.setAttribute('x1',200);l.setAttribute('x2',200);l.setAttribute('y1',big?26:26);l.setAttribute('y2',big?44:34);
+  l.setAttribute('stroke',big?'#F2B632':'#c8a05a');l.setAttribute('stroke-width',big?4.5:1.6);l.setAttribute('stroke-linecap','round');
+  l.setAttribute('transform',`rotate(${i*6} 200 200)`);ticks.appendChild(l)}
+const ar=n=>n.toLocaleString('ar-EG');
+for(let h=1;h<=12;h++){const a=(h*30-90)*Math.PI/180,t=document.createElementNS(NS,'text');
+  t.setAttribute('x',200+132*Math.cos(a));t.setAttribute('y',200+132*Math.sin(a));t.setAttribute('class','num');
+  t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');t.textContent=ar(h);nums.appendChild(t)}
+const H=document.getElementById('h'),M=document.getElementById('m'),S=document.getElementById('s'),
+  dig=document.getElementById('dig'),dat=document.getElementById('date');
+const fT=new Intl.DateTimeFormat('ar-EG',{hour:'numeric',minute:'2-digit',second:'2-digit'});
+let fD;try{fD=new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}catch(e){fD=null}
+const fG=new Intl.DateTimeFormat('ar-EG',{day:'numeric',month:'long',year:'numeric'});
+let last=-1;
+function tick(){const d=new Date(),ms=d.getMilliseconds(),s=d.getSeconds()+ms/1000,m=d.getMinutes()+s/60,h=(d.getHours()%12)+m/60;
+  S.setAttribute('transform',`rotate(${s*6} 200 200)`);M.setAttribute('transform',`rotate(${m*6} 200 200)`);H.setAttribute('transform',`rotate(${h*30} 200 200)`);
+  if(d.getSeconds()!==last){last=d.getSeconds();dig.textContent=fT.format(d);
+    dat.textContent=(fD?fD.format(d)+' — ':'')+fG.format(d)}
+  requestAnimationFrame(tick)}
+tick();
+</script>
+</body>
+</html>

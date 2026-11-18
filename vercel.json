@@ -2,6 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/clock",
+      "destination": "/apps/clock/",
+      "permanent": false
+    },
+    {
       "source": "/mawarith/android",
       "destination": "https://play.google.com/store/apps/details?id=org.daralemaam.mawarith",
       "permanent": false

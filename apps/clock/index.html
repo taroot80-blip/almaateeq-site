@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="ساعة عقارب ذهبية حيّة بالأرقام العربية والتاريخ الهجري والميلادي">
-<meta property="og:title" content="ساعة العقارب الذهبية">
-<meta property="og:description" content="ساعة عقارب حيّة بالوقت الحقيقي — almaateeq.com">
-<meta property="og:image" content="https://almaateeq.com/apps/clock/preview.jpg">
+<meta property="og:title" content="اللهم صل على محمد وآل محمد">
+<meta property="og:description" content="اللهم أتمم لأخينا أبي محمد الشفاء ببركة خدماته إلى محمد وآل محمد">
+<meta property="og:image" content="https://almaateeq.com/apps/clock/preview.jpg?v=2">
 <meta property="og:url" content="https://almaateeq.com/clock">
 <meta property="og:type" content="website">
 <link rel="icon" href="tray_icon.png">
-<title>ساعة العقارب الذهبية</title>
+<title>اللهم صل على محمد وآل محمد</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@600;700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=El+Messiri:wght@600;700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{--gold:#F2B632;--gold-l:#ffde8c;--bg:#0b0805;--red:#EF4444;--ease-out:cubic-bezier(0.23,1,0.32,1)}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -28,7 +28,7 @@
   .laser.b{top:78%;animation-delay:3.5s;background:linear-gradient(90deg,transparent,#38BDF8,transparent);filter:drop-shadow(0 0 6px #38BDF8)}
   .laser.a{top:18%}
   @keyframes sweep{to{transform:translateX(220vw)}}
-  h1{font-family:"El Messiri",serif;font-weight:700;margin:0;font-size:clamp(22px,5vw,32px);color:var(--gold);
+  h1{font-family:Amiri,serif;font-weight:700;text-align:center;margin:0;font-size:clamp(22px,5vw,32px);color:var(--gold);
     animation:rise .7s var(--ease-out) both}
   .wrap{position:relative;width:min(84vw,62dvh,440px);aspect-ratio:1;animation:pop .9s var(--ease-out) .15s both}
   .ring{position:absolute;inset:-6px;border-radius:50%;
@@ -40,17 +40,20 @@
   @keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
   @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
   svg{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.55))}
+  .dua text{font-family:Amiri,serif;font-weight:700;font-size:19px;fill:#ffe7a8;paint-order:stroke;stroke:#0b0805;stroke-width:3px;stroke-opacity:.6}
+  .dua{animation:glow 3.2s ease-in-out infinite}
+  @keyframes glow{0%,100%{filter:drop-shadow(0 0 2px rgba(242,182,50,.35))}50%{filter:drop-shadow(0 0 7px rgba(242,182,50,.75))}}
   .num{font-family:Tajawal,sans-serif;font-weight:700;font-size:21px;fill:#fae8be}
   .digital{font-family:Tajawal;font-weight:700;font-size:clamp(20px,5vw,26px);font-variant-numeric:tabular-nums;
     letter-spacing:0;padding:8px 22px;border-radius:14px;background:rgba(20,14,9,.75);border:1px solid rgba(242,182,50,.45);
     animation:rise .7s var(--ease-out) .3s both}
   .date{font-size:15px;color:#d8c49a;animation:rise .7s var(--ease-out) .4s both;text-align:center}
-  @media (prefers-reduced-motion:reduce){.laser,.ring{animation:none;opacity:0}h1,.wrap,.digital,.date{animation:none}}
+  @media (prefers-reduced-motion:reduce){.laser,.ring{animation:none;opacity:0}.dua{animation:none}h1,.wrap,.digital,.date{animation:none}}
 </style>
 </head>
 <body>
 <div class="laser a"></div><div class="laser b"></div>
-<h1>ساعة العقارب الذهبية</h1>
+<h1>اللهم صل على محمد وآل محمد</h1>
 <div class="wrap">
   <div class="ring"></div>
   <svg viewBox="0 0 400 400" aria-label="ساعة بعقارب">
@@ -61,9 +64,12 @@
     <circle cx="200" cy="200" r="196" fill="url(#rim)"/>
     <circle cx="200" cy="200" r="184" fill="#6e4a12"/>
     <circle cx="200" cy="200" r="180" fill="url(#face)"/>
-    <g fill="none" stroke="#F2B632" stroke-opacity=".16" stroke-width="1.5">
-      <rect x="145" y="145" width="110" height="110"/><rect x="145" y="145" width="110" height="110" transform="rotate(45 200 200)"/>
-      <circle cx="200" cy="200" r="70"/>
+    <circle cx="200" cy="200" r="104" fill="none" stroke="#F2B632" stroke-opacity=".22" stroke-width="1"/>
+    <g class="dua" text-anchor="middle">
+      <text x="200" y="146">اللهم أتمم لأخينا</text>
+      <text x="200" y="174">أبي محمد الشفاء</text>
+      <text x="200" y="244">ببركة خدماته إلى</text>
+      <text x="200" y="272">محمد وآل محمد</text>
     </g>
     <g id="ticks"></g><g id="nums"></g>
     <g style="filter:drop-shadow(3px 5px 4px rgba(0,0,0,.6))">

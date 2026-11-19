@@ -424,7 +424,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.6</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.7</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -647,7 +647,9 @@ function nativeSync(){if(!N)return;try{N.setConfig(JSON.stringify(C()))}catch(e)
     if(n.in!=null&&(d.in==null||d.est)){d.in=n.in;delete d.est}
     else if(d.in==null&&n.lo!=null){d.est={lo:n.lo,hi:n.hi!=null?n.hi:n.lo};d.in=d.est.hi}
     if(n.pres!=null&&d.pres==null)d.pres=n.pres;if(n.out!=null&&d.out==null)d.out=n.out;save()}catch(e){}}
-function lateUsed(k){const c=C();let s=0;for(const [dk,d] of Object.entries(S.days)){if(ym(dk)!==ym(k)||d.in==null||(d.cfg&&d.cfg.mode==="perm"))continue;s+=Math.max(0,Math.round(d.in-c.graceEnd))}return s}
+/* النشرة 40/2024: بصمة التواجد بعد نافذتها تُحسب مدتها من انقضاء الساعتين حتى البصمة ضمن التأخير الشهري */
+function presLate(d,dk){if(d.in==null||d.pres==null)return 0;const P=plan(d.in,d.est,d.cfg,dk);if(P.exempt||d.pres<=P.pe+0.02)return 0;return Math.max(0,Math.round(d.pres-(P.ps-1)))}
+function lateUsed(k){const c=C();let s=0;for(const [dk,d] of Object.entries(S.days)){if(ym(dk)!==ym(k)||d.in==null)continue;if(!(d.cfg&&d.cfg.mode==="perm"))s+=Math.max(0,Math.round(d.in-c.graceEnd));s+=presLate(d,dk)}return s}
 function permsLeft(k){const c=C(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);return{n:c.permsMax-mo.length,min:c.permsHours*60-used}}
 function openLateChoice(m){const c=C(),k=dkey(),lm=Math.round(m-c.graceEnd),lu=lateUsed(k),pl=permsLeft(k),pm=Math.round(m-c.earliest);
   document.getElementById("lcTime").textContent=fmt(m);
@@ -758,7 +760,7 @@ function render(){
       <span class="stat ${stTxt[st][0]}">${st==="ex"&&title==="بصمة التواجد"&&P.noPres?"معفاة":stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
     h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.mode==="late"?`تأخير ${dur(P.late)} · يُحسب حضورك ${fmt(c.graceEnd)} · رصيد التأخير المتبقي ${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}`:P.mode==="perm"?`استئذان صباحي من ${fmt(c.earliest)} إلى ${fmt(P.p)}`:P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",P.noPres&&d.pres==null?"لا تواجد اليوم":`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
-      sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?(P.noPres?"لا تواجد عليك اليوم؛ حضرتَ بعد "+fmt(c.graceEnd+c.presDelay)+" فتكفيك بصمة الحضور":"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها"):"راجع قسم «إذا نسيت» الآن",
+      sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`+(presLate(d,dkey())?` · متأخرة: يُخصم ${dur(presLate(d,dkey()))} من رصيد التأخير`:""):sP==="ex"?(P.noPres?"لا تواجد عليك اليوم؛ حضرتَ بعد "+fmt(c.graceEnd+c.presDelay)+" فتكفيك بصمة الحضور":"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها"):"راجع قسم «إذا نسيت» الآن",
       (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+`<button class='btn ghost${sP==="miss"?" full":""}' id='presEdit'>✏️ تعديل</button>`);
     h+=ev(2,"٣","#F2B632","بصمة الانصراف",P.outEnd?`${fmt(P.out)} <span>إلى</span> ${fmt(P.outEnd)}`:`من ${fmt(P.out)}`,sO,
       sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`+(c.cadre==="adm"?`<br><small>إن كانت مناوبتك اليوم من الإدارة المدرسية فابقَ حتى ${fmt(c.offEnd)}</small>`:""),
@@ -783,7 +785,7 @@ function bindToday(){
   $("resetDay")&&($("resetDay").onclick=()=>openM("mReset"));
   $("outEdit")&&($("outEdit").onclick=()=>{const d=today(),P=plan(d.in,d.est,d.cfg);openClock(Math.round(d.out!=null?d.out:Math.max(nowMin(),P.out)),"out")});
   $("presEdit")&&($("presEdit").onclick=()=>{const d=today(),P=plan(d.in,d.est,d.cfg);openClock(Math.round(d.pres!=null?d.pres:Math.min(Math.max(nowMin(),P.ps),P.pe)),"pres")});
-  $("presDone")&&($("presDone").onclick=()=>{today().pres=nowS();save();pushNative();render();toast("سُجّلت بصمة التواجد.");launchFlash()});
+  $("presDone")&&($("presDone").onclick=()=>{const d=today();d.pres=nowS();save();pushNative();render();const pl=presLate(d,dkey());toast(pl?`سُجّلت بصمة التواجد متأخرة؛ يُخصم ${dur(pl)} من رصيد التأخير الشهري.`:"سُجّلت بصمة التواجد.");launchFlash()});
   $("outDone")&&($("outDone").onclick=()=>{today().out=nowS();save();pushNative();render();toast("سُجّلت بصمة الانصراف. يومًا موفقًا.");launchFlash()});
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 }
@@ -918,8 +920,8 @@ function renderForgot(){
     al>0?`إن سُجّل اليوم غيابًا ولم تُعالَج البصمة، فلديك <b>${al}</b> من العرضية، وتُحتسب حتى بعد مرور اليوم.`:"رصيد العرضية مستنفد؛ فركّز على النموذج المعتمد من الرئيس المباشر."],true)+
   T("#14B8A6","نسيت بصمة التواجد",[
     "إن كان لك استئذان يقع جزء منه داخل نافذة التواجد فأنت معفى منها؛ تأكد أن القسم الإداري أدخله في النظام.",
-    "إن فاتت النافذة فابصم فور انتباهك، ثم اطلب من رئيسك المباشر اعتماد «نموذج بصمة التواجد»؛ فقد أجاز ديوان الخدمة المدنية للرئيس المباشر أو من يليه اعتماده لمن بصم في غير الوقت الصحيح.",
-    `عدم بصمة التواجد يُحتسب فترة تأخير؛ ${pl>0&&hl>0?"ويمكن تغطيتها باستئذان من رصيدك":"ورصيد استئذاناتك مستنفد، فلا يبقى إلا النموذج"}.`,
+    `<b>إن فاتت النافذة وأنت في العمل فابصم فور انتباهك:</b> تُحسب المدة من انقضاء الساعتين على حضورك حتى بصمتك تأخيرًا يُخصم من رصيدك الشهري (المتبقي <b>${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}</b> من ${LATE_ALLOW} دقيقة). <span class="src">النشرة ٤٠/٢٠٢٤</span>`,
+    `<b>إن لم تبصم التواجد أصلًا</b> فأنت في حكم المنصرف دون إذن، ولا يعالَج إلا بأحد أمرين لا ثالث لهما: <b>استئذان بيني رسمي</b> ${pl>0&&hl>0?"من رصيدك":"(رصيدك مستنفد)"}، أو <b>عرضية</b> تُحتسب لليوم كله.`,
     "تكرار عدم الالتزام بمواعيد البصمة مخالفة تجيز المساءلة، ففعّل التنبيه ولا تُغلق التطبيق قبل وقت التواجد."])+
   T("#F2B632","نسيت بصمة الانصراف أو انصرفت مبكرًا",[
     "ارجع وابصم إن أمكن قبل نهاية اليوم؛ فالانصراف بلا بصمة يُحتسب نقصًا في ساعات العمل.",
@@ -979,7 +981,7 @@ function renderRules(){
   <p>٤. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
   <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف من <b>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}–${fmt(c.latestOut)}</b>. <span class="src">النشرة ٤٠/٢٠٢٤</span></p>
   <p>٦. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. <span class="src mine">قاعدة معتمدة</span></p>
-  <p>٧. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، وتدخل المدة من انقضاء الساعتين حتى بصمة تواجده ضمن مدد التأخير الشهرية. <span class="src">النشرة ٤٠/٢٠٢٤ والمادة ١٨ من قرار ٦/٢٠٢٤</span></p>
+  <p>٧. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، فإن بصم بعدها دخلت المدة من انقضاء الساعتين حتى بصمته ضمن رصيد التأخير الشهري، وإن لم يبصم أصلًا فلا يعالَج إلا باستئذان بيني رسمي أو بعرضية لليوم كله. <span class="src">النشرة ٤٠/٢٠٢٤ والمادة ١٨ من قرار ٦/٢٠٢٤</span></p>
   <p>٨. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
   <div class="card"><h3>ملاحظات مهمة</h3>
   <p>• التطبيق مستقل للمساعدة وغير تابع لوزارة التربية، والمرجع النهائي سجلك الرسمي والقسم الإداري في مدرستك.</p>
@@ -1028,8 +1030,8 @@ function evalDay(k){
   else if(P.mode==="perm")G(`استئذان صباحي حتى ${fmt(P.p)}`);
   else if(P.late>0){const cov=perms.some(x=>toMin(x.from)<=c.graceEnd+1&&toMin(x.to)>=P.lo-1);cov?G(`تأخير ${dur(P.late)} مغطّى باستئذان`):B(`تأخير ${dur(P.late)} بعد نهاية فترة السماح`)}
   if(P.exempt&&d.pres==null)G(P.noPres?"التواجد: لا تواجد عليك (حضور بعد "+fmt(C().graceEnd+C().presDelay)+")":"التواجد: معفى باستئذان");
-  else if(d.pres!=null){(d.pres>=P.ps-0.02&&d.pres<=P.pe+0.02)?G(`التواجد ${fmt(d.pres)} في وقته`):B(`التواجد ${fmt(d.pres)} خارج نافذته (${fmt(P.ps)}–${fmt(P.pe)})`)}
-  else if(n>P.pe)B("لم تُسجَّل بصمة التواجد");
+  else if(d.pres!=null){const pl=presLate(d,k);if(d.pres<P.ps-0.02)B(`التواجد ${fmt(d.pres)} قبل نافذته (${fmt(P.ps)}–${fmt(P.pe)})`);else if(pl){const lu=lateUsed(k);(lu>LATE_ALLOW?B:G)(`التواجد ${fmt(d.pres)} متأخر؛ يُخصم ${dur(pl)} من رصيد التأخير${lu>LATE_ALLOW?' وقد تجاوزتَه':''}`)}else G(`التواجد ${fmt(d.pres)} في وقته`)}
+  else if(n>P.pe)B("لم تُسجَّل بصمة التواجد — تُعالَج باستئذان بيني رسمي أو بعرضية");
   if(d.out!=null){if(d.out<P.out-0.02){const cov=perms.some(x=>toMin(x.from)<=d.out+1&&toMin(x.to)>=P.out-1);cov?G(`انصراف مبكر ${fmt(d.out)} مغطّى باستئذان`):B(`انصراف مبكر ${fmt(d.out)} قبل ${fmt(P.out)} بـ ${dur(P.out-d.out)}`)}else G(`الانصراف ${fmt(d.out)}`)}
   else if(n>c.latestOut+30)B("لم تُسجَّل بصمة الانصراف");
   if(perms.length)notes.push({t:`استئذان: ${perms.map(x=>fmt(toMin(x.from))+"–"+fmt(toMin(x.to))).join("، ")}`});

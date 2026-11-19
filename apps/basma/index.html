@@ -325,6 +325,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
   .scene .photo,.laser,.spark{animation-duration:30s}
   .btn.primary,.m{animation:none}
 }
+.tt{width:100%;border-collapse:collapse;text-align:center;font-size:14px}.tt th,.tt td{padding:6px 4px;border-bottom:1px solid rgba(242,182,50,.18)}.tt th{color:var(--gold)}.tt td:first-child{text-align:right;font-weight:700}
 </style>
 </head>
 <body>
@@ -423,7 +424,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.5</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.6</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -439,8 +440,10 @@ details.tip ol{margin:0;padding-inline-start:20px}
         <button class="btn ghost bsel" data-b="1" role="radio" style="flex:1">ميزانية شهر 1<br><small>السنة الوظيفية من 1 يناير</small></button>
         <button class="btn ghost bsel" data-b="7" role="radio" style="flex:1">ميزانية شهر 7<br><small>السنة الوظيفية من 1 يوليو</small></button>
       </div></div>
-    <div class="row" style="margin-top:10px"><div class="field"><label for="wRole">الوظيفة</label><input id="wRole" value="معلم"></div>
+    <div class="field" style="margin-top:10px"><label for="wSchool">جهة العمل</label><select id="wSchool"></select></div>
+    <div class="row" style="margin-top:10px"><div class="field"><label for="wRole">الكادر</label><select id="wRole"></select></div>
       <div class="field"><label for="wStage">المرحلة</label><select id="wStage"></select></div></div>
+    <p class="muted" id="wInfo" style="text-align:center;margin:8px 0 0;font-size:13px"></p>
     <button class="btn primary wide" id="wOk" style="margin-top:14px">احفظ وابدأ</button>
   </div>
 </div>
@@ -501,18 +504,25 @@ details.tip ol{margin:0;padding-inline-start:20px}
 <script>
 (()=>{
 /* ================= الإعدادات واللوائح ================= */
-const STAGES={
-  kg:{label:"رياض الأطفال",earliest:405,graceEnd:450,workMin:300,latestOut:750},
-  pri:{label:"الابتدائية",earliest:405,graceEnd:450,workMin:360,latestOut:810},
-  mid:{label:"المتوسطة",earliest:415,graceEnd:460,workMin:360,latestOut:830},
-  sec:{label:"الثانوية",earliest:430,graceEnd:475,workMin:370,latestOut:845}
+/* النشرة رقم 40/2024 — [بداية السماح، نهايته، بداية سماح الانصراف، نهايته، بداية الدوام الفعلي، نهايته] */
+const STAGES={kg:{label:"رياض الأطفال"},pri:{label:"الابتدائية"},mid:{label:"المتوسطة"},sec:{label:"الثانوية"}};
+const SCHOOLS={
+  gen:{label:"التعليم العام والخاص (المدارس العربية)",st:{kg:[405,450,695,740,405,725],pri:[405,450,765,810,405,795],mid:[415,460,785,830,420,820],sec:[430,475,800,845,435,835]}},
+  rel:{label:"معاهد التعليم الديني",st:{pri:[405,450,765,810,405,795],mid:[415,460,785,830,420,820],sec:[415,460,785,830,420,820]}},
+  spe:{label:"مدارس التربية الخاصة",st:{kg:[405,450,695,740,405,725],pri:[405,450,765,810,405,795],mid:[405,450,765,810,405,795],sec:[405,450,765,810,405,795]}}
 };
+const CADRES={edu:"كادر تعليمي",adm:"كادر إداري"};
+function STG(sc,st){const S0=SCHOOLS[sc]||SCHOOLS.gen;const k=S0.st[st]?st:Object.keys(S0.st)[0];const a=S0.st[k];
+  return{key:k,label:STAGES[k].label,earliest:a[0],graceEnd:a[1],workMin:a[2]-a[0],latestOut:a[3],offStart:a[4],offEnd:a[5]}}
+const stageOpts=(sc,cur)=>Object.keys((SCHOOLS[sc]||SCHOOLS.gen).st).map(k=>`<option value="${k}"${k===cur?" selected":""}>${STAGES[k].label}</option>`).join("");
+const schoolOpts=cur=>Object.entries(SCHOOLS).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${v.label}</option>`).join("");
+const cadreOpts=cur=>Object.entries(CADRES).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${v}</option>`).join("");
 const N=window.Native||null;
 const IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 if(!N&&"serviceWorker" in navigator&&location.protocol==="https:")addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 const DEF={
-  name:"", role:"معلم", stage:"sec", keepMonths:1,
+  name:"", role:"كادر تعليمي", cadre:"edu", school:"gen", stage:"sec", offStart:435, offEnd:835, keepMonths:1,
   earliest:430,   // 7:10 بداية فترة السماح في الثانوية
   graceEnd:475,   // 7:55 نهاية فترة السماح
   workMin:360,    // 6 ساعات فعلية
@@ -527,6 +537,14 @@ S.cfg=Object.assign({},DEF,S.cfg||{}); S.days=S.days||{}; S.perms=S.perms||[]; S
 /* ترقية: الثانوية 6:10 ساعة */
 if((S.cfg.stage||'sec')==='sec'&&S.cfg.workMin===360)S.cfg.workMin=370;
 for(const k in S.days){const x=S.days[k].cfg;if(x&&x.earliest===430&&x.workMin===360)x.workMin=370}
+/* ترقية: جهة العمل والكادر والدوام الرسمي */
+if(!S.cfg.school)S.cfg.school="gen";
+if(!S.cfg.cadre)S.cfg.cadre=/إدار|مدير|مساعد|سكرت|مراقب|كاتب/.test(S.cfg.role||"")?"adm":"edu";
+S.cfg.role=CADRES[S.cfg.cadre];
+if(S.cfg.offEnd==null){const g=STG(S.cfg.school,S.cfg.stage||"sec");S.cfg.offStart=g.offStart;S.cfg.offEnd=g.offEnd}
+/* ترقية وفق النشرة 40/2024: الرياض 4:50 حتى 12:20، والمتوسطة 6:10 */
+if(S.cfg.stage==='kg'){if(S.cfg.workMin===300)S.cfg.workMin=290;if(S.cfg.latestOut===750)S.cfg.latestOut=740}
+if(S.cfg.stage==='mid'&&S.cfg.workMin===360)S.cfg.workMin=370;
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const C=()=>S.cfg;
 
@@ -552,11 +570,13 @@ function plan(p,est,cc,date){
   let out=Math.max(Math.min(eff+c.workMin,c.latestOut)+PAD,hi);
   const base=x=>Math.max(x,c.earliest);
   let ps=base(hi)+c.presDelay+PAD, pe=base(lo)+c.presDelay+c.presLen, outEnd=null;
-  if(mode==="late"){const a=c.graceEnd;ps=a+c.presDelay+PAD;pe=a+c.presDelay+c.presLen;out=a+LATE_WORK+PAD;outEnd=out+29}
+  if(mode==="late"){const a=c.graceEnd;ps=Math.max(c.earliest+c.presDelay+PAD,Math.ceil(hi));pe=c.earliest+c.presDelay+c.presLen;out=lateOut(c)+PAD;outEnd=out+29}
   else if(mode==="perm"){late=0;out=Math.min(c.earliest+c.workMin,c.latestOut)+PAD}
   const todays=S.perms.filter(x=>x.date===(date||dkey()));
-  const exempt=todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
-  return{p:hi,lo,hi,est:!!est,eff,late,out,outEnd,ps,pe,exempt,mode};
+  /* النشرة 40/2024: من حضر بعد (نهاية السماح + ساعتين) بتأخير أو استئذان فلا تواجد عليه */
+  const noPres=(mode==="late"||mode==="perm")&&lo>c.graceEnd+c.presDelay;
+  const exempt=noPres||todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
+  return{p:hi,lo,hi,est:!!est,eff,late,out,outEnd,ps,pe,exempt,noPres,mode};
 }
 
 /* ================= أيقونة البصمة ================= */
@@ -613,11 +633,13 @@ let toastT;function toast(t){if(/استنفد|يتجاوز|لا يجوز|أكم�
 
 /* ================= بيانات اليوم ================= */
 function today(){const k=dkey();S.days[k]=S.days[k]||{fired:{}};S.days[k].fired=S.days[k].fired||{};return S.days[k]}
-const snap=()=>{const c=C();return{earliest:c.earliest,graceEnd:c.graceEnd,workMin:c.workMin,latestOut:c.latestOut,presDelay:c.presDelay,presLen:c.presLen}};
-const LATE_FROM=476,LATE_TO=835,LATE_WORK=360,LATE_ALLOW=85;
+const snap=()=>{const c=C();return{earliest:c.earliest,graceEnd:c.graceEnd,workMin:c.workMin,latestOut:c.latestOut,presDelay:c.presDelay,presLen:c.presLen,offEnd:c.offEnd}};
+const LATE_ALLOW=85;
+/* التأخير: بعد نهاية السماح بدقيقة، حتى 10 دقائق قبل آخر انصراف؛ وانصراف المتأخر عند نهاية الدوام الرسمي */
+const lateFrom=()=>C().graceEnd+1, lateTo=()=>C().latestOut-10, lateOut=c=>(c.offEnd!=null?c.offEnd:c.graceEnd+360);
 let pendingIn=null;
 function setPunch(m,mode){m=Math.round(m*60)/60;
-  if(!mode&&m>=LATE_FROM&&m<=LATE_TO){pendingIn=m;openLateChoice(m);return}
+  if(!mode&&m>=lateFrom()&&m<=lateTo()){pendingIn=m;openLateChoice(m);return}
   const d=today();d.in=m;delete d.est;d.cfg=snap();if(mode)d.cfg.mode=mode;d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(mode==='late'?`سُجّل حضورك ${fmt(d.in)} تأخيرًا ${dur(d.in-C().graceEnd)} من رصيدك`:mode==='perm'?`سُجّل استئذان صباحي حتى ${fmt(d.in)}`:`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
 /* ===== الجسر مع نسخة أندرويد ===== */
 function nativeSync(){if(!N)return;try{N.setConfig(JSON.stringify(C()))}catch(e){}
@@ -629,7 +651,7 @@ function lateUsed(k){const c=C();let s=0;for(const [dk,d] of Object.entries(S.da
 function permsLeft(k){const c=C(),mo=S.perms.filter(p=>ym(p.date)===ym(k));const used=mo.reduce((a,p)=>a+toMin(p.to)-toMin(p.from),0);return{n:c.permsMax-mo.length,min:c.permsHours*60-used}}
 function openLateChoice(m){const c=C(),k=dkey(),lm=Math.round(m-c.graceEnd),lu=lateUsed(k),pl=permsLeft(k),pm=Math.round(m-c.earliest);
   document.getElementById("lcTime").textContent=fmt(m);
-  document.getElementById("lcLate").innerHTML=`يُحسب حضورك ${fmt(c.graceEnd)}، والتواجد من ${fmt(c.graceEnd+c.presDelay+1)}، والانصراف من ${fmt(c.graceEnd+LATE_WORK+1)}.<br>يُخصم <b>${dur(lm)}</b> من رصيد التأخير؛ المتبقي بعده <b class="${lu+lm>LATE_ALLOW?"bad":""}">${dur(Math.max(0,LATE_ALLOW-lu-lm))}</b> من ${LATE_ALLOW} دقيقة.`;
+  document.getElementById("lcLate").innerHTML=`يُحسب حضورك ${fmt(c.graceEnd)}، ${m>c.graceEnd+c.presDelay?'ولا تواجد عليك لأنك حضرت بعد '+fmt(c.graceEnd+c.presDelay):'والتواجد من '+fmt(Math.max(c.earliest+c.presDelay+1,Math.ceil(m)))+' حتى '+fmt(c.earliest+c.presDelay+c.presLen)}، والانصراف من ${fmt(lateOut(c)+1)}.<br>يُخصم <b>${dur(lm)}</b> من رصيد التأخير؛ المتبقي بعده <b class="${lu+lm>LATE_ALLOW?"bad":""}">${dur(Math.max(0,LATE_ALLOW-lu-lm))}</b> من ${LATE_ALLOW} دقيقة.`;
   document.getElementById("lcPerm").innerHTML=`تضع بالساعة وقت انتهاء الاستئذان، ويبدأ من ${fmt(c.earliest)}.<br>يُخصم استئذان واحد (نحو <b>${dur(pm)}</b>)؛ المتبقي لك <b class="${pl.n<1||pl.min<pm?"bad":""}">${Math.max(0,pl.n)} مرات و${dur(Math.max(0,pl.min))}</b>.`;
   openM("mLate")}
 function pushNative(reset){if(!N)return;const d=today(),o={reset:!!reset};if(d.cfg&&d.cfg.mode)o.mode=d.cfg.mode;
@@ -653,7 +675,7 @@ function launchFlash(){const f=document.createElement("div");f.style.cssText="po
 
 /* ================= بطاقة الموظف ================= */
 function paintCard(){const c=C();const nm=document.getElementById("empName");nm.textContent=c.name||"اضغط هنا لكتابة اسمك";nm.style.opacity=c.name?1:.75;
-  document.getElementById("empRole").textContent=`${c.role||"معلم"} · ${(STAGES[c.stage]||STAGES.sec).label}`;
+  document.getElementById("empRole").textContent=`${CADRES[c.cadre]||"كادر تعليمي"} · ${(STAGES[c.stage]||STAGES.sec).label}`;
   const bd=document.getElementById("empBud");bd.textContent=c.budget?`ميزانية ${c.budget}`:"حدّد ميزانيتك";bd.classList.toggle("need",!c.budget);
   let ph=null;try{ph=localStorage.getItem("basma-photo")}catch(e){}
   document.getElementById("avIn").innerHTML=ph?`<img src="${ph}" alt="صورة الموظف">`:`<svg viewBox="0 0 64 64">${FP}</svg>`}
@@ -733,13 +755,13 @@ function render(){
     const stTxt={wait:["s-wait","لم يحن بعد"],open:["s-open","مفتوحة الآن"],done:["s-done","تمت"],miss:["s-miss","فاتت"],ex:["s-ex","معفاة باستئذان"]};
     const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="head"><div class="ic" style="background:${col}">${ic}</div><h4>${title}</h4></div>
       <div class="range num">${range}</div>
-      <span class="stat ${stTxt[st][0]}">${stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
+      <span class="stat ${stTxt[st][0]}">${st==="ex"&&title==="بصمة التواجد"&&P.noPres?"معفاة":stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
     h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.mode==="late"?`تأخير ${dur(P.late)} · يُحسب حضورك ${fmt(c.graceEnd)} · رصيد التأخير المتبقي ${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}`:P.mode==="perm"?`استئذان صباحي من ${fmt(c.earliest)} إلى ${fmt(P.p)}`:P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
-    h+=ev(1,"٢","#14B8A6","بصمة التواجد",`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
-      sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها":"راجع قسم «إذا نسيت» الآن",
+    h+=ev(1,"٢","#14B8A6","بصمة التواجد",P.noPres&&d.pres==null?"لا تواجد اليوم":`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
+      sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`:sP==="ex"?(P.noPres?"لا تواجد عليك اليوم؛ حضرتَ بعد "+fmt(c.graceEnd+c.presDelay)+" فتكفيك بصمة الحضور":"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها"):"راجع قسم «إذا نسيت» الآن",
       (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+`<button class='btn ghost${sP==="miss"?" full":""}' id='presEdit'>✏️ تعديل</button>`);
     h+=ev(2,"٣","#F2B632","بصمة الانصراف",P.outEnd?`${fmt(P.out)} <span>إلى</span> ${fmt(P.outEnd)}`:`من ${fmt(P.out)}`,sO,
-      sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`,
+      sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`+(c.cadre==="adm"?`<br><small>إن كانت مناوبتك اليوم من الإدارة المدرسية فابقَ حتى ${fmt(c.offEnd)}</small>`:""),
       (sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"")+"<button class='btn ghost' id='outEdit'>✏️ تعديل</button>");
     h+=`<p class="muted" style="text-align:center;margin-top:10px">ينبّهك التطبيق قبل ${c.lead} ثانية من فتح التواجد ومن وقت الانصراف، وقبل ${c.lastCall} دقائق من إغلاق التواجد.</p>`;
   }
@@ -925,23 +947,51 @@ function renderRules(){
       <div class="li"><span>🔋 <b>البطارية</b><br><small class="muted">في Honor وHuawei: تشغيل التطبيقات ← بصمتي المرنة ← إدارة يدوية وفعّل الخيارات الثلاثة</small></span><button class="btn ghost" style="min-height:40px;font-size:14px;padding:6px 12px" id="sBat">افتح</button></div>
     </div></div>`}
   document.getElementById("v-rules").innerHTML=setup+`
+  <div class="card"><h3>مواعيدك وفق النشرة ٤٠/٢٠٢٤</h3>
+  <p class="muted" style="margin:-4px 0 6px">${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}</p>
+  <table class="tt"><tr><th></th><th>من</th><th>إلى</th></tr>
+  <tr><td>الدوام الرسمي</td><td>${fmt(c.offStart)}</td><td>${fmt(c.offEnd)}</td></tr>
+  <tr><td>السماح للحضور</td><td>${fmt(c.earliest)}</td><td>${fmt(c.graceEnd)}</td></tr>
+  <tr><td>بصمة التواجد</td><td>${fmt(c.earliest+c.presDelay)}</td><td>${fmt(c.earliest+c.presDelay+c.presLen)}</td></tr>
+  <tr><td>السماح للانصراف</td><td>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}</td><td>${fmt(c.latestOut)}</td></tr></table>
+  <p class="muted" style="font-size:13px;margin-top:6px">مواعيد النشرة واحدة للكادرين التعليمي والإداري، وتختلف بحسب جهة العمل والمرحلة. التواجد في الجدول لمن حضر ${fmt(c.earliest)}، ويتأخر بتأخر حضورك.</p></div>
+  <div class="card"><h3>المطلوب منك · ${CADRES[c.cadre]||"كادر تعليمي"}</h3>
+  ${c.cadre==="adm"?`
+  <p>• ثلاث بصمات يوميًا: الحضور، والتواجد، والانصراف، بمواعيد مرحلتك نفسها.</p>
+  <p>• <b>الإدارة المدرسية</b> (مدير، مدير مساعد): يلزم تواجد أحدكم <b>بالمناوبة</b> طوال تواجد المتعلمين حتى نهاية الدوام الرسمي <b>${fmt(c.offEnd)}</b>، إضافة إلى المكلفين بالمناوبة، ويتابع ذلك مراقب المرحلة التعليمية.</p>
+  <p>• إن لم يتواجد أحد من الإدارة: يرفع مراقب المرحلة مذكرة إلى مدير الشؤون التعليمية، ثم مدير عام المنطقة، فالوكيل المساعد للتحقيق، وتُطبَّق لوائح قرار مجلس الخدمة ٤١/٢٠٠٦.</p>
+  <p>• الإدارة المدرسية ورئيس القسم يتابعون الدوام وفق النظم واللوائح المتبعة في المدرسة.</p>
+  <p>• <b>القسم الإداري</b>: مسؤول عن إدخال الاستئذانات والأعذار الطبية في النظم الآلية لديوان الخدمة المدنية، وسحب إشعارات العاملين وتسليمها للمسؤول المختص.</p>
+  <p>• تفعيل البصمة عند النقل أو الندب (كلي أو جزئي) مسؤولية قسم الإجازات والدوام في المنطقة التعليمية، وقسم الإجازات والدوام في ديوان عام الوزارة، كلٌّ حسب مركز العمل.</p>`:`
+  <p>• يُسمح لك بالدوام المرن <b>وفق جدولك الدراسي اليومي</b>، مع الالتزام بحضور <b>جميع الحصص المكلّف بها</b> خلال الدوام الرسمي ${fmt(c.offStart)}–${fmt(c.offEnd)}.</p>
+  <p>• ثلاث بصمات يوميًا: الحضور، والتواجد، والانصراف.</p>
+  <p>• يتابع دوامك مدير المدرسة والمدير المساعد ورئيس قسم المادة، وفق النظم واللوائح المتبعة في المدرسة.</p>
+  <p>• استئذاناتك وأعذارك الطبية يُدخلها القسم الإداري في مدرستك في النظام؛ فتأكد من إدخالها.</p>`}
+  <p>• عند تكليفك بمهمة خارج مقر العمل أثناء الدوام الرسمي تعبّئ <b>نموذج رقم (٤)</b>، ويعتمده مسؤولك المباشر موضحًا نوع المهمة ومكانها.</p>
+  <p>• <b>ساعات التخفيف</b> (كالأم وفق قانون حقوق الطفل ٢١/٢٠١٥): لا يقل الدوام عن ٥ ساعات، ويبدأ من بداية الدوام الفعلي، و<b>لا يجوز الجمع</b> بين التخفيف والدوام المرن وفترات السماح.</p>
+  <p>• ذوو الإعاقة ومن يرعاهم: تُطبَّق ضوابط المادة (٢٢) من اللائحة التنفيذية لقانون حقوق ذوي الإعاقة ٨/٢٠١٠.</p>
+  <p>• الإجازات المرضية وفق قرارات المجلس الطبي العام وتعميم ديوان الخدمة ٣٩/٢٠٠٦ وقرار ٢٩/٢٠٢٣.</p>
+  <p class="src">النشرة ٤٠/٢٠٢٤ — البنود الرابع والخامس والسادس</p></div>
   <div class="card"><h3>ما يعتمده التطبيق</h3>
   <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور، ويُحتسب الحضور قبل ${fmt(c.earliest)} كأنه في ${fmt(c.earliest)}. <span class="src">قرار مجلس الخدمة المدنية</span></p>
   <p>٢. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية ٢٠٢٤</span></p>
   <p>٣. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة ٢٠٢٥</span></p>
   <p>٤. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
-  <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف حتى <b>${fmt(c.latestOut)}</b>. <span class="src">مقترح الوزارة ٢٠٢٤</span></p>
-  <p>٦. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
+  <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف من <b>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}–${fmt(c.latestOut)}</b>. <span class="src">النشرة ٤٠/٢٠٢٤</span></p>
+  <p>٦. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. <span class="src mine">قاعدة معتمدة</span></p>
+  <p>٧. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، وتدخل المدة من انقضاء الساعتين حتى بصمة تواجده ضمن مدد التأخير الشهرية. <span class="src">النشرة ٤٠/٢٠٢٤ والمادة ١٨ من قرار ٦/٢٠٢٤</span></p>
+  <p>٨. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
   <div class="card"><h3>ملاحظات مهمة</h3>
   <p>• التطبيق مستقل للمساعدة وغير تابع لوزارة التربية، والمرجع النهائي سجلك الرسمي والقسم الإداري في مدرستك.</p>
-  <p>• مواعيد السماح لكل مرحلة منشورة صحفيًا على أنها «مقترح» للوزارة في سبتمبر ٢٠٢٤؛ فطابِقها مع النشرة المعتمدة في مدرستك، وعدّلها أدناه إن اختلفت.</p>
+  <p>• المواعيد مأخوذة من نشرة وكيل وزارة التربية رقم ٤٠/٢٠٢٤ (٢٦/٩/٢٠٢٤)؛ وإن صدرت نشرة أحدث فعدّلها أدناه.</p>
   <p>• في مايو ٢٠٢٦ نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي ٢٠٢٥/٢٠٢٦؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
   <p>• أرصدة الاستئذانات والعرضية والمرضية قابلة للتعديل بحسب ما يقرره القسم الإداري لك.</p></div>
   <div class="card"><h3>ضبط الإعدادات</h3>
   <div class="row"><div class="field"><label for="cName">الاسم</label><input id="cName" value="${esc(c.name)}" placeholder="اكتب اسمك"></div></div>
-  <div class="row" style="margin-top:8px"><div class="field"><label for="cRole">الوظيفة</label><input id="cRole" value="${esc(c.role)}" placeholder="معلم، إداري، رئيس قسم…"></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label for="cRole">الكادر</label><select id="cRole">${cadreOpts(c.cadre)}</select></div>
   <div class="field"><label for="cBud">التعيين على ميزانية</label><select id="cBud"><option value="1"${budget()===1?" selected":""}>ميزانية شهر 1</option><option value="7"${budget()===7?" selected":""}>ميزانية شهر 7</option></select></div></div>
-  <div class="row" style="margin-top:8px"><div class="field"><label for="cStage">المرحلة</label><select id="cStage">${Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("")}</select></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label for="cSchool">جهة العمل</label><select id="cSchool">${schoolOpts(c.school)}</select></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label for="cStage">المرحلة</label><select id="cStage">${stageOpts(c.school,c.stage)}</select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>بداية السماح</label><input type="time" id="cE" value="${toHHMM(c.earliest)}"></div><div class="field"><label>نهاية السماح</label><input type="time" id="cG" value="${toHHMM(c.graceEnd)}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="any" value="${c.workMin/60}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
@@ -950,9 +1000,10 @@ function renderRules(){
   ${N?"":IOS?(STANDALONE?"":`<div class="card"><h3>ثبّته على الآيفون والآيباد</h3><p>١. افتح هذه الصفحة في متصفح Safari.<br>٢. اضغط زر المشاركة <b>⬆︎</b> أسفل الشاشة (وفي الآيباد أعلاها).<br>٣. اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».<br>بعدها يفتح «بصمتي» من أيقونته بملء الشاشة، ويعمل دون إنترنت، وتستطيع تفعيل إشعاراته من زر الجرس.</p></div>`):`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
   <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
   const $=id=>document.getElementById(id);
-  $("cStage").onchange=()=>{const s=STAGES[$("cStage").value];$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
-  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),role:$("cRole").value.trim()||DEF.role,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
-  $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role};S.cfg=Object.assign({},DEF,keep);save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
+  $("cSchool").onchange=()=>{$("cStage").innerHTML=stageOpts($("cSchool").value,$("cStage").value);$("cStage").onchange()};
+  $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
+  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
+  $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role,cadre:S.cfg.cadre,school:S.cfg.school,budget:S.cfg.budget};const g=STG(keep.school,S.cfg.stage);S.cfg=Object.assign({},DEF,keep,{stage:g.key,earliest:g.earliest,graceEnd:g.graceEnd,workMin:g.workMin,latestOut:g.latestOut,offStart:g.offStart,offEnd:g.offEnd});save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
   if(N){const b=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};b("sNotif",()=>N.requestNotif());b("sExact",()=>N.openExact());b("sUsage",()=>N.openUsage());b("sMoe",()=>N.openMoe());b("sBat",()=>N.openBattery())}
   $("cTest").onclick=()=>{audio();fireAlarm("test","تجربة التنبيه المميّز","هكذا ينبّهك التطبيق قبل 30 ثانية من وقت البصمة.",C().lead)};
 }
@@ -976,7 +1027,7 @@ function evalDay(k){
   if(P.mode==="late"){const lu=lateUsed(k);lu>LATE_ALLOW?B(`تأخير ${dur(P.late)} — تجاوزتَ رصيد التأخير الشهري`):G(`تأخير ${dur(P.late)} من رصيد التأخير الشهري`)}
   else if(P.mode==="perm")G(`استئذان صباحي حتى ${fmt(P.p)}`);
   else if(P.late>0){const cov=perms.some(x=>toMin(x.from)<=c.graceEnd+1&&toMin(x.to)>=P.lo-1);cov?G(`تأخير ${dur(P.late)} مغطّى باستئذان`):B(`تأخير ${dur(P.late)} بعد نهاية فترة السماح`)}
-  if(P.exempt&&d.pres==null)G("التواجد: معفى باستئذان");
+  if(P.exempt&&d.pres==null)G(P.noPres?"التواجد: لا تواجد عليك (حضور بعد "+fmt(C().graceEnd+C().presDelay)+")":"التواجد: معفى باستئذان");
   else if(d.pres!=null){(d.pres>=P.ps-0.02&&d.pres<=P.pe+0.02)?G(`التواجد ${fmt(d.pres)} في وقته`):B(`التواجد ${fmt(d.pres)} خارج نافذته (${fmt(P.ps)}–${fmt(P.pe)})`)}
   else if(n>P.pe)B("لم تُسجَّل بصمة التواجد");
   if(d.out!=null){if(d.out<P.out-0.02){const cov=perms.some(x=>toMin(x.from)<=d.out+1&&toMin(x.to)>=P.out-1);cov?G(`انصراف مبكر ${fmt(d.out)} مغطّى باستئذان`):B(`انصراف مبكر ${fmt(d.out)} قبل ${fmt(P.out)} بـ ${dur(P.out-d.out)}`)}else G(`الانصراف ${fmt(d.out)}`)}
@@ -1020,12 +1071,13 @@ function renderCal(){
   if($("eDel"))$("eDel").onclick=()=>{if(calSel===dkey()){openM("mReset");return}delete S.days[calSel];save();renderCal();toast("مُسح اليوم من السجل.")};
 }
 const toHHMMSS=m=>{const s=Math.round(m*60);return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
-function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName").value=c.name||"";$("wRole").value=c.role||"معلم";
-  $("wStage").innerHTML=Object.entries(STAGES).map(([k,s])=>`<option value="${k}"${k===c.stage?" selected":""}>${s.label}</option>`).join("");
+function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName").value=c.name||"";$("wRole").innerHTML=cadreOpts(c.cadre||"edu");$("wSchool").innerHTML=schoolOpts(c.school||"gen");$("wStage").innerHTML=stageOpts(c.school||"gen",c.stage);
+  const info=()=>{const g=STG($("wSchool").value,$("wStage").value);$("wInfo").innerHTML=`الحضور ${fmt(g.earliest)}–${fmt(g.graceEnd)} · الانصراف ${fmt(g.earliest+g.workMin)}–${fmt(g.latestOut)}<br>الدوام الرسمي ${fmt(g.offStart)}–${fmt(g.offEnd)}`};
+  $("wSchool").onchange=()=>{$("wStage").innerHTML=stageOpts($("wSchool").value,$("wStage").value);info()};$("wStage").onchange=info;info();
   let b=c.budget||0;const paint=()=>document.querySelectorAll(".bsel").forEach(x=>{x.classList.toggle("on",+x.dataset.b===b);x.setAttribute("aria-checked",+x.dataset.b===b)});paint();
   document.querySelectorAll(".bsel").forEach(x=>x.onclick=()=>{b=+x.dataset.b;paint()});
-  $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const st=$("wStage").value,s=STAGES[st];
-    Object.assign(S.cfg,{name:$("wName").value.trim(),role:$("wRole").value.trim()||"معلم",budget:b,stage:st,earliest:s.earliest,graceEnd:s.graceEnd,workMin:s.workMin,latestOut:s.latestOut});
+  $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const sc=$("wSchool").value,s=STG(sc,$("wStage").value),cd=$("wRole").value;
+    Object.assign(S.cfg,{name:$("wName").value.trim(),cadre:cd,role:CADRES[cd],school:sc,budget:b,stage:s.key,earliest:s.earliest,graceEnd:s.graceEnd,workMin:s.workMin,latestOut:s.latestOut,offStart:s.offStart,offEnd:s.offEnd});
     save();nativeSync();pushNative();paintCard();closeM();const v=document.querySelector(".view.on");if(v&&v.id==="v-bal")renderBal();toast("حُفظت بياناتك.")};
   openM("mWho")}
 document.getElementById("empBud").onclick=openWho;

@@ -421,7 +421,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.3</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.4</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -533,9 +533,10 @@ function plan(p,est,cc,date){
   const c=cc||C(); const lo=est?est.lo:p, hi=est?est.hi:p;
   const eff=Math.max(hi,c.earliest);
   const late=Math.max(0,lo-c.graceEnd);
-  const out=Math.max(Math.min(eff+c.workMin,c.latestOut),hi);
+  const PAD=1; /* البصمة تصح بعد مضيّ الدقيقة كاملة */
+  const out=Math.max(Math.min(eff+c.workMin,c.latestOut)+PAD,hi);
   const base=x=>Math.max(x,c.earliest);
-  const ps=base(hi)+c.presDelay, pe=base(lo)+c.presDelay+c.presLen;
+  const ps=base(hi)+c.presDelay+PAD, pe=base(lo)+c.presDelay+c.presLen;
   const todays=S.perms.filter(x=>x.date===(date||dkey()));
   const exempt=todays.some(x=>toMin(x.from)<pe && toMin(x.to)>ps);
   return{p:hi,lo,hi,est:!!est,eff,late,out,ps,pe,exempt};

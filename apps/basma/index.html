@@ -436,7 +436,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.8</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -523,8 +523,10 @@ const SCHOOLS={
   rel:{label:"معاهد التعليم الديني",st:{pri:[405,450,765,810,405,795],mid:[415,460,785,830,420,820],sec:[415,460,785,830,420,820]}},
   spe:{label:"مدارس التربية الخاصة",st:{kg:[405,450,695,740,405,725],pri:[405,450,765,810,405,795],mid:[405,450,765,810,405,795],sec:[405,450,765,810,405,795]}}
 };
-const CADRES={edu:"كادر تعليمي",adm:"كادر إداري"};
-function STG(sc,st){const S0=SCHOOLS[sc]||SCHOOLS.gen;const k=S0.st[st]?st:Object.keys(S0.st)[0];const a=S0.st[k];
+const CADRES={edu:"كادر تعليمي",adm:"كادر إداري",sup:"موجه فني"};
+/* النشرة 40/2024 بند سابعًا: الموجه الفني دوامه الفعلي 7:00–2:00، والتأخير بعد 7:30 */
+const SUP={earliest:420,graceEnd:450,workMin:420,latestOut:840,offStart:420,offEnd:840};
+function STG(sc,st,cd){if(cd==="sup")return Object.assign({key:st||"sec",label:"التوجيه الفني"},SUP);const S0=SCHOOLS[sc]||SCHOOLS.gen;const k=S0.st[st]?st:Object.keys(S0.st)[0];const a=S0.st[k];
   return{key:k,label:STAGES[k].label,earliest:a[0],graceEnd:a[1],workMin:a[2]-a[0],latestOut:a[3],offStart:a[4],offEnd:a[5]}}
 const stageOpts=(sc,cur)=>Object.keys((SCHOOLS[sc]||SCHOOLS.gen).st).map(k=>`<option value="${k}"${k===cur?" selected":""}>${STAGES[k].label}</option>`).join("");
 const schoolOpts=cur=>Object.entries(SCHOOLS).map(([k,v])=>`<option value="${k}"${k===cur?" selected":""}>${v.label}</option>`).join("");
@@ -553,7 +555,7 @@ for(const k in S.days){const x=S.days[k].cfg;if(x&&x.earliest===430&&x.workMin==
 if(!S.cfg.school)S.cfg.school="gen";
 if(!S.cfg.cadre)S.cfg.cadre=/إدار|مدير|مساعد|سكرت|مراقب|كاتب/.test(S.cfg.role||"")?"adm":"edu";
 S.cfg.role=CADRES[S.cfg.cadre];
-if(S.cfg.offEnd==null){const g=STG(S.cfg.school,S.cfg.stage||"sec");S.cfg.offStart=g.offStart;S.cfg.offEnd=g.offEnd}
+if(S.cfg.offEnd==null){const g=STG(S.cfg.school,S.cfg.stage||"sec",S.cfg.cadre);S.cfg.offStart=g.offStart;S.cfg.offEnd=g.offEnd}
 /* ترقية وفق النشرة 40/2024: الرياض 4:50 حتى 12:20، والمتوسطة 6:10 */
 if(S.cfg.stage==='kg'){if(S.cfg.workMin===300)S.cfg.workMin=290;if(S.cfg.latestOut===750)S.cfg.latestOut=740}
 if(S.cfg.stage==='mid'&&S.cfg.workMin===360)S.cfg.workMin=370;
@@ -582,7 +584,7 @@ function plan(p,est,cc,date){
   let out=Math.max(Math.min(eff+c.workMin,c.latestOut)+PAD,hi);
   const base=x=>Math.max(x,c.earliest);
   let ps=base(hi)+c.presDelay+PAD, pe=base(lo)+c.presDelay+c.presLen, outEnd=null;
-  if(mode==="late"){const a=c.graceEnd;ps=Math.max(c.earliest+c.presDelay+PAD,Math.ceil(hi));pe=c.earliest+c.presDelay+c.presLen;out=lateOut(c)+PAD;outEnd=out+29}
+  if(mode==="late"){const a=c.graceEnd;ps=Math.max(c.earliest+c.presDelay+PAD,Math.ceil(hi));pe=c.earliest+c.presDelay+c.presLen;out=lateOut(c)+PAD;outEnd=(c.earliest+c.workMin>=c.latestOut)?null:out+29}
   else if(mode==="perm"){late=0;out=Math.min(c.earliest+c.workMin,c.latestOut)+PAD}
   const todays=S.perms.filter(x=>x.date===(date||dkey()));
   /* النشرة 40/2024: من حضر بعد (نهاية السماح + ساعتين) بتأخير أو استئذان فلا تواجد عليه */
@@ -689,7 +691,7 @@ function launchFlash(){const f=document.createElement("div");f.style.cssText="po
 
 /* ================= بطاقة الموظف ================= */
 function paintCard(){const c=C();const nm=document.getElementById("empName");nm.textContent=c.name||"اضغط هنا لكتابة اسمك";nm.style.opacity=c.name?1:.75;
-  document.getElementById("empRole").textContent=`${CADRES[c.cadre]||"كادر تعليمي"} · ${(STAGES[c.stage]||STAGES.sec).label}`;
+  document.getElementById("empRole").textContent=(c.cadre==="sup"?"موجه فني":`${CADRES[c.cadre]||"كادر تعليمي"} · ${(STAGES[c.stage]||STAGES.sec).label}`);
   const bd=document.getElementById("empBud");bd.textContent=c.budget?`ميزانية ${c.budget}`:"حدّد ميزانيتك";bd.classList.toggle("need",!c.budget);
   let ph=null;try{ph=localStorage.getItem("basma-photo")}catch(e){}
   document.getElementById("avIn").innerHTML=ph?`<img src="${ph}" alt="صورة الموظف">`:`<svg viewBox="0 0 64 64">${FP}</svg>`}
@@ -966,15 +968,21 @@ function renderRules(){
     </div></div>`}
   document.getElementById("v-rules").innerHTML=setup+`
   <div class="card"><h3>مواعيدك وفق النشرة ٤٠/٢٠٢٤</h3>
-  <p class="muted" style="margin:-4px 0 6px">${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}</p>
+  <p class="muted" style="margin:-4px 0 6px">${c.cadre==="sup"?"موجه فني · القرار الوزاري ١٧١/٢٠٢٣":`${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}`}</p>
   <table class="tt"><tr><th></th><th>من</th><th>إلى</th></tr>
   <tr><td>الدوام الرسمي</td><td>${fmt(c.offStart)}</td><td>${fmt(c.offEnd)}</td></tr>
   <tr><td>السماح للحضور</td><td>${fmt(c.earliest)}</td><td>${fmt(c.graceEnd)}</td></tr>
   <tr><td>بصمة التواجد</td><td>${fmt(c.earliest+c.presDelay)}</td><td>${fmt(c.earliest+c.presDelay+c.presLen)}</td></tr>
-  <tr><td>السماح للانصراف</td><td>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}</td><td>${fmt(c.latestOut)}</td></tr></table>
-  <p class="muted" style="font-size:13px;margin-top:6px">مواعيد النشرة واحدة للكادرين التعليمي والإداري، وتختلف بحسب جهة العمل والمرحلة. التواجد في الجدول لمن حضر ${fmt(c.earliest)}، ويتأخر بتأخر حضورك.</p></div>
+  ${c.earliest+c.workMin>=c.latestOut?`<tr><td>الانصراف</td><td colspan="2">${fmt(c.latestOut)}</td></tr>`:`<tr><td>السماح للانصراف</td><td>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}</td><td>${fmt(c.latestOut)}</td></tr>`}</table>
+  <p class="muted" style="font-size:13px;margin-top:6px">${c.cadre==="sup"?"دوام الموجه الفني ثابت من 7:00 إلى 2:00، والتأخير يُحتسب بعد 7:30.":"مواعيد النشرة واحدة للكادرين التعليمي والإداري، وتختلف بحسب جهة العمل والمرحلة."} التواجد في الجدول لمن حضر ${fmt(c.earliest)}، ويتأخر بتأخر حضورك.</p></div>
   <div class="card"><h3>المطلوب منك · ${CADRES[c.cadre]||"كادر تعليمي"}</h3>
-  ${c.cadre==="adm"?`
+  ${c.cadre==="sup"?`
+  <p>• دوامك الفعلي من <b>7:00 صباحًا</b> إلى <b>2:00 ظهرًا</b> (القرار الوزاري ١٧١/٢٠٢٣)، وفترة السماح محسوبة ضمن الدوام الرسمي وفق قرار مجلس الخدمة ٤١/٢٠٠٦.</p>
+  <p>• ثلاث بصمات: <b>الحضور</b> عند بداية الدوام، و<b>التواجد</b> أثناءه، و<b>الانصراف</b> عند نهايته.</p>
+  <p>• يُحتسب التأخير بعد <b>7:30</b> صباحًا.</p>
+  <p>• تبصم التواجد في <b>مكان عملك أو في أي مقر تزوره</b> أثناء الدوام، خلال الستين دقيقة التي تلي انقضاء ساعتين على بداية دوامك. ولا تتقيد بها إن وقع جزء من استئذانك داخل تلك الستين دقيقة.</p>
+  <p>• من لم يثبت تواجده فيها يُعدّ منصرفًا دون إذن، وتدخل المدة من انقضاء الساعتين حتى بصمته ضمن مدد التأخير الشهرية (المادة ١٨ من قرار ٦/٢٠٢٤).</p>
+  <p>• خطة زياراتك يعتمدها الموجه الأول شهريًا ويتابع تنفيذها.</p>`:c.cadre==="adm"?`
   <p>• ثلاث بصمات يوميًا: الحضور، والتواجد، والانصراف، بمواعيد مرحلتك نفسها.</p>
   <p>• <b>الإدارة المدرسية</b> (مدير، مدير مساعد): يلزم تواجد أحدكم <b>بالمناوبة</b> طوال تواجد المتعلمين حتى نهاية الدوام الرسمي <b>${fmt(c.offEnd)}</b>، إضافة إلى المكلفين بالمناوبة، ويتابع ذلك مراقب المرحلة التعليمية.</p>
   <p>• إن لم يتواجد أحد من الإدارة: يرفع مراقب المرحلة مذكرة إلى مدير الشؤون التعليمية، ثم مدير عام المنطقة، فالوكيل المساعد للتحقيق، وتُطبَّق لوائح قرار مجلس الخدمة ٤١/٢٠٠٦.</p>
@@ -1018,10 +1026,11 @@ function renderRules(){
   ${N?"":IOS?(STANDALONE?"":`<div class="card"><h3>ثبّته على الآيفون والآيباد</h3><p>١. افتح هذه الصفحة في متصفح Safari.<br>٢. اضغط زر المشاركة <b>⬆︎</b> أسفل الشاشة (وفي الآيباد أعلاها).<br>٣. اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».<br>بعدها يفتح «بصمتي» من أيقونته بملء الشاشة، ويعمل دون إنترنت، وتستطيع تفعيل إشعاراته من زر الجرس.</p></div>`):`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
   <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
   const $=id=>document.getElementById(id);
+  $("cRole").onchange=()=>$("cStage").onchange();
   $("cSchool").onchange=()=>{$("cStage").innerHTML=stageOpts($("cSchool").value,$("cStage").value);$("cStage").onchange()};
-  $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
-  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
-  $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role,cadre:S.cfg.cadre,school:S.cfg.school,budget:S.cfg.budget};const g=STG(keep.school,S.cfg.stage);S.cfg=Object.assign({},DEF,keep,{stage:g.key,earliest:g.earliest,graceEnd:g.graceEnd,workMin:g.workMin,latestOut:g.latestOut,offStart:g.offStart,offEnd:g.offEnd});save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
+  $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value,$("cRole").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
+  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value,$("cRole").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value,$("cRole").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
+  $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role,cadre:S.cfg.cadre,school:S.cfg.school,budget:S.cfg.budget};const g=STG(keep.school,S.cfg.stage,keep.cadre);S.cfg=Object.assign({},DEF,keep,{stage:g.key,earliest:g.earliest,graceEnd:g.graceEnd,workMin:g.workMin,latestOut:g.latestOut,offStart:g.offStart,offEnd:g.offEnd});save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
   if(N){const b=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};b("sNotif",()=>N.requestNotif());b("sExact",()=>N.openExact());b("sUsage",()=>N.openUsage());b("sMoe",()=>N.openMoe());b("sBat",()=>N.openBattery())}
   $("cTest").onclick=()=>{audio();fireAlarm("test","تجربة التنبيه المميّز","هكذا ينبّهك التطبيق قبل 30 ثانية من وقت البصمة.",C().lead)};
 }
@@ -1090,11 +1099,12 @@ function renderCal(){
 }
 const toHHMMSS=m=>{const s=Math.round(m*60);return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
 function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName").value=c.name||"";$("wRole").innerHTML=cadreOpts(c.cadre||"edu");$("wSchool").innerHTML=schoolOpts(c.school||"gen");$("wStage").innerHTML=stageOpts(c.school||"gen",c.stage);
-  const info=()=>{const g=STG($("wSchool").value,$("wStage").value);$("wInfo").innerHTML=`الحضور ${fmt(g.earliest)}–${fmt(g.graceEnd)} · الانصراف ${fmt(g.earliest+g.workMin)}–${fmt(g.latestOut)}<br>الدوام الرسمي ${fmt(g.offStart)}–${fmt(g.offEnd)}`};
-  $("wSchool").onchange=()=>{$("wStage").innerHTML=stageOpts($("wSchool").value,$("wStage").value);info()};$("wStage").onchange=info;info();
+  const info=()=>{const g=STG($("wSchool").value,$("wStage").value,$("wRole").value);$("wInfo").innerHTML=`الحضور ${fmt(g.earliest)}–${fmt(g.graceEnd)} · الانصراف ${g.earliest+g.workMin>=g.latestOut?fmt(g.latestOut):fmt(g.earliest+g.workMin)+"–"+fmt(g.latestOut)}<br>الدوام الرسمي ${fmt(g.offStart)}–${fmt(g.offEnd)}`};
+  const supVis=()=>{const v=$("wRole").value==="sup";$("wSchool").closest(".field").style.display=v?"none":"";$("wStage").closest(".field").style.visibility=v?"hidden":""};
+  $("wSchool").onchange=()=>{$("wStage").innerHTML=stageOpts($("wSchool").value,$("wStage").value);info()};$("wStage").onchange=info;$("wRole").onchange=()=>{supVis();info()};supVis();info();
   let b=c.budget||0;const paint=()=>document.querySelectorAll(".bsel").forEach(x=>{x.classList.toggle("on",+x.dataset.b===b);x.setAttribute("aria-checked",+x.dataset.b===b)});paint();
   document.querySelectorAll(".bsel").forEach(x=>x.onclick=()=>{b=+x.dataset.b;paint()});
-  $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const sc=$("wSchool").value,s=STG(sc,$("wStage").value),cd=$("wRole").value;
+  $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const sc=$("wSchool").value,s=STG(sc,$("wStage").value,$("wRole").value),cd=$("wRole").value;
     Object.assign(S.cfg,{name:$("wName").value.trim(),cadre:cd,role:CADRES[cd],school:sc,budget:b,stage:s.key,earliest:s.earliest,graceEnd:s.graceEnd,workMin:s.workMin,latestOut:s.latestOut,offStart:s.offStart,offEnd:s.offEnd});
     save();nativeSync();pushNative();paintCard();closeM();const v=document.querySelector(".view.on");if(v&&v.id==="v-bal")renderBal();toast("حُفظت بياناتك.")};
   openM("mWho")}

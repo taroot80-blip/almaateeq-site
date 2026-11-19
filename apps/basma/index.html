@@ -326,6 +326,17 @@ details.tip ol{margin:0;padding-inline-start:20px}
   .btn.primary,.m{animation:none}
 }
 .tt{width:100%;border-collapse:collapse;text-align:center;font-size:14px}.tt th,.tt td{padding:6px 4px;border-bottom:1px solid rgba(242,182,50,.18)}.tt th{color:var(--gold)}.tt td:first-child{text-align:right;font-weight:700}
+/* زر نظام التفعيل */
+.hero .tools.t1{gap:6px}
+.hero h1{white-space:nowrap;font-size:clamp(17px,5.4vw,25px)!important}
+@media (max-width:375px){.hero .tools .iconbtn.about{padding:0 7px;font-size:13px}.hero .tools .iconbtn.testBtn{width:32px}.hero{column-gap:5px}}
+.hero .tools .iconbtn.testBtn{width:36px;height:40px;font-size:18px}
+.iconbtn.testBtn{font-size:20px;color:#fff;border:1px solid rgba(236,72,153,.7);background:linear-gradient(145deg,#a21caf,#6d28d9);box-shadow:0 4px 0 #3b0764,0 0 14px rgba(217,70,239,.55);animation:testglow 2.4s ease-in-out infinite}
+body.testmode .iconbtn.testBtn{background:linear-gradient(145deg,#f0abfc,#d946ef 45%,#7c3aed);box-shadow:0 4px 0 #3b0764,0 0 0 3px rgba(240,171,252,.55),0 0 26px #e879f9;animation:teston 1s ease-in-out infinite}
+@keyframes testglow{50%{box-shadow:0 4px 0 #3b0764,0 0 22px rgba(217,70,239,.85)}}
+@keyframes teston{50%{transform:translateY(-1px) scale(1.06);filter:brightness(1.25)}}
+#testRibbon{display:none;position:fixed;left:10px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:80;padding:5px 12px;border-radius:999px;font:800 12px Cairo,Tajawal,sans-serif;color:#fff;background:linear-gradient(90deg,#c026d3,#7c3aed);box-shadow:0 0 18px rgba(217,70,239,.7);pointer-events:none}
+body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -345,7 +356,8 @@ details.tip ol{margin:0;padding-inline-start:20px}
 </div>
 
 <main class="app">
-  <div class="hero"><div class="tools t1"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button></div><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
+  <div id="testRibbon">⚡ نظام التفعيل مُفعَّل</div>
+  <div class="hero"><div class="tools t1"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button><button class="iconbtn testBtn" id="testBtn" aria-label="نظام التفعيل" title="نظام التفعيل">⚡</button></div><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
     <button class="iconbtn" id="bellBtn" aria-label="تفعيل الإشعارات">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
     </button></div><h1>بصمتي المرنة</h1><p>الحضور · التواجد · الانصراف — لمعلمي وزارة التربية وإدارييها</p><small class="disc">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية</small></div>
@@ -424,7 +436,7 @@ details.tip ol{margin:0;padding-inline-start:20px}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.7</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.8</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -716,7 +728,11 @@ function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.g
 /* بصمة حالة اليوم: يُعاد الرسم فقط حين تتغير حالة إحدى البصمات */
 let lastSig="";
 const WORK_FROM=360,WORK_TO=900;
-const inHours=()=>{const n=nowMin();return n>=WORK_FROM&&n<WORK_TO};
+/* نظام التفعيل: يلغي قيد 6 صباحًا – 3 ظهرًا للتجربة، ويعود النظام بضغطة ثانية */
+const testOn=()=>!!S.cfg.testMode;
+const inHours=()=>{if(testOn())return true;const n=nowMin();return n>=WORK_FROM&&n<WORK_TO};
+function paintTest(){document.body.classList.toggle("testmode",testOn());const b=document.getElementById("testBtn");if(b)b.setAttribute("aria-pressed",testOn())}
+function toggleTest(){S.cfg.testMode=!testOn();save();try{nativeSync()}catch(e){}try{pushNative()}catch(e){}paintTest();render();toast(testOn()?"⚡ نظام التفعيل: مُفعَّل — الأزرار والتنبيهات تعمل في كل وقت للتجربة":"نظام التفعيل: أُلغي — عاد العمل من 6:00 ص إلى 3:00 م");try{launchFlash()}catch(e){}}
 const OFF_MSG="أنت خارج نطاق الدوام. تعمل أزرار البصمة من 6:00 صباحًا إلى 3:00 عصرًا فقط.";
 function daySig(){const d=today(),n=nowMin(),c=C();if(d.in==null)return`${inHours()}|none|${n>=c.earliest-25&&n<=c.graceEnd}|${n>c.graceEnd&&n<c.latestOut}`;
   const P=plan(d.in,d.est,d.cfg);const sP=P.exempt&&d.pres==null?"ex":evState(P.ps,P.pe,d.pres,n);return`${inHours()}|in|${d.in}|${sP}|${evState(P.out,null,d.out,n)}|${!!d.est}`}
@@ -1083,6 +1099,7 @@ function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName"
     save();nativeSync();pushNative();paintCard();closeM();const v=document.querySelector(".view.on");if(v&&v.id==="v-bal")renderBal();toast("حُفظت بياناتك.")};
   openM("mWho")}
 document.getElementById("empBud").onclick=openWho;
+document.getElementById("testBtn").onclick=toggleTest;paintTest();
 document.getElementById("aboutBtn").onclick=()=>openM("mAbout");
 document.getElementById("copyMail").onclick=async()=>{try{await navigator.clipboard.writeText("taroot80@gmail.com");toast("نُسخ البريد: taroot80@gmail.com")}catch(e){toast("البريد: taroot80@gmail.com")}};
 function resetToday(){const k=dkey();S.days[k]={fired:{}};S.perms=S.perms.filter(p=>!(p.date===k&&p.morning));save();if(N){try{N.setDay(k,JSON.stringify({reset:true}))}catch(e){}}closeM();closeAlarm();go("today");toast("صُفّر اليوم. سجّل وقت بصمتك الصحيح.");launchFlash()}

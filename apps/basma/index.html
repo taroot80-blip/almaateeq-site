@@ -436,7 +436,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.1</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -523,7 +523,8 @@ const SCHOOLS={
   rel:{label:"معاهد التعليم الديني",st:{pri:[405,450,765,810,405,795],mid:[415,460,785,830,420,820],sec:[415,460,785,830,420,820]}},
   spe:{label:"مدارس التربية الخاصة",st:{kg:[405,450,695,740,405,725],pri:[405,450,765,810,405,795],mid:[405,450,765,810,405,795],sec:[405,450,765,810,405,795]}}
 };
-const CADRES={edu:"كادر تعليمي",adm:"كادر إداري",sup:"موجه فني"};
+const CADRES={edu:"كادر تعليمي",adm:"كادر إداري",sup:"موجه فني (قريبًا)"};
+const SUP_NOTE="⏳ قريبًا تتوفر خدمة الموجه الفني. اللوائح المنظمة لدوامه غير متوفرة الآن، والأزرار تعمل للتعرف على التطبيق ومميزاته فقط.";
 /* النشرة 40/2024 بند سابعًا: الموجه الفني دوامه الفعلي 7:00–2:00، والتأخير بعد 7:30 */
 const SUP={earliest:420,graceEnd:450,workMin:420,latestOut:840,offStart:420,offEnd:840};
 function STG(sc,st,cd){if(cd==="sup")return Object.assign({key:st||"sec",label:"التوجيه الفني"},SUP);const S0=SCHOOLS[sc]||SCHOOLS.gen;const k=S0.st[st]?st:Object.keys(S0.st)[0];const a=S0.st[k];
@@ -691,7 +692,7 @@ function launchFlash(){const f=document.createElement("div");f.style.cssText="po
 
 /* ================= بطاقة الموظف ================= */
 function paintCard(){const c=C();const nm=document.getElementById("empName");nm.textContent=c.name||"اضغط هنا لكتابة اسمك";nm.style.opacity=c.name?1:.75;
-  document.getElementById("empRole").textContent=(c.cadre==="sup"?"موجه فني":`${CADRES[c.cadre]||"كادر تعليمي"} · ${(STAGES[c.stage]||STAGES.sec).label}`);
+  document.getElementById("empRole").textContent=(c.cadre==="sup"?"موجه فني · قريبًا":`${CADRES[c.cadre]||"كادر تعليمي"} · ${(STAGES[c.stage]||STAGES.sec).label}`);
   const bd=document.getElementById("empBud");bd.textContent=c.budget?`ميزانية ${c.budget}`:"حدّد ميزانيتك";bd.classList.toggle("need",!c.budget);
   let ph=null;try{ph=localStorage.getItem("basma-photo")}catch(e){}
   document.getElementById("avIn").innerHTML=ph?`<img src="${ph}" alt="صورة الموظف">`:`<svg viewBox="0 0 64 64">${FP}</svg>`}
@@ -967,7 +968,7 @@ function renderRules(){
       <div class="li"><span>🔋 <b>البطارية</b><br><small class="muted">في Honor وHuawei: تشغيل التطبيقات ← بصمتي المرنة ← إدارة يدوية وفعّل الخيارات الثلاثة</small></span><button class="btn ghost" style="min-height:40px;font-size:14px;padding:6px 12px" id="sBat">افتح</button></div>
     </div></div>`}
   document.getElementById("v-rules").innerHTML=setup+`
-  <div class="card"><h3>مواعيدك وفق النشرة ٤٠/٢٠٢٤</h3>
+  ${c.cadre==="sup"?`<div class="card soon"><h3>⏳ موجه فني</h3><p style="text-align:center;font-weight:800;color:var(--gold)">قريبًا تتوفر خدمة الموجه الفني</p><p style="text-align:center">اللوائح المنظمة لدوام الموجه الفني وبصماته غير متوفرة الآن، وتُضاف حين تكتمل.</p><p class="muted" style="text-align:center">الأزرار تعمل الآن بمواعيد تقريبية للتعرف العام على التطبيق ومميزاته والتعامل معه، فلا تعتمد عليها رسميًا.</p></div>`:`<div class="card"><h3>مواعيدك وفق النشرة ٤٠/٢٠٢٤</h3>
   <p class="muted" style="margin:-4px 0 6px">${c.cadre==="sup"?"موجه فني · القرار الوزاري ١٧١/٢٠٢٣":`${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}`}</p>
   <table class="tt"><tr><th></th><th>من</th><th>إلى</th></tr>
   <tr><td>الدوام الرسمي</td><td>${fmt(c.offStart)}</td><td>${fmt(c.offEnd)}</td></tr>
@@ -997,7 +998,7 @@ function renderRules(){
   <p>• <b>ساعات التخفيف</b> (كالأم وفق قانون حقوق الطفل ٢١/٢٠١٥): لا يقل الدوام عن ٥ ساعات، ويبدأ من بداية الدوام الفعلي، و<b>لا يجوز الجمع</b> بين التخفيف والدوام المرن وفترات السماح.</p>
   <p>• ذوو الإعاقة ومن يرعاهم: تُطبَّق ضوابط المادة (٢٢) من اللائحة التنفيذية لقانون حقوق ذوي الإعاقة ٨/٢٠١٠.</p>
   <p>• الإجازات المرضية وفق قرارات المجلس الطبي العام وتعميم ديوان الخدمة ٣٩/٢٠٠٦ وقرار ٢٩/٢٠٢٣.</p>
-  <p class="src">النشرة ٤٠/٢٠٢٤ — البنود الرابع والخامس والسادس</p></div>
+  <p class="src">النشرة ٤٠/٢٠٢٤ — البنود الرابع والخامس والسادس</p></div>`}
   <div class="card"><h3>ما يعتمده التطبيق</h3>
   <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور، ويُحتسب الحضور قبل ${fmt(c.earliest)} كأنه في ${fmt(c.earliest)}. <span class="src">قرار مجلس الخدمة المدنية</span></p>
   <p>٢. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية ٢٠٢٤</span></p>
@@ -1099,9 +1100,9 @@ function renderCal(){
 }
 const toHHMMSS=m=>{const s=Math.round(m*60);return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`};
 function openWho(){const c=C();const $=id=>document.getElementById(id);$("wName").value=c.name||"";$("wRole").innerHTML=cadreOpts(c.cadre||"edu");$("wSchool").innerHTML=schoolOpts(c.school||"gen");$("wStage").innerHTML=stageOpts(c.school||"gen",c.stage);
-  const info=()=>{const g=STG($("wSchool").value,$("wStage").value,$("wRole").value);$("wInfo").innerHTML=`الحضور ${fmt(g.earliest)}–${fmt(g.graceEnd)} · الانصراف ${g.earliest+g.workMin>=g.latestOut?fmt(g.latestOut):fmt(g.earliest+g.workMin)+"–"+fmt(g.latestOut)}<br>الدوام الرسمي ${fmt(g.offStart)}–${fmt(g.offEnd)}`};
+  const info=()=>{const g=STG($("wSchool").value,$("wStage").value,$("wRole").value);if($("wRole").value==="sup"){$("wInfo").innerHTML=SUP_NOTE;return}$("wInfo").innerHTML=`الحضور ${fmt(g.earliest)}–${fmt(g.graceEnd)} · الانصراف ${g.earliest+g.workMin>=g.latestOut?fmt(g.latestOut):fmt(g.earliest+g.workMin)+"–"+fmt(g.latestOut)}<br>الدوام الرسمي ${fmt(g.offStart)}–${fmt(g.offEnd)}`};
   const supVis=()=>{const v=$("wRole").value==="sup";$("wSchool").closest(".field").style.display=v?"none":"";$("wStage").closest(".field").style.visibility=v?"hidden":""};
-  $("wSchool").onchange=()=>{$("wStage").innerHTML=stageOpts($("wSchool").value,$("wStage").value);info()};$("wStage").onchange=info;$("wRole").onchange=()=>{supVis();info()};supVis();info();
+  $("wSchool").onchange=()=>{$("wStage").innerHTML=stageOpts($("wSchool").value,$("wStage").value);info()};$("wStage").onchange=info;$("wRole").onchange=()=>{supVis();info();if($("wRole").value==="sup")toast("قريبًا تتوفر خدمة الموجه الفني")};supVis();info();
   let b=c.budget||0;const paint=()=>document.querySelectorAll(".bsel").forEach(x=>{x.classList.toggle("on",+x.dataset.b===b);x.setAttribute("aria-checked",+x.dataset.b===b)});paint();
   document.querySelectorAll(".bsel").forEach(x=>x.onclick=()=>{b=+x.dataset.b;paint()});
   $("wOk").onclick=()=>{if(!b){toast("اختر ميزانية تعيينك: شهر 1 أو شهر 7.");return}const sc=$("wSchool").value,s=STG(sc,$("wStage").value,$("wRole").value),cd=$("wRole").value;

@@ -3331,7 +3331,8 @@ addEventListener('keydown',e=>{
 });
 
 /* ===== البدء ===== */
-if(load()&&S.cells&&S.cells.length){const g=$('#goResume');g.hidden=false;
+const _ld=load();S.room='1448';S.roomV=2;
+if(_ld&&S.cells&&S.cells.length){const g=$('#goResume');g.hidden=false;
   g.innerHTML=`▶ متابعة المسابقة<small style="display:block;font-size:17px;font-weight:600">الجولة ${AR(S.round)} · ${S.teams.map((t,i)=>esc(tName(i))+' '+AR(t.points)).join(' · ')}</small>`;
   g.style.minHeight='76px';g.classList.remove('ghost');$('#goSetup').classList.add('ghost')}
 if(S.time!==30&&S.time!==60)S.time=30;

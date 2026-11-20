@@ -324,6 +324,16 @@ input,select{font-family:inherit}
 .footer{position:absolute;bottom:6px;right:0;left:0;text-align:center;font-size:17px;color:rgba(255,255,255,.55);z-index:3;pointer-events:none}
 
 @media (prefers-reduced-motion:reduce){.laser,.spark{animation:none;opacity:0}}
+#picker{display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);align-items:center;justify-content:center;font-family:'Noto Sans Arabic',sans-serif}
+#picker.on{display:flex}
+#picker .pkBox{width:min(440px,92vw);background:#1a120b;border:2px solid #F2B632;border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 40px rgba(242,182,50,.45);animation:pop .35s var(--ease-out)}
+#picker h3{font-family:Amiri,serif;color:#F2B632;font-size:26px;text-align:center;line-height:1.4}
+#picker .pkBtn{position:relative;min-height:60px;border-radius:16px;display:grid;place-items:center;font-size:21px;font-weight:800;color:#0b0805;background:#F2B632;box-shadow:0 4px 0 #a87510}
+#picker .pkBtn+.pkBtn{background:#00F5D4;box-shadow:0 4px 0 #0a8f7d}
+#picker .pkBtn input{position:absolute;inset:0;opacity:0}
+#picker #pkMsg{min-height:26px;text-align:center;font-size:18px;font-weight:700;color:#fff}
+#pkClose{min-height:46px;border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font-size:18px;font-weight:700;border:1px solid rgba(255,255,255,.3)}
+.cav input,.ph input{pointer-events:none}
 #camView{display:none}
 body.cam #viewport,body.cam #adminView{display:none}
 html:has(body.cam),html:has(body.admin){overflow:auto;height:auto}
@@ -383,6 +393,10 @@ body.adminOn #s-game .ans,body.adminOn #bUndo{display:none!important}
 </style>
 </head>
 <body>
+<div id="picker" dir="rtl"><div class="pkBox"><h3 id="pkTitle">صورة</h3>
+  <label class="pkBtn">📷 التقاط بالكاميرا<input type="file" accept="image/*" id="pkCam"></label>
+  <label class="pkBtn">🖼 من الاستوديو<input type="file" accept="image/*" id="pkGal"></label>
+  <div id="pkMsg"></div><button id="pkClose">إغلاق</button></div></div>
 <div id="camView" dir="rtl">
   <h1>تصوير مسابقة رحلة الجبيل</h1>
   <div class="room">الغرفة: <b id="camRoom"></b> · الصور تظهر على التلفاز مباشرة</div>
@@ -3020,8 +3034,8 @@ function renderSetup(){
     c.querySelector('.tl').oninput=e=>{t.lead=e.target.value.trim();save()};
     c.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{t.color=b.dataset.c;SFX.pick();save();renderSetup()});
     c.querySelectorAll('.dir').forEach(b=>b.onclick=()=>{t.dir=b.dataset.d;SFX.pick();save();renderSetup()});
-    c.querySelector('.fl').onchange=e=>{const f=e.target.files[0];if(f)shrink(f,520,u=>{t.leadImg=u;save();renderSetup()})};
-    c.querySelector('.fg').onchange=e=>{const f=e.target.files[0];if(f)shrink(f,1280,u=>{t.groupImg=u;save();renderSetup()})};
+    c.querySelector('.fl').parentElement.onclick=e=>{e.preventDefault();openPicker(`صورة مسؤول ${esc(tName(i))}`,'user',520,async u=>{t.leadImg=u;save();renderSetup();pkMsg('جارٍ الحفظ…');afterSend(await sendSlot(`team${i}-lead`,u),'')})};
+    c.querySelector('.fg').parentElement.onclick=e=>{e.preventDefault();openPicker(`الصورة الجماعية لـ${esc(tName(i))}`,'environment',1280,async u=>{t.groupImg=u;save();renderSetup();pkMsg('جارٍ الحفظ…');afterSend(await sendSlot(`team${i}-group`,u),'')})};
     armed(c.querySelector('.wipe'),'🗑','✔؟',()=>{wipeTeam(i);SFX.timeup();toast(`مُسح الفريق ${AR(i+1)}`,'صُفّرت بياناته ونقاطه وبقيت صوره','#EF4444');renderSetup()});
     c.querySelector('.accept').onclick=()=>{
       if(!t.name){toast('اكتبوا اسم الفريق أولًا','',t.color,true);SFX.wrong();c.querySelector('.tn').focus();return}
@@ -3034,11 +3048,25 @@ const STAFF_DEF={hs:'',mm:'',am:'',md:''};
 let STAFF={...STAFF_DEF};try{STAFF={...STAFF,...JSON.parse(localStorage.getItem('jubail_staff')||'{}')}}catch(e){}
 function renderStaff(){$$('.cav').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''});
   $$('.footer i').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''})}
+let pkCb=null,pkMax=600;
+function openPicker(title,cap,max,cb){pkCb=cb;pkMax=max;$('#pkTitle').innerHTML=title;$('#pkCam').setAttribute('capture',cap);$('#pkMsg').textContent='';$('#picker').classList.add('on')}
+function pkMsg(t,c){const m=$('#pkMsg');m.textContent=t;m.style.color=c||'#fff'}
+function closePicker(){$('#picker').classList.remove('on');pkCb=null}
+$('#pkClose').onclick=closePicker;$('#picker').onclick=e=>{if(e.target.id==='picker')closePicker()};
+['#pkCam','#pkGal'].forEach(s=>$(s).onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f||!pkCb)return;pkMsg('جارٍ تجهيز الصورة…');const cb=pkCb;shrink(f,pkMax,u=>cb(u))});
+async function sendSlot(slot,u){if(!LIVE)return 'local';try{const r=await fetch(`${API}?room=1448&slot=${slot}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img:u})});const j=await r.json().catch(()=>({}));
+  if(j.error==='locked')return 'locked';if(r.ok&&j.ok){S.remote=S.remote||{};S.remote[slot]=j.t;save();return 'ok'}return 'err'}catch(e){return 'err'}}
+async function afterSend(res,label){if(res==='ok'){pkMsg('✔ حُفظت على الموقع'+label,'#39FF14');SFX.gift();setTimeout(closePicker,1300)}
+  else if(res==='local'){pkMsg('✔ حُفظت في هذا الجهاز','#39FF14');SFX.gift();setTimeout(closePicker,1200)}
+  else if(res==='locked'){pkMsg('📌 صور الطاقم مثبّتة لسنة ١٤٤٨، فكّ التثبيت أولًا','#F2B632')}
+  else pkMsg('✘ لم تُحفظ على الموقع؛ تأكد من الإنترنت وأعد المحاولة','#EF4444')}
 let staffLocked=false;try{staffLocked=localStorage.getItem('jubail_staff_lock')==='1'}catch(e){}
-$$('.cav input').forEach(inp=>inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const k=inp.parentElement.dataset.k;
-  if(staffLocked){toast('صور الطاقم مثبّتة لسنة ١٤٤٨','فكّ التثبيت أولًا لتغييرها','#F2B632');e.target.value='';return}
-  shrink(f,420,u=>{STAFF[k]=u;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();SFX.gift();
-    if(LIVE)fetch(`${API}?room=1448&slot=staff-${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img:u})}).catch(()=>{})})});
+$$('.cav').forEach(c=>c.onclick=e=>{e.preventDefault();const k=c.dataset.k;
+  if(staffLocked){toast('صور الطاقم مثبّتة لسنة ١٤٤٨','فكّ التثبيت أولًا لتغييرها','#F2B632');return}
+  const name=c.parentElement.querySelector(':scope > span')?.textContent||'';
+  openPicker(`صورة ${c.parentElement.querySelector('small').textContent}<br><small style="font-size:18px;color:#fff">${name}</small>`,'user',520,async u=>{
+    STAFF[k]=u;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();pkMsg('جارٍ الحفظ على الموقع…');
+    afterSend(await sendSlot('staff-'+k,u),' لسنة ١٤٤٨')})});
 function renderLock(){const b=$('#lockStaff');if(b){b.classList.toggle('on',staffLocked);b.textContent=staffLocked?'📌 صور الطاقم مثبّتة لسنة ١٤٤٨ · فكّ التثبيت':'📌 تثبيت صور الطاقم لسنة ١٤٤٨'}
   $$('.cav').forEach(c=>c.classList.toggle('locked',staffLocked))}
 function setLock(v){staffLocked=v;try{localStorage.setItem('jubail_staff_lock',v?'1':'0')}catch(e){}renderLock();

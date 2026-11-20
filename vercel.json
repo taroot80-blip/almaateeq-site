@@ -115,6 +115,16 @@
       "source": "/app",
       "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/site-latest/almaateeq.apk",
       "permanent": false
+    },
+    {
+      "source": "/jubail",
+      "destination": "/apps/jubail/",
+      "permanent": false
+    },
+    {
+      "source": "/apps/jubail",
+      "destination": "/apps/jubail/",
+      "permanent": false
     }
   ],
   "headers": [

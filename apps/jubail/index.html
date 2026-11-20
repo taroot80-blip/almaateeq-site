@@ -327,7 +327,10 @@ body.cam #camView{display:flex;flex-direction:column;gap:14px;min-height:100vh;p
 .camGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .shot{position:relative;min-height:112px;border-radius:16px;border:2px solid var(--tc,#F2B632);background:rgba(20,14,9,.85) center/cover no-repeat;color:#fff;font-size:17px;font-weight:800;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:8px;overflow:hidden;box-shadow:0 0 14px color-mix(in srgb,var(--tc,#F2B632) 40%,transparent)}
-.shot input{position:absolute;inset:0;opacity:0}
+.shot .src{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;margin-top:4px}
+.shot .src label{position:relative;min-height:44px;display:grid;place-items:center;border-radius:12px;font-size:15px;font-weight:800;white-space:nowrap;background:rgba(0,0,0,.55);border:1.5px solid var(--tc,#F2B632);color:#fff}
+.shot .src label:active{transform:scale(.95)}
+.shot .src input{position:absolute;inset:0;opacity:0}
 .shot i{font-style:normal;font-size:30px}
 .shot small{font-size:14px;font-weight:600;color:#ddd}
 .shot.ok small{color:#22C55E}.shot.err small{color:#EF4444}
@@ -2816,14 +2819,14 @@ if(camM){document.body.classList.add('cam');document.title='تصوير — مس�
   const shrinkC=(file,max)=>new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));
     const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.8))};im.src=r.result};r.readAsDataURL(file)});
   const TC=['#39FF14','#B14BFF','#00F5D4','#22B8FF'];
-  const mk=(slot,label,icon,cap,max,color)=>{const d=document.createElement('label');d.className='shot';d.style.setProperty('--tc',color);
-    d.innerHTML=`<i>${icon}</i>${label}<small>اضغط للتصوير</small><input type="file" accept="image/*" capture="${cap}">`;
-    d.querySelector('input').onchange=async e=>{const f=e.target.files[0];if(!f)return;const s=d.querySelector('small');d.classList.remove('ok','err');d.classList.add('busy');s.textContent='جارٍ الإرسال…';
+  const mk=(slot,label,icon,cap,max,color)=>{const d=document.createElement('div');d.className='shot';d.style.setProperty('--tc',color);
+    d.innerHTML=`<i>${icon}</i>${label}<small>اختر طريقة الصورة</small><div class="src"><label>📷 التقاط<input type="file" accept="image/*" capture="${cap}"></label><label>🖼 استوديو<input type="file" accept="image/*"></label></div>`;
+    d.querySelectorAll('input').forEach(inp=>inp.onchange=async e=>{const f=e.target.files[0];if(!f)return;const s=d.querySelector('small');d.classList.remove('ok','err');d.classList.add('busy');s.textContent='جارٍ الإرسال…';
       try{const img=await shrinkC(f,max);d.style.backgroundImage=`linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url(${img})`;d.classList.add('has');
         const r=await fetch(`${API}?room=${room}&slot=${slot}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img})});
         const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||r.status);
         d.classList.add('ok');s.textContent='✔ وصلت إلى التلفاز'}catch(err){d.classList.add('err');s.textContent='✘ لم تُرسل، أعد المحاولة'}
-      d.classList.remove('busy');e.target.value=''};return d};
+      d.classList.remove('busy');e.target.value=''});return d};
   [['staff-hs','مسؤول المسابقة<br>حسين سالم'],['staff-mm','الإدارة العامة<br>مصطفى معتوق'],['staff-md','التصميم<br>محمد المعاتيق']].forEach(([s,l])=>$('#camStaff').appendChild(mk(s,l,'🧑','user',520,'#F2B632')));
   let names=['الفريق ١','الفريق ٢','الفريق ٣','الفريق ٤'];
   for(let i=0;i<4;i++){$('#camTeams').appendChild(mk(`team${i}-lead`,`<span class="tn${i}">${names[i]}</span><br>صورة المسؤول`,'📷','user',520,TC[i]));
@@ -2990,8 +2993,8 @@ function renderSetup(){
       <div><label>اللون</label><div class="swatches">${COLORS.map(([n,h])=>`<button class="sw${h===t.color?' sel':''}" style="--c:${h}" data-c="${h}" title="${n}" aria-label="${n}"></button>`).join('')}</div></div>
       <div><label>جهة العبور</label><div class="dirs">${Object.entries(DIRS_SHORT).map(([k,v])=>`<button class="dir${k===t.dir?' sel':''}" data-d="${k}">${v}</button>`).join('')}</div></div>
       <div class="photos">
-        <div class="ph${t.leadImg?' has':''}" style="${t.leadImg?`background-image:url(${t.leadImg})`:''}">📷<br>صورة المسؤول<input type="file" accept="image/*" capture="user" class="fl"></div>
-        <div class="ph${t.groupImg?' has':''}" style="${t.groupImg?`background-image:url(${t.groupImg})`:''}">👥<br>صورة جماعية<input type="file" accept="image/*" capture="environment" class="fg"></div>
+        <div class="ph${t.leadImg?' has':''}" style="${t.leadImg?`background-image:url(${t.leadImg})`:''}">📷<br>صورة المسؤول<input type="file" accept="image/*" class="fl"></div>
+        <div class="ph${t.groupImg?' has':''}" style="${t.groupImg?`background-image:url(${t.groupImg})`:''}">👥<br>صورة جماعية<input type="file" accept="image/*" class="fg"></div>
       </div>
       <div class="tacts"><button class="accept">${t.ok?'✔ معتمد':'اعتماد الفريق'}</button><button class="wipe" title="مسح بيانات هذا الفريق" aria-label="مسح بيانات الفريق">🗑</button></div>`;
     g.appendChild(c);

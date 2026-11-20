@@ -80,10 +80,10 @@ input,select{font-family:inherit}
 .duaCard .salawat{font-family:Amiri,'Noto Naskh Arabic',serif;font-size:46px;color:var(--gold);text-align:center;margin-bottom:16px}
 .duaCard p{font-size:31px;line-height:1.7;font-weight:700;text-align:center}
 .credits{display:flex;gap:18px;margin-top:22px;justify-content:center;flex-wrap:wrap}
-.credits{display:grid!important;grid-template-columns:repeat(3,1fr)}
+.credits{display:grid!important;grid-template-columns:repeat(4,1fr)}
 .credit{padding:14px 12px;border-radius:20px;background:rgba(14,10,7,.6);border:1px solid var(--line);text-align:center;animation:pop .7s var(--ease-out) both;display:flex;flex-direction:column;align-items:center;gap:4px}
 .credit small{display:block;font-size:21px;color:#cbb994}
-.credit span{font-size:25px;font-weight:900;line-height:1.3}
+.credit span{font-size:22px;font-weight:900;line-height:1.3}
 .cav{position:relative;width:100px;height:100px;border-radius:50%;flex-shrink:0;cursor:pointer;display:grid;place-items:center;font-size:40px;
   background:rgba(0,0,0,.45) center/cover no-repeat;border:4px solid var(--gold);box-shadow:0 0 22px rgba(242,182,50,.55);margin-bottom:6px;overflow:hidden;transition:transform .16s var(--ease-out)}
 .cav:hover{transform:scale(1.05)}.cav:active{transform:scale(.95)}
@@ -406,6 +406,7 @@ body.adminOn #s-game .ans,body.adminOn #bUndo{display:none!important}
         <div class="credits">
           <div class="credit"><label class="cav" data-k="hs" title="صورة المسؤول"><span>📷</span><b class="rm">تغيير</b><input type="file" accept="image/*"></label><small>مسؤول المسابقة</small><span>الأستاذ المهندس حسين سالم</span></div>
           <div class="credit"><label class="cav" data-k="mm" title="صورة المسؤول"><span>📷</span><b class="rm">تغيير</b><input type="file" accept="image/*"></label><small>الإدارة العامة</small><span>الأستاذ المهندس مصطفى معتوق</span></div>
+          <div class="credit"><label class="cav" data-k="am" title="صورة مسؤول التغطية الإعلامية"><span>📷</span><b class="rm">تغيير</b><input type="file" accept="image/*"></label><small>التغطية الإعلامية</small><span>الأستاذ عبد الإله آل مطر</span></div>
           <div class="credit"><label class="cav" data-k="md" title="صورة المصمم"><span>📷</span><b class="rm">تغيير</b><input type="file" accept="image/*"></label><small>التصميم</small><span>الشيخ محمد المعاتيق</span></div>
         </div>
         <div class="introActions">
@@ -473,7 +474,7 @@ body.adminOn #s-game .ans,body.adminOn #bUndo{display:none!important}
         </div>
       </div>
     </aside>
-    <div class="footer"><i data-k="hs"></i>مسؤول المسابقة: أ. م. حسين سالم ·<i data-k="mm"></i>الإدارة العامة: أ. م. مصطفى معتوق ·<i data-k="md"></i>التصميم: الشيخ محمد المعاتيق</div>
+    <div class="footer"><i data-k="hs"></i>مسؤول المسابقة: أ. م. حسين سالم ·<i data-k="mm"></i>الإدارة العامة: أ. م. مصطفى معتوق ·<i data-k="am"></i>التغطية الإعلامية: أ. عبد الإله آل مطر ·<i data-k="md"></i>التصميم: الشيخ محمد المعاتيق</div>
   </section>
 
   <div id="toast"></div>
@@ -2829,7 +2830,7 @@ if(camM){document.body.classList.add('cam');document.title='تصوير — مس�
         const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||r.status);
         d.classList.add('ok');s.textContent='✔ وصلت إلى التلفاز'}catch(err){d.classList.add('err');s.textContent='✘ لم تُرسل، أعد المحاولة'}
       d.classList.remove('busy');e.target.value=''});return d};
-  [['staff-hs','مسؤول المسابقة<br>حسين سالم'],['staff-mm','الإدارة العامة<br>مصطفى معتوق'],['staff-md','التصميم<br>محمد المعاتيق']].forEach(([s,l])=>$('#camStaff').appendChild(mk(s,l,'🧑','user',520,'#F2B632')));
+  [['staff-hs','مسؤول المسابقة<br>حسين سالم'],['staff-mm','الإدارة العامة<br>مصطفى معتوق'],['staff-am','التغطية الإعلامية<br>عبد الإله آل مطر'],['staff-md','التصميم<br>محمد المعاتيق']].forEach(([s,l])=>$('#camStaff').appendChild(mk(s,l,'🧑','user',520,'#F2B632')));
   let names=['الفريق ١','الفريق ٢','الفريق ٣','الفريق ٤'];
   for(let i=0;i<4;i++){$('#camTeams').appendChild(mk(`team${i}-lead`,`<span class="tn${i}">${names[i]}</span><br>صورة المسؤول`,'📷','user',520,TC[i]));
     $('#camTeams').appendChild(mk(`team${i}-group`,`<span class="tn${i}">${names[i]}</span><br>الصورة الجماعية`,'👥','environment',1280,TC[i]))}
@@ -3014,7 +3015,7 @@ function renderSetup(){
 }
 function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 /* ===== صور الطاقم الدائمة ===== */
-const STAFF_DEF={hs:'',mm:'',md:''};
+const STAFF_DEF={hs:'',mm:'',am:'',md:''};
 let STAFF={...STAFF_DEF};try{STAFF={...STAFF,...JSON.parse(localStorage.getItem('jubail_staff')||'{}')}}catch(e){}
 function renderStaff(){$$('.cav').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''});
   $$('.footer i').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''})}
@@ -3034,10 +3035,10 @@ $('#bPhone').onclick=showPhone;$('#bPhone2').onclick=showPhone;$('#phoneDone').o
 let metaSent='';function pushMeta(){if(!LIVE)return;const names=S.teams.map((t,i)=>t.name||('الفريق '+AR(i+1)));const k=JSON.stringify(names);if(k===metaSent)return;
   fetch(`${API}?room=${S.room}&slot=meta`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({meta:{names}})}).then(r=>{if(r.ok)metaSent=k}).catch(()=>{})}
 async function toData(url){try{const r=await fetch(url);const b=await r.blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=()=>ok(url);f.readAsDataURL(b)})}catch(e){return url}}
-const SLOTN={hs:'حسين سالم',mm:'مصطفى معتوق',md:'المصمم'};
+const SLOTN={hs:'حسين سالم',mm:'مصطفى معتوق',am:'عبد الإله آل مطر',md:'المصمم'};
 async function pollPhotos(){if(!LIVE)return;try{const r=await fetch(`${API}?room=${S.room}`,{cache:'no-store'});if(!r.ok)return;const j=await r.json();
   for(const [slot,v] of Object.entries(j.slots||{})){if((S.remote[slot]||0)>=v.t)continue;S.remote[slot]=v.t;const img=await toData(v.url);let who='';
-    let m=/^staff-(hs|mm|md)$/.exec(slot);if(m){STAFF[m[1]]=img;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();who=SLOTN[m[1]]}
+    let m=/^staff-(hs|mm|am|md)$/.exec(slot);if(m){STAFF[m[1]]=img;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();who=SLOTN[m[1]]}
     m=/^team(\d)-(lead|group)$/.exec(slot);if(m){const t=S.teams[+m[1]];t[m[2]==='lead'?'leadImg':'groupImg']=img;who=tName(+m[1])+(m[2]==='lead'?' · صورة المسؤول':' · الصورة الجماعية');
       if($('#s-setup').classList.contains('on'))renderSetup();if($('#s-game').classList.contains('on'))renderTeams()}
     save();SFX.gift();toast('📸 وصلت صورة',who,'#00F5D4',false,'gift')}}catch(e){}}

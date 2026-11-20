@@ -1,7 +1,7 @@
 // مسابقة رحلة الجبيل: استقبال صور الهاتف وعرضها على التلفاز مباشرة (مخزن Vercel Blob خاص)
 const { put, list, get } = require('@vercel/blob');
 
-const SLOT = /^(staff-(hs|mm|md)|team[0-3]-(lead|group)|meta)$/;
+const SLOT = /^(staff-(hs|mm|am|md)|team[0-3]-(lead|group)|meta)$/;
 const readAll = async r => Buffer.from(await new Response(r.stream).arrayBuffer());
 
 module.exports = async (req, res) => {

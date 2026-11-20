@@ -327,10 +327,10 @@ body.cam #camView{display:flex;flex-direction:column;gap:14px;min-height:100vh;p
 #camView .room b{color:#00F5D4;font-size:24px;letter-spacing:2px}
 #camView h2{font-size:21px;color:#F2B632;margin-top:8px}
 .camGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.shot{position:relative;min-height:112px;border-radius:16px;border:2px solid var(--tc,#F2B632);background:rgba(20,14,9,.85) center/cover no-repeat;color:#fff;font-size:17px;font-weight:800;
+.shot{position:relative;min-height:112px;min-width:0;border-radius:16px;border:2px solid var(--tc,#F2B632);background:rgba(20,14,9,.85) center/cover no-repeat;color:#fff;font-size:17px;font-weight:800;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:8px;overflow:hidden;box-shadow:0 0 14px color-mix(in srgb,var(--tc,#F2B632) 40%,transparent)}
-.shot .src{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;margin-top:4px}
-.shot .src label{position:relative;min-height:44px;display:grid;place-items:center;border-radius:12px;font-size:15px;font-weight:800;white-space:nowrap;background:rgba(0,0,0,.55);border:1.5px solid var(--tc,#F2B632);color:#fff}
+.shot .src{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;margin-top:4px}
+.shot .src label{position:relative;min-height:38px;display:grid;place-items:center;border-radius:10px;padding:0 2px;font-size:12.5px;font-weight:800;white-space:nowrap;background:rgba(0,0,0,.55);border:1.5px solid var(--tc,#F2B632);color:#fff}
 .shot .src label:active{transform:scale(.95)}
 .shot .src input{position:absolute;inset:0;opacity:0}
 .shot i{font-style:normal;font-size:30px}
@@ -338,6 +338,11 @@ body.cam #camView{display:flex;flex-direction:column;gap:14px;min-height:100vh;p
 .shot.ok small{color:#22C55E}.shot.err small{color:#EF4444}
 .shot.busy{animation:soft .8s infinite}
 .shot.has{text-shadow:0 2px 6px #000}
+.shot.locked .src{display:none}
+.shot.locked small{color:#F2B632}
+#lockStaff.on{background:linear-gradient(135deg,#F2B632,#fff2b0);color:#0b0805}
+.cav.locked{cursor:default}.cav.locked input{display:none}
+.cav.locked::after{content:'📌';position:absolute;top:-4px;left:-4px;font-size:22px}
 #phoneBox .box{position:absolute;inset:70px 330px;padding:30px;display:flex;flex-direction:column;align-items:center;gap:18px;background:rgba(14,10,7,.92);text-align:center}
 #phoneBox h2{font-family:Amiri,serif;font-size:52px;color:var(--gold)}
 #phoneBox .qr{background:#fff;padding:14px;border-radius:18px;box-shadow:0 0 40px rgba(242,182,50,.5)}
@@ -411,6 +416,7 @@ body.adminOn #s-game .ans,body.adminOn #bUndo{display:none!important}
         </div>
         <div class="introActions">
           <button class="btn" id="goSetup">تسجيل الأفرقة ←</button>
+          <button class="btn ghost small" id="lockStaff">📌 تثبيت صور الطاقم لسنة ١٤٤٨</button>
           <button class="btn ghost" id="goResume" hidden>متابعة المسابقة</button>
         </div>
       </div>
@@ -2827,14 +2833,15 @@ if(camM){document.body.classList.add('cam');document.title='تصوير — مس�
     d.querySelectorAll('input').forEach(inp=>inp.onchange=async e=>{const f=e.target.files[0];if(!f)return;const s=d.querySelector('small');d.classList.remove('ok','err');d.classList.add('busy');s.textContent='جارٍ الإرسال…';
       try{const img=await shrinkC(f,max);d.style.backgroundImage=`linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.35)),url(${img})`;d.classList.add('has');
         const r=await fetch(`${API}?room=${room}&slot=${slot}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img})});
-        const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok)throw new Error(j.error||r.status);
+        const j=await r.json().catch(()=>({}));if(j.error==='locked'){d.classList.add('locked');s.textContent='📌 مثبّتة لسنة ١٤٤٨';d.classList.remove('busy');e.target.value='';return}
+        if(!r.ok||!j.ok)throw new Error(j.error||r.status);
         d.classList.add('ok');s.textContent='✔ وصلت إلى التلفاز'}catch(err){d.classList.add('err');s.textContent='✘ لم تُرسل، أعد المحاولة'}
       d.classList.remove('busy');e.target.value=''});return d};
   [['staff-hs','مسؤول المسابقة<br>حسين سالم'],['staff-mm','الإدارة العامة<br>مصطفى معتوق'],['staff-am','التغطية الإعلامية<br>عبد الإله آل مطر'],['staff-md','التصميم<br>محمد المعاتيق']].forEach(([s,l])=>$('#camStaff').appendChild(mk(s,l,'🧑','user',520,'#F2B632')));
   let names=['الفريق ١','الفريق ٢','الفريق ٣','الفريق ٤'];
   for(let i=0;i<4;i++){$('#camTeams').appendChild(mk(`team${i}-lead`,`<span class="tn${i}">${names[i]}</span><br>صورة المسؤول`,'📷','user',520,TC[i]));
     $('#camTeams').appendChild(mk(`team${i}-group`,`<span class="tn${i}">${names[i]}</span><br>الصورة الجماعية`,'👥','environment',1280,TC[i]))}
-  fetch(`${API}?room=${room}`).then(r=>r.json()).then(j=>{if(j.meta&&j.meta.names)j.meta.names.forEach((n,i)=>$$('.tn'+i).forEach(e=>e.textContent=n))}).catch(()=>{});
+  fetch(`${API}?room=${room}`).then(r=>r.json()).then(j=>{if(j.locked)$$('#camStaff .shot').forEach(s=>{s.classList.add('locked');s.querySelector('small').textContent='📌 مثبّتة لسنة ١٤٤٨'});if(j.meta&&j.meta.names)j.meta.names.forEach((n,i)=>$$('.tn'+i).forEach(e=>e.textContent=n))}).catch(()=>{});
   return;
 }
 if(IS_ADMIN){document.body.classList.add('admin');document.title='التحكيم الإداري — مسابقة رحلة الجبيل';
@@ -3019,8 +3026,19 @@ const STAFF_DEF={hs:'',mm:'',am:'',md:''};
 let STAFF={...STAFF_DEF};try{STAFF={...STAFF,...JSON.parse(localStorage.getItem('jubail_staff')||'{}')}}catch(e){}
 function renderStaff(){$$('.cav').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''});
   $$('.footer i').forEach(c=>{const u=STAFF[c.dataset.k];c.classList.toggle('has',!!u);c.style.backgroundImage=u?`url(${u})`:''})}
+let staffLocked=false;try{staffLocked=localStorage.getItem('jubail_staff_lock')==='1'}catch(e){}
 $$('.cav input').forEach(inp=>inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const k=inp.parentElement.dataset.k;
-  shrink(f,420,u=>{STAFF[k]=u;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();SFX.gift()})});
+  if(staffLocked){toast('صور الطاقم مثبّتة لسنة ١٤٤٨','فكّ التثبيت أولًا لتغييرها','#F2B632');e.target.value='';return}
+  shrink(f,420,u=>{STAFF[k]=u;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();SFX.gift();
+    if(LIVE)fetch(`${API}?room=1448&slot=staff-${k}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({img:u})}).catch(()=>{})})});
+function renderLock(){const b=$('#lockStaff');if(b){b.classList.toggle('on',staffLocked);b.textContent=staffLocked?'📌 صور الطاقم مثبّتة لسنة ١٤٤٨ · فكّ التثبيت':'📌 تثبيت صور الطاقم لسنة ١٤٤٨'}
+  $$('.cav').forEach(c=>c.classList.toggle('locked',staffLocked))}
+function setLock(v){staffLocked=v;try{localStorage.setItem('jubail_staff_lock',v?'1':'0')}catch(e){}renderLock();
+  if(LIVE)fetch(`${API}?room=1448&slot=lock`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({locked:v})}).catch(()=>{});
+  SFX.gift();toast(v?'ثُبّتت صور الطاقم':'فُكّ تثبيت صور الطاقم',v?'لسنة ١٤٤٨هـ كاملة':'يمكن تغييرها الآن','#F2B632')}
+{let t=null;const b=$('#lockStaff');b.onclick=()=>{if(!staffLocked){setLock(true);return}
+  if(b.dataset.arm){clearTimeout(t);delete b.dataset.arm;setLock(false);return}b.dataset.arm='1';b.textContent='اضغط مرة أخرى لفكّ التثبيت';t=setTimeout(()=>{delete b.dataset.arm;renderLock()},3000)}}
+renderLock();
 renderStaff();
 
 /* ===== التصوير بالهاتف: الاستقبال المباشر ===== */
@@ -3037,6 +3055,7 @@ let metaSent='';function pushMeta(){if(!LIVE)return;const names=S.teams.map((t,i
 async function toData(url){try{const r=await fetch(url);const b=await r.blob();return await new Promise(ok=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=()=>ok(url);f.readAsDataURL(b)})}catch(e){return url}}
 const SLOTN={hs:'حسين سالم',mm:'مصطفى معتوق',am:'عبد الإله آل مطر',md:'المصمم'};
 async function pollPhotos(){if(!LIVE)return;try{const r=await fetch(`${API}?room=${S.room}`,{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+  if(typeof j.locked==='boolean'&&j.locked!==staffLocked){staffLocked=j.locked;try{localStorage.setItem('jubail_staff_lock',j.locked?'1':'0')}catch(e){}renderLock()}
   for(const [slot,v] of Object.entries(j.slots||{})){if((S.remote[slot]||0)>=v.t)continue;S.remote[slot]=v.t;const img=await toData(v.url);let who='';
     let m=/^staff-(hs|mm|am|md)$/.exec(slot);if(m){STAFF[m[1]]=img;try{localStorage.setItem('jubail_staff',JSON.stringify(STAFF))}catch(_){}renderStaff();who=SLOTN[m[1]]}
     m=/^team(\d)-(lead|group)$/.exec(slot);if(m){const t=S.teams[+m[1]];t[m[2]==='lead'?'leadImg':'groupImg']=img;who=tName(+m[1])+(m[2]==='lead'?' · صورة المسؤول':' · الصورة الجماعية');

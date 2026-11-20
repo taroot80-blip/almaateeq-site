@@ -1,0 +1,7 @@
+{
+  "name": "almaateeq-site",
+  "private": true,
+  "dependencies": {
+    "@vercel/blob": "^2.0.0"
+  }
+}

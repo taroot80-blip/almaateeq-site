@@ -3018,7 +3018,7 @@ $$('.cav input').forEach(inp=>inp.onchange=e=>{const f=e.target.files[0];if(!f)r
 renderStaff();
 
 /* ===== التصوير بالهاتف: الاستقبال المباشر ===== */
-if(!S.room){S.room=String(Math.floor(1000+Math.random()*9000))}
+if(S.roomV!==2){S.room='1448';S.roomV=2}
 S.remote=S.remote||{};
 const camLink=()=>`https://www.almaateeq.com/apps/jubail/#cam-${S.room}`;
 function showPhone(){$('#roomCode').textContent=AR(S.room);$('#roomLink').textContent=camLink();

@@ -419,7 +419,7 @@ body.adminOn #s-game .ans,body.adminOn #bUndo{display:none!important}
         <option value="6">لوحة 6×6</option><option value="8">لوحة 8×8</option><option value="10" selected>لوحة 10×10</option>
       </select>
       <select id="timeSel" aria-label="وقت الإجابة">
-        <option value="10">10 ثوانٍ</option><option value="15">15 ثانية</option><option value="20" selected>20 ثانية</option><option value="30">30 ثانية</option><option value="0">بلا مؤقت</option>
+        <option value="30" selected>30 ثانية</option><option value="60">دقيقة</option>
       </select>
       <button class="btn ghost small" id="bCats">📚 تصنيفات الأسئلة</button>
       <button class="btn" id="startGame">ابدأ المسابقة ←</button>
@@ -2900,7 +2900,7 @@ const DEF_TEAMS=[
   {name:'',lead:'',color:'#B14BFF',dir:'lr'},
   {name:'',lead:'',color:'#00F5D4',dir:'tb'},
   {name:'',lead:'',color:'#22B8FF',dir:'bt'}];
-let S={teams:DEF_TEAMS.map(t=>({...t,ok:false,leadImg:'',groupImg:'',points:0,wins:0,wrong:0})),n:6,time:20,cells:[],round:1,hist:[],used:{},sound:true,stage:'intro'};
+let S={teams:DEF_TEAMS.map(t=>({...t,ok:false,leadImg:'',groupImg:'',points:0,wins:0,wrong:0})),n:6,time:30,cells:[],round:1,hist:[],used:{},sound:true,stage:'intro'};
 S.n=10;
 const KEY='jubail1448v2';let lastImgs={};
 function load(){try{const r=localStorage.getItem(KEY);if(!r)return false;S={...S,...JSON.parse(r)};
@@ -3249,6 +3249,7 @@ addEventListener('keydown',e=>{
 if(load()&&S.cells&&S.cells.length){const g=$('#goResume');g.hidden=false;
   g.innerHTML=`▶ متابعة المسابقة<small style="display:block;font-size:17px;font-weight:600">الجولة ${AR(S.round)} · ${S.teams.map((t,i)=>esc(tName(i))+' '+AR(t.points)).join(' · ')}</small>`;
   g.style.minHeight='76px';g.classList.remove('ghost');$('#goSetup').classList.add('ghost')}
+if(S.time!==30&&S.time!==60)S.time=30;
 S.stage='s-intro';
 /* العمل بلا إنترنت على الموقع */
 try{if('serviceWorker' in navigator&&/almaateeq/.test(location.hostname))navigator.serviceWorker.register('sw.js')}catch(e){}

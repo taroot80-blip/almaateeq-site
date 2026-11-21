@@ -234,7 +234,8 @@ textarea.field{min-height:96px;resize:vertical}
 .span2 button{min-height:56px;border-radius:14px;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
 .span2 button b{font-size:20px;color:var(--ink);direction:rtl}
 .span2 button.on{border-color:var(--green);background:var(--mint)}
-.dial{width:min(230px,66vw);height:auto;display:block;margin:0 auto;touch-action:manipulation}
+.dial{width:min(260px,74vw);height:auto;display:block;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer}
+.dial.drag .hand{transition:none}
 .dial .num{cursor:pointer}
 .dial .num text{font:700 15px "Noto Naskh Arabic",serif;fill:var(--ink)}
 .dial .num circle{fill:transparent;transition:fill .2s}
@@ -1063,7 +1064,7 @@ const drawClock = () => {
   let nums = '';
   for (let k = 0; k < 12; k++) {
     const v = isMin ? k * 5 : (k || 12), a = (k * 30 - 90) * Math.PI / 180, x = 120 + 88 * Math.cos(a), y = 120 + 88 * Math.sin(a);
-    nums += `<g class="num${v === val ? ' on' : ''}" data-v="${v}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17"/><text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle">${isMin ? two(v) : v}</text></g>`;
+    nums += `<g class="num${v === val ? ' on' : ''}" data-v="${v}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19"/><text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle">${isMin ? two(v) : v}</text></g>`;
   }
   $('#dial').innerHTML = `<circle cx="120" cy="120" r="114" fill="var(--mint)"/><circle cx="120" cy="120" r="114" fill="none" stroke="var(--line)"/>
     <g class="hand" style="transform:rotate(${ang}deg)"><line x1="120" y1="120" x2="120" y2="${isMin ? 40 : 52}" stroke="var(--green)" stroke-width="${isMin ? 3 : 5}" stroke-linecap="round"/></g>
@@ -1077,13 +1078,20 @@ const openClock = code => {
   ck.code = code; ck.step = 0; ck.t = [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}];
   $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false;
 };
-$('#dial').addEventListener('click', e => {
-  const g = e.target.closest('.num'); if (!g) return;
-  const cur = ck.t[ck.step < 2 ? 0 : 1], v = +g.dataset.v;
-  if (ck.step % 2) cur.m = v; else cur.h = v;
-  drawClock();
-  if (ck.step < 3) setTimeout(() => { ck.step++; drawClock(); }, 260);
-});
+/* لمس الساعة أو سحب العقرب: أي نقطة في الدائرة تختار أقرب رقم، والسحب يحرّك العقرب مع الإصبع */
+let dragging = false, advT = 0;
+const dialPick = e => {
+  const r = $('#dial').getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  let a = Math.atan2(dx, -dy) * 180 / Math.PI; if (a < 0) a += 360;
+  const cur = ck.t[ck.step < 2 ? 0 : 1];
+  if (ck.step % 2) { const m = Math.round(a / 30) % 12 * 5; if (m !== cur.m) { cur.m = m; drawClock(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(x) {} } }
+  else { const h = Math.round(a / 30) % 12 || 12; if (h !== cur.h) { cur.h = h; drawClock(); if (navigator.vibrate) try { navigator.vibrate(8); } catch(x) {} } }
+};
+$('#dial').addEventListener('pointerdown', e => { e.preventDefault(); clearTimeout(advT); dragging = true; $('#dial').classList.add('drag'); try { $('#dial').setPointerCapture(e.pointerId); } catch(x) {} dialPick(e); });
+$('#dial').addEventListener('pointermove', e => { if (dragging) dialPick(e); });
+const dialUp = () => { if (!dragging) return; dragging = false; $('#dial').classList.remove('drag'); if (ck.step < 3) advT = setTimeout(() => { ck.step++; drawClock(); }, 350); };
+$('#dial').addEventListener('pointerup', dialUp);
+$('#dial').addEventListener('pointercancel', dialUp);
 document.querySelectorAll('.ampm button').forEach(b => b.addEventListener('click', () => { ck.t[ck.step < 2 ? 0 : 1].pm = +b.dataset.ap; drawClock(); }));
 $('#ckFrom').addEventListener('click', () => { ck.step = 0; drawClock(); });
 $('#ckTo').addEventListener('click', () => { ck.step = 2; drawClock(); });

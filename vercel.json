@@ -145,6 +145,11 @@
       "source": "/apps/jisr",
       "destination": "/apps/jisr/",
       "permanent": false
+    },
+    {
+      "source": "/jisr-apk",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/jisr-latest/jisr-alataa.apk",
+      "permanent": false
     }
   ],
   "headers": [

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2D5530">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="جسر العطاء">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>جسر العطاء</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@500;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: هادئ خيري واضح، لكل الأعمار
+   IDEA: جسر خشبي يعبر عليه الغرض من بيت إلى بيت، ولوحة «عرض اليوم» بثماني نوافذ تتجدد كل 24 ساعة
+   PICTURE: لوحة الجسر المائية في رأس داكن دافئ، بعدّاد ذهبي للدفعة القادمة
+   COLOUR and TYPE: ورق فاتح وأخضر زيتوني من إعلان المجموعة؛ تركوازي وسماوي وأزرق مضيء؛ نسخ Noto Naskh وعناوين Markazi
+   LAYOUT: رأس مصوّر، ثم ثماني نوافذ في شبكة (عمود واحد على الهاتف)، وشريط تنقل سفلي */
+:root{color-scheme:light dark;
+--bg:light-dark(#F5F3EC,#11160F);--paper:light-dark(#FFFFFF,#1A2117);--ink:light-dark(#1E2A1D,#E9EFE3);--muted:light-dark(#5B6857,#A9B7A2);
+--green:light-dark(#2D5530,#3E6E3F);--mint:light-dark(#E2EDD8,#243321);--sand:light-dark(#E0F4F8,#12313A);
+--line:light-dark(#D9E3D0,#2E3A2A);--warn:light-dark(#9C3E33,#E38A7E);--gold:#3FE3EC;--night:#063540;
+--shadow:light-dark(0 6px 20px rgba(45,85,48,.08),0 6px 20px rgba(0,0,0,.35));--ease:cubic-bezier(.23,1,.32,1);--live:2.6s}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-tap-highlight-color:transparent;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+nav,.btn,.chip,.more{user-select:none;-webkit-user-select:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.75 "Noto Naskh Arabic",serif;overflow-x:clip;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:"Markazi Text","Noto Naskh Arabic",serif;font-weight:700;line-height:1.15;margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #7FA86F;outline-offset:2px}
+.wrap{max-width:1120px;margin-inline:auto;padding-inline:max(4vw,16px)}
+
+/* الرأس */
+header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:12px;padding-block:10px}
+.logo{width:46px;height:46px;border-radius:50%;background:var(--green);display:grid;place-items:center;flex:none}
+.logo svg{width:28px;height:28px;transform-origin:50% 85%;animation:sway var(--live) ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.brand h1{font-size:29px}.brand p{margin:0;font-size:14px;color:var(--muted)}
+.status{margin-inline-start:auto;display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted);white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:#3E8E46;animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(62,142,70,.5)}100%{box-shadow:0 0 0 9px rgba(62,142,70,0)}}
+.liveline{height:3px;overflow:hidden;position:relative}
+.liveline::after{content:"";position:absolute;inset-block:0;width:30%;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:skewX(-30deg);animation:run var(--live) linear infinite}
+@keyframes run{from{inset-inline-start:-35%}to{inset-inline-start:105%}}
+.offline{--live:7s}.offline .dot{background:#9A9A8E;animation:none}.offline .liveline::after{opacity:.35}
+
+/* لوحة عرض اليوم */
+.hero{position:relative;margin-top:16px;border-radius:24px;overflow:hidden;background:var(--night);color:#F0FBFD;box-shadow:var(--shadow)}
+.hero-pic{position:relative;height:clamp(210px,34vw,340px);overflow:hidden}
+.hero-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:drift 24s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.02)}to{transform:scale(1.08) translateX(-1.5%)}}
+.hero-pic::after{content:"";position:absolute;inset:auto 0 0 0;height:45%;background:linear-gradient(0deg,var(--night),rgba(6,53,64,0))}
+.hero-name{position:relative;text-align:center;margin-top:-34px;padding-inline:16px}
+.hero-name h2{font-size:clamp(42px,8vw,62px);color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.35)}
+.hero-name .sub{margin:2px 0 0;font:700 clamp(22px,4vw,28px)/1.3 "Markazi Text",serif;color:var(--gold)}
+.hero-in{position:relative;padding:14px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end}
+.hero p.lead{margin:4px 0 0;color:#D2F1F5;max-width:52ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:15px;color:#D2F1F5}
+.stats b{color:var(--gold);font-size:19px}
+.clock{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;padding:12px 18px;text-align:center;background:rgba(6,53,64,.8)}
+.clock::before{content:"";position:absolute;inset:-60%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 70%,var(--gold) 82%,transparent 94%);animation:spin calc(var(--live) * 1.6) linear infinite}
+.clock::after{content:"";position:absolute;inset:2px;border-radius:16px;background:rgba(5,45,56,.96);z-index:-1}
+.clock small{display:block;font-size:13px;color:#BCEAF0}
+.clock .t{direction:ltr;display:block;font:700 34px/1.2 "Noto Naskh Arabic",serif;color:var(--gold);text-shadow:0 0 14px rgba(63,227,236,.45);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* الأزرار */
+.btn{min-height:50px;border-radius:14px;border:1px solid var(--line);background:var(--paper);padding:10px 18px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:transform .14s var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn.wide{width:100%}
+.btn.primary{position:relative;isolation:isolate;overflow:hidden;background:var(--green);color:#fff;border:0}
+.btn.primary::before{content:"";position:absolute;inset:-80%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 72%,rgba(63,227,236,.95) 82%,transparent 92%);animation:spin var(--live) linear infinite}
+.btn.primary::after{content:"";position:absolute;inset:2px;border-radius:12px;background:var(--green);z-index:-1}
+@keyframes spin{to{transform:rotate(1turn)}}
+.btn.ghost{background:transparent}
+.btn.text{border:0;background:none;color:var(--warn);min-height:44px;padding-inline:4px}
+.btn.small{min-height:44px;font-size:15px;padding:6px 14px}
+
+/* نوافذ المقتنيات */
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin:26px 0 12px}
+.sechead h2{font-size:32px}
+.sechead p{margin:0;color:var(--muted);font-size:15px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.search{flex:1 1 240px;min-height:46px;border-radius:999px;border:1px solid var(--line);background:var(--paper);padding:6px 16px;font-size:16px}
+.chip{min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--paper);padding:4px 14px;cursor:pointer;font-size:15px}
+.chip[aria-pressed=true]{background:var(--green);color:#fff;border-color:var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:14px;align-items:start}
+.win{background:var(--paper);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);animation:enter .45s var(--ease) both;animation-delay:calc(var(--i) * 60ms)}
+@keyframes enter{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.pic{position:relative;aspect-ratio:4/3;background:var(--mint);display:grid;place-items:center}
+.pic img{width:100%;height:100%;object-fit:cover}
+.pic svg{width:44%;color:var(--green);opacity:.85}
+.given .pic img,.given .pic svg{filter:grayscale(1);opacity:.4}
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);border:3px solid var(--green);color:var(--green);background:color-mix(in srgb,var(--paper) 88%,transparent);padding:2px 14px;border-radius:10px;font:700 24px/1.3 "Markazi Text",serif;white-space:nowrap;animation:stamp .5s var(--ease) both}
+@keyframes stamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.25)}}
+.shows{position:absolute;inset-block-start:10px;inset-inline-start:10px;background:rgba(6,53,64,.8);color:#F0FBFD;border-radius:999px;padding:0 10px;font-size:13px}
+.sum{padding:12px 14px 14px}
+.coderow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.code{direction:ltr;font-weight:700;font-size:22px;white-space:nowrap}
+.tag{font-size:13px;border-radius:999px;padding:1px 10px;white-space:nowrap;border:1px solid var(--line)}
+.tag.free{background:var(--mint);border-color:transparent}
+.tag.wait{background:var(--sand);border-color:transparent}
+.titlerow{display:flex;align-items:center;gap:8px;margin-top:4px}
+.titlerow h3{font-size:24px;flex:1}
+.more{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);display:grid;place-items:center;cursor:pointer;flex:none;transition:transform .3s var(--ease),background-color .2s}
+.more svg{width:20px;height:20px;transition:transform .3s var(--ease)}
+.more[aria-expanded=true]{background:var(--mint)}.more[aria-expanded=true] svg{transform:rotate(180deg)}
+.meta{margin:2px 0 0;color:var(--muted);font-size:15px;display:flex;gap:6px;align-items:flex-start}
+.meta svg{width:16px;height:16px;flex:none;margin-top:5px}
+.det{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s var(--ease)}
+.det.open{grid-template-rows:1fr}
+.det>div{overflow:hidden}
+.det-in{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px;font-size:15px}
+.det-in p{margin:0 0 6px}
+.det-in dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0 0 8px}
+.det-in dt{color:var(--muted)}.det-in dd{margin:0}
+.thanks{margin:8px 0 0;background:var(--mint);border-radius:12px;padding:6px 12px;font-size:15px}
+.free-note{margin:8px 0;font-size:13px;color:var(--muted)}
+.empty-win{border:2px dashed var(--line);border-radius:20px;min-height:220px;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);animation:enter .45s var(--ease) both;animation-delay:calc(var(--i) * 60ms)}
+.empty-win b{display:block;color:var(--ink);font-size:18px}
+.sample{font-size:13px;color:var(--muted);margin:10px 0 0}
+.demo{margin:26px 0 8px;border:1px dashed var(--line);border-radius:18px;padding:14px 16px}
+.demo h3{font-size:22px}.demo p{margin:2px 0 10px;font-size:14px;color:var(--muted)}
+.demo .row{display:flex;flex-wrap:wrap;gap:8px}
+
+/* الأقسام والنماذج */
+.view{display:none}.view.on{display:block;animation:fade .3s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-block:18px;max-width:640px}
+.panel h2{font-size:32px;margin-bottom:4px}
+.panel>p{margin:0 0 12px;color:var(--muted)}
+label{display:block;font-weight:700;margin:14px 0 6px;font-size:16px}
+.hint{font-weight:400;color:var(--muted);font-size:14px}
+.field{width:100%;min-height:50px;border-radius:14px;border:1px solid var(--line);background:var(--bg);padding:10px 14px;font-size:16px}
+textarea.field{min-height:96px;resize:vertical}
+.ltr{direction:ltr;text-align:right}
+.big{font-size:26px;font-weight:700;letter-spacing:1px;text-align:center}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:0 12px}
+.check{display:flex;gap:10px;align-items:flex-start;font-weight:400;margin:10px 0}
+.check input{width:22px;height:22px;margin-top:6px;accent-color:var(--green);flex:none}
+.drop{position:relative;display:grid;place-items:center;text-align:center;gap:4px;min-height:150px;border:2px dashed color-mix(in srgb,var(--green) 45%,var(--line));border-radius:18px;background:var(--mint);padding:18px;cursor:pointer;font-weight:400;margin:0;transition:background-color .2s}
+.drop.over{background:color-mix(in srgb,var(--mint) 70%,var(--green))}
+.drop svg{width:40px;height:40px;color:var(--green)}
+.drop b{font-size:18px}.drop span{font-size:14px;color:var(--muted)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:92px;height:92px;border-radius:14px;overflow:hidden;border:1px solid var(--line);animation:pop .3s var(--ease)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .x{position:absolute;inset-block-start:4px;inset-inline-start:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(6,53,64,.8);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.thumb .main{position:absolute;inset:auto 0 0 0;background:rgba(45,85,48,.85);color:#fff;font-size:12px;text-align:center}
+.strip{display:flex;gap:8px;margin:0 0 8px;overflow-x:auto}
+.strip img{width:76px;height:76px;object-fit:cover;border-radius:10px;flex:none;cursor:pointer;border:2px solid transparent}
+.strip img.on{border-color:var(--green)}
+.rules{background:var(--sand);border-radius:16px;padding:12px 16px;margin-top:16px}
+.rules h3{font-size:22px}.rules ul{margin:6px 0 0;padding-inline-start:20px}.rules li{margin:2px 0}
+.result{margin-top:16px;border-radius:16px;padding:16px;border:1px solid var(--line);background:var(--bg);animation:pop .35s var(--ease)}
+@keyframes pop{from{opacity:0;transform:scale(.97)}}
+.result.ok{background:var(--mint);border-color:transparent}
+.result.err{border-color:var(--warn);color:var(--warn)}
+.result .code{font-size:34px;display:block;text-align:center;margin:6px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.row .btn{flex:1 1 150px}
+.otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
+.list{display:grid;gap:12px;margin-top:10px}
+.mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
+.mini .code{font-size:20px}.mini p{margin:4px 0;font-size:15px}
+.rule-line{display:flex;gap:10px;align-items:baseline;font-size:15px;margin:4px 0}
+.rule-line b{white-space:nowrap}
+
+/* حول التطبيق */
+.aboutbtn{min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--paper);padding:4px 12px;display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;color:var(--ink)}
+.aboutbtn svg{width:18px;height:18px;color:var(--green)}
+.nomoney{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;padding:16px 18px;margin:6px 0 18px;background:light-dark(#FDECEA,#3A1E1B);color:light-dark(#7A2A21,#F6C3BB)}
+.nomoney::before{content:"";position:absolute;inset:-60%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 74%,currentColor 84%,transparent 94%);opacity:.5;animation:spin calc(var(--live) * 1.6) linear infinite}
+.nomoney::after{content:"";position:absolute;inset:2px;border-radius:16px;background:light-dark(#FDECEA,#3A1E1B);z-index:-1}
+.nomoney h3{font-size:26px;margin-bottom:4px}.nomoney p{margin:0;font-weight:700}
+.about h3{font-size:26px;margin:20px 0 6px}
+.about ol,.about ul{margin:0;padding-inline-start:22px}.about li{margin:4px 0}
+.cycle{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px;margin-top:8px}
+.cycle div{background:var(--sand);border-radius:14px;padding:10px 12px;text-align:center;font-size:14px}
+.cycle b{display:block;font:700 24px/1.2 "Markazi Text",serif;color:var(--green)}
+
+/* التنقل */
+nav{position:fixed;inset:auto 0 0 0;z-index:6;background:var(--paper);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .wrap{display:grid;grid-template-columns:repeat(5,1fr);padding-inline:2px}
+nav button{border:0;background:none;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav svg{width:24px;height:24px}
+nav button[aria-current=page]{color:var(--green);font-weight:700}
+.toast{position:fixed;inset-inline:16px;bottom:calc(84px + env(safe-area-inset-bottom));margin-inline:auto;max-width:460px;background:var(--ink);color:var(--bg);border-radius:14px;padding:12px 16px;font-size:15px;opacity:0;transform:translateY(10px);transition:opacity .2s,transform .25s var(--ease);pointer-events:none;z-index:9}
+.toast.on{opacity:1;transform:none}
+@media (max-width:600px){.hero-in{grid-template-columns:1fr}.clock{justify-self:stretch}}
+.brand h1{white-space:nowrap}
+@media (max-width:430px){.brand p,#statusText{display:none}.status{gap:0}.top{gap:10px}}
+@media (hover:hover) and (pointer:fine){.win{transition:transform .2s var(--ease)}.win:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="wrap top">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 40 40" fill="#fff"><path d="M20 36V14" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M20 22c-8 0-13-5-13-12 7 0 13 4 13 12z"/><path d="M20 18c7 0 12-5 12-11-7 0-12 4-12 11z" opacity=".8"/></svg>
+    </div>
+    <div class="brand"><h1>جسر العطاء</h1><p>تدوير المقتنيات لمن ينتفع بها</p></div>
+    <div class="status" role="status"><span class="dot"></span><span id="statusText">المنصة تعمل</span></div>
+    <button class="aboutbtn" data-go="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>حول</button>
+  </div>
+  <div class="liveline" aria-hidden="true"></div>
+</header>
+
+<main class="wrap">
+  <!-- عرض اليوم -->
+  <section class="view on" id="v-home">
+    <div class="hero">
+      <div class="hero-pic"><img src="hero.jpg" alt="جسر خشبي تعبر عليه أغراض مستعملة بين بيتين"></div>
+      <div class="hero-name"><h2>جسر العطاء</h2><p class="sub">عروض مقتنيات هذا اليوم</p></div>
+      <div class="hero-in">
+        <div>
+          <p class="lead">ثماني نوافذ تبقى ثابتة 24 ساعة ثم تتجدد. احجز ما تحتاجه بكوده، وأول من يرسل الكود هو صاحب الغرض.</p>
+          <div class="stats" id="stats"></div>
+        </div>
+        <div class="clock" role="timer" aria-live="off"><small>تتجدد المعروضات بعد</small><span class="t" id="clock">00:00:00</span></div>
+      </div>
+    </div>
+
+    <div class="sechead"><h2>نوافذ المقتنيات</h2><p>افتح السهم لترى شرح الغرض كاملًا.</p></div>
+    <div class="tools">
+      <input class="search" id="q" type="search" placeholder="ابحث باسم الغرض أو المنطقة أو الكود" aria-label="بحث">
+      <div id="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="sample">المعروضات أمثلة تجريبية لعرض الفكرة.</p>
+
+    <div class="demo">
+      <h3>أدوات التجربة</h3>
+      <p>لترى دورة العرض والتخزين دون انتظار، قدّم الوقت. هذه الأدوات للمعاينة فقط ولا تظهر في التطبيق.</p>
+      <div class="row">
+        <button class="btn small" id="plusDay">قدّم الوقت يومًا</button>
+        <button class="btn small" id="plusWeek">قدّم الوقت أسبوعًا</button>
+        <button class="btn small ghost" id="reset">أعد الأمثلة</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- اعرض غرضًا -->
+  <section class="view" id="v-give">
+    <form class="panel" id="giveForm" novalidate>
+      <h2>اعرض غرضًا</h2>
+      <p>يدخل غرضك أول نافذة تفرغ، ويبقى معروضًا 24 ساعة. وإن لم يُؤخذ ينزل إلى المخزن ويعود بعد أسبوع، حتى ثلاث مرات.</p>
+      <label for="photo">صور الغرض <span class="hint">(حتى 3 صور، والأولى تظهر على النافذة)</span></label>
+      <label class="drop" id="drop">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        <b>صوّر الغرض أو اختر صوره</b><span>اضغط هنا، ويفتح لك الجوال الكاميرا أو الاستوديو</span>
+        <input type="file" accept="image/*" id="photo" multiple>
+      </label>
+      <div class="thumbs" id="thumbs"></div>
+      <label for="gTitle">مختصر الغرض <span class="hint">(يظهر على النافذة)</span></label>
+      <input class="field" id="gTitle" maxlength="40" placeholder="مثلًا: قطعة من سرير">
+      <label for="gDet">الشرح <span class="hint">(يظهر عند فتح السهم)</span></label>
+      <textarea class="field" id="gDet" maxlength="300" placeholder="المقاس، والحالة، وأي عيب بسيط، وما يحتاجه المستفيد ليعرف الغرض"></textarea>
+      <div class="two">
+        <div><label for="gArea">المنطقة والحي</label><input class="field" id="gArea" list="areas" maxlength="40" placeholder="سيهات / حي النور"></div>
+        <div><label for="gCond">الحالة</label><select class="field" id="gCond"><option>ممتازة</option><option selected>جيدة ونظيفة</option><option>فيها عيب بسيط موضّح</option></select></div>
+      </div>
+      <datalist id="areas"><option value="سيهات"><option value="تاروت"><option value="القطيف"><option value="صفوى"></datalist>
+      <label for="gPick">طريقة الاستلام</label>
+      <select class="field" id="gPick"><option>من موقعي، والنقل على المستفيد</option><option>بموعد نتفق عليه في واتساب</option></select>
+      <label class="check"><input type="checkbox" id="gOk1"> الغرض سليم ويمكن الانتفاع به، ومطابق للصورة.</label>
+      <label class="check"><input type="checkbox" id="gOk2"> أتعهد ألّا أطلب مقابلًا ولا أجرة توصيل ولا أي شرط مادي.</label>
+      <button class="btn primary wide" type="submit">أعلن الغرض واحصل على الكود</button>
+      <div id="giveResult"></div>
+    </form>
+  </section>
+
+  <!-- احجز بالكود -->
+  <section class="view" id="v-book">
+    <form class="panel" id="bookForm" novalidate>
+      <h2>احجز بالكود</h2>
+      <p>اكتب كود الغرض فقط، كما يظهر على نافذته.</p>
+      <label for="bCode">الكود</label>
+      <input class="field ltr big" id="bCode" autocomplete="off" placeholder="QT-5780" maxlength="12">
+      <button class="btn primary wide" type="submit" style="margin-top:12px">أرسل الكود</button>
+      <div id="bookResult"></div>
+      <div class="rules">
+        <h3>مهم</h3>
+        <ul>
+          <li>الحجز بالكود وحده؛ عبارات مثل «أبيها» أو «احجزها» لا تُعتمد.</li>
+          <li>التواصل واتساب فقط، ويمنع الاتصال.</li>
+          <li>يُلغى الحجز إذا لم يتم الاستلام خلال 24 ساعة، وينتقل للتالي.</li>
+          <li>يُمنع تداول الأموال مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء.</li>
+          <li>يُمنع أخذ الغرض لإعادة بيعه.</li>
+        </ul>
+      </div>
+    </form>
+  </section>
+
+  <!-- المخزن -->
+  <section class="view" id="v-store"><div id="storeBox"></div></section>
+
+  <!-- حول التطبيق -->
+  <section class="view" id="v-about">
+    <article class="panel about">
+      <h2>حول جسر العطاء</h2>
+      <div class="nomoney" role="note">
+        <h3>لا مال في جسر العطاء</h3>
+        <p>يُمنع تداول الأموال في هذا التطبيق، مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء: لا ثمن للغرض، ولا أجرة توصيل، ولا مبلغ رمزي، وإنما يُقدَّم العطاء برجاء الثواب.</p>
+      </div>
+
+      <h3>الفكرة</h3>
+      <p>جسر العطاء مبادرة تطوعية مجانية لتدوير المقتنيات. من عنده غرض زائد سليم يعرضه قبل أن يرميه، فيصل إلى من ينتفع به. والهدف حفظ النعمة وإيصال الخير لمستحقيه.</p>
+
+      <h3>كيف تستخدمه</h3>
+      <p><strong>إن كان عندك غرض:</strong></p>
+      <ol>
+        <li>سجّل برقم جوالك، وأكّده بالرمز الذي يصلك.</li>
+        <li>من «اعرض غرضًا» صوّر الغرض، واكتب مختصره وشرحه ومنطقتك.</li>
+        <li>تعطيك المنصة كودًا للغرض، ويدخل أول نافذة تفرغ.</li>
+        <li>يصلك إشعار عند الحجز، فتتواصل مع صاحبه واتساب، وبعد التسليم تضغط «تم التسليم».</li>
+      </ol>
+      <p style="margin-top:10px"><strong>إن كنت تحتاج غرضًا:</strong></p>
+      <ol>
+        <li>تصفّح نوافذ المقتنيات في «عرض اليوم»، وافتح السهم لترى الشرح كاملًا.</li>
+        <li>اكتب كود الغرض في «احجز بالكود». أول من يرسل الكود هو صاحب الغرض، ومن بعده يدخل الانتظار.</li>
+        <li>تواصل مع المتبرع واتساب، واستلم الغرض خلال 24 ساعة.</li>
+      </ol>
+
+      <h3>دورة العرض</h3>
+      <div class="cycle">
+        <div><b>8</b>نوافذ في كل يوم</div>
+        <div><b>24 ساعة</b>عرض ثابت ثم تجديد</div>
+        <div><b>7 أيام</b>في المخزن قبل العودة</div>
+        <div><b>3 عروض</b>ثم يُعتذر عن الغرض</div>
+      </div>
+
+      <h3>القوانين</h3>
+      <ol>
+        <li>التسجيل برقم جوال حقيقي يملكه صاحبه، ويُوثَّق برمز في رسالة.</li>
+        <li>الحجز بالكود وحده. عبارات مثل «أبيها» أو «احجزها» لا تُعتمد.</li>
+        <li>التواصل واتساب فقط، ويُمنع الاتصال الهاتفي.</li>
+        <li>مهلة الاستلام 24 ساعة من تأكيد الحجز، ثم ينتقل الغرض لمن بعده.</li>
+        <li>يُعرض الغرض سليمًا نظيفًا مطابقًا لصورته، ويُذكر أي عيب فيه بوضوح.</li>
+        <li>نقل الغرض على المستفيد أو بموعد يتفقان عليه، دون أي شرط مادي.</li>
+        <li>يُمنع تداول الأموال مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء.</li>
+        <li>يُمنع أخذ الغرض لإعادة بيعه أو عرضه في مجموعات أخرى. ومن ثبت عليه ذلك يُوقف عن الاستفادة، ويُستبعد نهائيًا إن تكرر.</li>
+        <li>خذ حاجتك واترك لغيرك فرصة الانتفاع.</li>
+      </ol>
+      <p style="margin-top:14px">الشكر الجزيل لكل من قدّم شيئًا، ولكل من التزم بهذه القوانين.</p>
+      <button class="btn primary wide" data-go="home" style="margin-top:12px">إلى عرض اليوم</button>
+    </article>
+  </section>
+
+  <!-- حسابي -->
+  <section class="view" id="v-me"><div id="meBox"></div></section>
+</main>
+
+<nav aria-label="التنقل">
+  <div class="wrap">
+    <button data-v="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>عرض اليوم</button>
+    <button data-v="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>اعرض غرضًا</button>
+    <button data-v="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l2 2 3-4"/></svg>احجز بالكود</button>
+    <button data-v="store"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 9l9-5 9 5v11H3z"/><path d="M8 20v-6h8v6"/></svg>المخزن</button>
+    <button data-v="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>حسابي</button>
+  </div>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+const DAY = 864e5, WEEK = 7 * DAY, SLOTS = 8, MAX_SHOWS = 3;
+const KEY = 'jisr-alataa-v2';
+const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
+const ICONS = {
+  bed:`<svg viewBox="0 0 64 48" ${S}><path d="M6 38V10M58 38V24H6"/><rect x="10" y="17" width="14" height="7" rx="3"/><path d="M6 38h52"/></svg>`,
+  mattress:`<svg viewBox="0 0 64 48" ${S}><rect x="6" y="16" width="52" height="16" rx="6"/><path d="M16 16v16M26 16v16M36 16v16M46 16v16" opacity=".5"/></svg>`,
+  chair:`<svg viewBox="0 0 64 48" ${S}><path d="M22 6v22h22M22 28v14M44 28v14M44 28V20"/></svg>`,
+  table:`<svg viewBox="0 0 64 48" ${S}><path d="M8 16h48M14 16v26M50 16v26M14 26h36"/></svg>`,
+  washer:`<svg viewBox="0 0 64 48" ${S}><rect x="16" y="4" width="32" height="40" rx="4"/><circle cx="32" cy="27" r="10"/><path d="M22 11h6"/></svg>`,
+  stroller:`<svg viewBox="0 0 64 48" ${S}><path d="M14 10h6l6 18h22l4-12H22"/><circle cx="28" cy="38" r="4"/><circle cx="46" cy="38" r="4"/></svg>`,
+  books:`<svg viewBox="0 0 64 48" ${S}><rect x="12" y="8" width="9" height="34" rx="1"/><rect x="23" y="12" width="9" height="30" rx="1"/><path d="M36 14l8-2 7 29-8 2z"/></svg>`,
+  box:`<svg viewBox="0 0 64 48" ${S}><path d="M12 16l20-8 20 8v20l-20 8-20-8z"/><path d="M12 16l20 8 20-8M32 24v20"/></svg>`
+};
+const PREFIX = {'سيهات':'SN','تاروت':'TR','القطيف':'QT','صفوى':'SF'};
+
+/* أمثلة تجريبية */
+const seed = () => {
+  const t = Date.now(), start = t - 9 * 3600e3;
+  const mk = (code, title, det, area, cond, icon, extra) => Object.assign({code, title, det, area, cond, pick:'من موقعي، والنقل على المستفيد', icon, owner:'9665000000' + String(10 + code.length + title.length).slice(-2), queue:[], status:'shown', shows:1, shownAt:start, created:start - DAY}, extra);
+  return {offset:0, cycleStart:start, me:null, items:[
+    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed'),
+    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3}),
+    mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3}),
+    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2}),
+    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer'),
+    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3}),
+    mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books'),
+    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3}),
+    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3}),
+    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'stored',shows:1,shownAt:null,storedAt:t - 4 * DAY}),
+    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'refused',shows:3,shownAt:null,storedAt:t - 2 * DAY})
+  ]};
+};
+
+let mem = null;
+const load = () => { try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
+const save = () => { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
+let st = load();
+let region = 'الكل', otp = null, pendingPhone = null, photos = [];
+const open = new Set();
+
+const now = () => Date.now() + st.offset;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
+const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); };
+const phoneOk = s => { let p = digits(s).replace(/\D/g, ''); if (/^05\d{8}$/.test(p)) p = '966' + p.slice(1); return /^\d{9,13}$/.test(p) ? p : null; };
+const showPhone = p => '+' + p;
+const normCode = s => { const c = digits(s).toUpperCase().replace(/[^A-Z0-9]/g, ''); const m = c.match(/^([A-Z]{2,3})(\d{4})$/); return m ? m[1] + '-' + m[2] : null; };
+const wa = (p, msg) => `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
+const hm = ms => { ms = Math.max(0, ms); const h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3); return h ? `${h} ساعة و${m} دقيقة` : `${m} دقيقة`; };
+const days = ms => { const d = Math.ceil(Math.max(0, ms) / DAY); return d === 1 ? 'يوم واحد' : d === 2 ? 'يومين' : d <= 10 ? `${d} أيام` : `${d} يومًا`; };
+const shown = () => st.items.filter(i => i.status === 'shown');
+
+/* محرّك الدورة: تجديد كل 24 ساعة، والمخزن، والفرص الثلاث */
+const fill = t => {
+  let free = SLOTS - shown().length;
+  const fresh = st.items.filter(i => i.status === 'waiting').sort((a, b) => a.created - b.created);
+  const back = st.items.filter(i => i.status === 'stored' && t - i.storedAt >= WEEK).sort((a, b) => a.storedAt - b.storedAt);
+  for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }
+};
+const toStore = (it, t) => { it.status = it.shows >= MAX_SHOWS ? 'refused' : 'stored'; it.storedAt = t; it.queue = []; };
+const roll = t => {
+  for (const it of shown()) {
+    if (it.given) it.status = 'given';
+    else if (it.queue.length) it.status = 'reserved';
+    else toStore(it, t);
+  }
+  st.cycleStart = t;
+  fill(t);
+};
+const tick = () => {
+  let changed = false;
+  while (now() >= st.cycleStart + DAY) { roll(st.cycleStart + DAY); changed = true; }
+  for (const it of st.items) {
+    if (!['shown', 'reserved'].includes(it.status) || it.given) continue;
+    while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; it.queue.shift(); changed = true; }
+    if (it.status === 'reserved' && !it.queue.length) { toStore(it, now()); changed = true; }
+  }
+  if (changed) save();
+  return changed;
+};
+
+/* الاتصال */
+const net = () => { const on = navigator.onLine !== false; document.body.classList.toggle('offline', !on); $('#statusText').textContent = on ? 'المنصة تعمل' : 'غير متصل'; };
+addEventListener('online', net); addEventListener('offline', net); net();
+
+/* التنقل */
+let view = 'home';
+const go = v => {
+  view = v;
+  document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
+  document.querySelectorAll('nav button').forEach(b => b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  render();
+  scrollTo({top:0});
+};
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
+const render = () => { tick(); if (view === 'home') renderHome(); if (view === 'store') renderStore(); if (view === 'me') renderMe(); };
+const needLogin = () => { if (st.me) return false; toast('سجّل برقم جوالك أولًا'); go('me'); return true; };
+
+/* عرض اليوم */
+const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
+const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : ICONS[it.icon] || ICONS.box;
+const win = (it, i) => {
+  const g = it.given, isOpen = open.has(it.code);
+  const tag = g ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
+  return `<article class="win${g ? ' given' : ''}" style="--i:${i}">
+    <div class="pic">${picOf(it)}<span class="shows">عرض ${it.shows} من ${MAX_SHOWS}</span>${g ? '<span class="stamp">ذهب لمستفيد</span>' : ''}</div>
+    <div class="sum">
+      <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
+      <div class="titlerow"><h3>${esc(it.title)}</h3>
+        <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
+      <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
+      ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : ''}
+      <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
+        ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
+        <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
+        <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
+        ${g ? '' : `<p class="free-note">مجاني تمامًا، والتواصل واتساب فقط.</p>
+          <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
+      </div></div></div>
+    </div></article>`;
+};
+const renderHome = () => {
+  const list = shown().sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
+  const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
+  $('#stats').innerHTML = `<span>في العرض <b>${list.length}</b> من ${SLOTS}</span><span>ذهب لمستفيدين <b>${given}</b></span><span>في المخزن <b>${st.items.filter(i => i.status === 'stored').length}</b></span><span>ينتظر نافذة <b>${st.items.filter(i => i.status === 'waiting').length}</b></span>`;
+  const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
+  if (!regs.includes(region)) region = 'الكل';
+  $('#chips').innerHTML = regs.map(r => `<button class="chip" aria-pressed="${r === region}" data-r="${esc(r)}">${esc(r)}</button>`).join('');
+  const q = $('#q').value.trim().replace(/ى/g, 'ي').toUpperCase();
+  const vis = list.filter(i => region === 'الكل' || i.area.startsWith(region)).filter(i => !q || (i.title + i.area + i.code + i.det).replace(/ى/g, 'ي').toUpperCase().includes(q));
+  let html = vis.map(win).join('');
+  if (!q && region === 'الكل') for (let k = list.length; k < SLOTS; k++) html += `<div class="empty-win" style="--i:${k}"><div><b>نافذة فارغة</b>تنتظر غرضًا جديدًا<br><button class="btn small ghost" data-go="give" style="margin-top:10px">اعرض غرضًا</button></div></div>`;
+  $('#grid').innerHTML = html || '<p class="sample">لا نتائج. جرّب كلمة أخرى.</p>';
+};
+$('#chips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { region = b.dataset.r; renderHome(); } });
+$('#q').addEventListener('input', renderHome);
+$('#grid').addEventListener('click', e => {
+  const m = e.target.closest('[data-more]');
+  if (m) {
+    const c = m.dataset.more, on = !open.has(c);
+    on ? open.add(c) : open.delete(c);
+    m.setAttribute('aria-expanded', on);
+    m.closest('.sum').querySelector('.det').classList.toggle('open', on);
+    return;
+  }
+  const sp = e.target.closest('[data-pic]');
+  if (sp) { const w = sp.closest('.win'); w.querySelector('.pic img').src = sp.src; w.querySelectorAll('.strip img').forEach(x => x.classList.toggle('on', x === sp)); return; }
+  const b = e.target.closest('[data-book]'); if (b) { go('book'); $('#bCode').value = b.dataset.book; $('#bCode').focus(); }
+});
+const clock = () => {
+  if (tick()) render();
+  const ms = Math.max(0, st.cycleStart + DAY - now());
+  const p = n => String(n).padStart(2, '0');
+  $('#clock').textContent = `${p(Math.floor(ms / 3600e3))}:${p(Math.floor(ms % 3600e3 / 60e3))}:${p(Math.floor(ms % 6e4 / 1e3))}`;
+};
+setInterval(clock, 1000);
+$('#plusDay').addEventListener('click', () => { st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
+$('#plusWeek').addEventListener('click', () => { st.offset += WEEK; save(); clock(); render(); toast('مضى أسبوع'); });
+$('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأمثلة'); });
+
+/* اعرض غرضًا */
+const shrink = f => new Promise(res => {
+  const img = new Image(), url = URL.createObjectURL(f);
+  img.onload = () => {
+    const k = Math.min(1, 900 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+    c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', .8));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+  img.src = url;
+});
+const drawThumbs = () => {
+  $('#thumbs').innerHTML = photos.map((u, k) => `<div class="thumb"><img src="${u}" alt="صورة ${k + 1}"><button type="button" class="x" data-rm="${k}" aria-label="احذف الصورة">×</button>${k ? '' : '<span class="main">الرئيسية</span>'}</div>`).join('');
+};
+const addFiles = async files => {
+  const list = [...files].filter(f => f.type.startsWith('image/'));
+  if (photos.length + list.length > 3) toast('ثلاث صور على الأكثر، فأخذنا أولها');
+  for (const f of list.slice(0, 3 - photos.length)) { const u = await shrink(f); if (u) photos.push(u); }
+  drawThumbs();
+};
+$('#photo').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
+drop.addEventListener('drop', e => { e.preventDefault(); addFiles(e.dataTransfer.files); });
+$('#thumbs').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { photos.splice(+b.dataset.rm, 1); drawThumbs(); } });
+const newCode = area => {
+  const pre = PREFIX[area.split('/')[0].trim()] || 'JA';
+  let c; do { c = pre + '-' + (1000 + Math.floor(Math.random() * 9000)); } while (st.items.some(i => i.code === c));
+  return c;
+};
+$('#giveForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (needLogin()) return;
+  const title = $('#gTitle').value.trim(), area = $('#gArea').value.trim(), out = $('#giveResult');
+  if (!title || !area) { out.innerHTML = '<div class="result err">اكتب مختصر الغرض ومنطقته، ثم أعلنه.</div>'; return; }
+  if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
+  const code = newCode(area);
+  st.items.push({code, title, det:$('#gDet').value.trim(), area, cond:$('#gCond').value, pick:$('#gPick').value, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  fill(now()); save();
+  const it = st.items.find(i => i.code === code);
+  out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
+    <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
+    <div class="row"><button class="btn primary" type="button" data-copy="${code}">انسخ الكود</button><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
+  e.target.reset(); photos = []; drawThumbs();
+});
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]');
+  if (c) { try { navigator.clipboard.writeText(c.dataset.copy).then(() => toast('نُسخ الكود'), () => toast('انسخه يدويًا: ' + c.dataset.copy)); } catch(err) { toast('انسخه يدويًا: ' + c.dataset.copy); } }
+  const g = e.target.closest('[data-go]'); if (g) go(g.dataset.go);
+});
+
+/* احجز بالكود */
+$('#bookForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (needLogin()) return;
+  tick();
+  const out = $('#bookResult'), code = normCode($('#bCode').value);
+  if (!code) { out.innerHTML = '<div class="result err">اكتب الكود كما هو: حرفان ثم أربعة أرقام، مثل QT-5780.</div>'; return; }
+  $('#bCode').value = code;
+  const it = st.items.find(i => i.code === code);
+  if (!it) { out.innerHTML = `<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`; return; }
+  if (it.given || it.status === 'given') { out.innerHTML = '<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>'; return; }
+  if (it.owner === st.me) { out.innerHTML = '<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>'; return; }
+  let pos = it.queue.indexOf(st.me);
+  if (pos === -1) {
+    if (it.status !== 'shown') { out.innerHTML = '<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>'; return; }
+    it.queue.push(st.me); pos = it.queue.length - 1; if (pos === 0) it.bookedAt = now(); save();
+  }
+  out.innerHTML = pos === 0
+    ? `<div class="result ok"><strong>الغرض لك، فأنت أول من أرسل الكود.</strong><span class="code">${code}</span>
+       ${esc(it.title)} · ${esc(it.area)}<br>تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
+       <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">تواصل واتساب</a></div>
+       <p class="free-note">رقم المتبرع: <span dir="ltr">${showPhone(it.owner)}</span> · لا تدفع أي مقابل.</p></div>`
+    : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، ويصلك إشعار إن أُلغي الحجز قبلك.</div>`;
+});
+
+/* المخزن */
+const renderStore = () => {
+  const stored = st.items.filter(i => i.status === 'stored').sort((a, b) => a.storedAt - b.storedAt);
+  const waiting = st.items.filter(i => i.status === 'waiting');
+  const refused = st.items.filter(i => i.status === 'refused');
+  const row = (i, note) => `<div class="mini"><div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${note}</span></div><p>${esc(i.title)} · ${esc(i.area)}</p></div>`;
+  $('#storeBox').innerHTML = `<div class="panel">
+    <h2>المخزن</h2>
+    <p>ما لم يُؤخذ في يوم عرضه ينزل هنا، ويبقى عند صاحبه. يعود إلى نافذة بعد أسبوع في يوم لا يكفي فيه المعروض الجديد.</p>
+    <div class="rule-line"><b>24 ساعة</b><span>مدة العرض الثابت في النافذة</span></div>
+    <div class="rule-line"><b>7 أيام</b><span>أقل مدة في المخزن قبل العودة</span></div>
+    <div class="rule-line"><b>3 عروض</b><span>بعدها يُعتذر عن الغرض ولا يُقبل مرة أخرى</span></div>
+    <div class="rule-line"><b>الجديد أولًا</b><span>المعروض الجديد يتقدم على العائد من المخزن</span></div>
+    <h3 style="font-size:24px;margin-top:16px">ينتظر نافذة (${waiting.length})</h3>
+    <div class="list">${waiting.map(i => row(i, 'في الدفعة القادمة')).join('') || '<p class="sample">لا شيء.</p>'}</div>
+    <h3 style="font-size:24px;margin-top:16px">في المخزن (${stored.length})</h3>
+    <div class="list">${stored.map(i => { const w = i.storedAt + WEEK - now(); return row(i, w > 0 ? `يعود بعد ${days(w)} · عُرض ${i.shows} من ${MAX_SHOWS}` : `جاهز للعودة · عُرض ${i.shows} من ${MAX_SHOWS}`); }).join('') || '<p class="sample">المخزن فارغ.</p>'}</div>
+    <h3 style="font-size:24px;margin-top:16px">لا يُقبل مرة أخرى (${refused.length})</h3>
+    <div class="list">${refused.map(i => row(i, 'استنفد عروضه الثلاثة')).join('') || '<p class="sample">لا شيء.</p>'}</div>
+    <p class="sample">يصل صاحب الغرض المعتذر عنه شكر واعتذار لطيف.</p>
+  </div>`;
+};
+
+/* حسابي */
+const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', stored:'في المخزن', reserved:'محجوز بعد العرض', refused:'لا يُقبل مرة أخرى'})[i.status];
+const renderMe = () => {
+  const box = $('#meBox');
+  if (!st.me) {
+    box.innerHTML = `<form class="panel" id="login" novalidate>
+      <h2>سجّل برقم جوالك</h2>
+      <p>نرسل لك رمزًا في رسالة لنتأكد أن الرقم رقمك أنت.</p>
+      <label for="ph">رقم الجوال</label>
+      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${pendingPhone ? '0' + pendingPhone.slice(3) : ''}">
+      ${otp ? `<label for="otp">الرمز المرسل إليك</label><input class="field ltr big" id="otp" inputmode="numeric" maxlength="6" placeholder="••••••">
+        <div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل برسالة نصية.</div>` : ''}
+      <button class="btn primary wide" type="submit" style="margin-top:14px">${otp ? 'تأكيد الرمز' : 'أرسل الرمز'}</button>
+      <div id="loginMsg"></div></form>`;
+    $('#login').addEventListener('submit', ev => {
+      ev.preventDefault();
+      const msg = $('#loginMsg');
+      if (!otp) {
+        const p = phoneOk($('#ph').value);
+        if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
+        pendingPhone = p; otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
+      } else if (digits($('#otp').value).trim() === otp) {
+        st.me = pendingPhone; otp = null; pendingPhone = null; save(); toast('تم التحقق، أهلًا بك'); renderMe();
+      } else msg.innerHTML = '<div class="result err">الرمز غير صحيح. راجع الرسالة واكتبه من جديد.</div>';
+    });
+    return;
+  }
+  const mine = st.items.filter(i => i.owner === st.me);
+  const booked = st.items.filter(i => i.queue.includes(st.me));
+  const active = i => !i.given && ['shown', 'reserved'].includes(i.status) && i.queue.length;
+  box.innerHTML = `<div class="panel">
+    <h2>حسابي</h2><p>رقمك الموثّق: <span dir="ltr">${showPhone(st.me)}</span></p>
+    <h3 style="font-size:24px">معروضاتي</h3>
+    <div class="list">${mine.map(i => `<div class="mini">
+      <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${stateName(i)}</span></div>
+      <p>${esc(i.title)}</p>
+      ${active(i) ? `<p>صاحب الحجز: <span dir="ltr">${showPhone(i.queue[0])}</span>، وبقي على مهلته ${hm(i.bookedAt + DAY - now())}.</p>
+        <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب</a>
+        <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
+        <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
+      ${i.status === 'refused' ? '<p>الشكر الجزيل لك. عُرض الغرض ثلاث مرات ولم يُطلب، فنعتذر عن عرضه مرة أخرى.</p>' : ''}
+      ${i.given || i.status === 'given' ? '<p>الشكر الجزيل لك على ما قدّمت.</p>' : ''}
+    </div>`).join('') || '<p class="sample">لم تعرض شيئًا بعد.</p><button class="btn ghost" data-go="give">اعرض غرضًا</button>'}</div>
+    <h3 style="font-size:24px;margin-top:18px">حجوزاتي</h3>
+    <div class="list">${booked.map(i => { const p = i.queue.indexOf(st.me); return `<div class="mini">
+      <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag ${p ? 'wait' : 'free'}">${p ? 'رقم ' + p + ' في الانتظار' : 'لك'}</span></div>
+      <p>${esc(i.title)} · ${esc(i.area)}</p>
+      ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">تواصل واتساب</a></div>` : ''}
+      <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
+    <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج وتبديل الرقم</button>
+  </div>`;
+  $('#logout').addEventListener('click', () => { st.me = null; save(); renderMe(); });
+};
+$('#meBox').addEventListener('click', e => {
+  const find = c => st.items.find(i => i.code === c);
+  const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]');
+  if (d) { const it = find(d.dataset.done); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
+  if (s) { const it = find(s.dataset.skip); it.queue.shift(); it.bookedAt = now(); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
+  if (c) { const it = find(c.dataset.cancel); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
+});
+
+clock(); render();
+/* يعمل كتطبيق عند استضافته: تخزين للعمل دون إنترنت */
+try { if ('serviceWorker' in navigator && location.protocol === 'https:' && !/claude/.test(location.host)) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch(e) {}
+}
+</script>
+</body>
+</html>

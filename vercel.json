@@ -125,6 +125,16 @@
       "source": "/apps/jubail",
       "destination": "/apps/jubail/",
       "permanent": false
+    },
+    {
+      "source": "/jisr",
+      "destination": "/apps/jisr/",
+      "permanent": false
+    },
+    {
+      "source": "/apps/jisr",
+      "destination": "/apps/jisr/",
+      "permanent": false
     }
   ],
   "headers": [

@@ -22,6 +22,16 @@
       "permanent": false
     },
     {
+      "source": "/murshid/android",
+      "destination": "https://play.google.com/store/apps/details?id=com.almaateeq.murshid",
+      "permanent": false
+    },
+    {
+      "source": "/murshid",
+      "destination": "https://play.google.com/store/apps/details?id=com.almaateeq.murshid",
+      "permanent": false
+    },
+    {
       "source": "/apps/mastoor",
       "destination": "/apps/mastoor/",
       "permanent": false

@@ -304,6 +304,15 @@ textarea.field{min-height:96px;resize:vertical}
   #printArea h3{font:700 16pt "Markazi Text",serif;color:#2D5530;margin:14px 0 4px;text-align:center}
 }
 
+/* الاختيار بالضغط بدل الكتابة */
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);padding:6px 12px;cursor:pointer;font-size:15px;transition:transform .12s var(--ease),background-color .15s}
+.pick button:active{transform:scale(.96)}
+.pick button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+.pick.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.pick.tiles button{min-height:62px;font-size:13.5px;line-height:1.35;padding:6px 4px}
+@media (min-width:700px){.pick.tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
 /* التوسيط العربي: العناوين والعبارات القصيرة في الوسط، والشرح الطويل من اليمين */
 .sechead{flex-direction:column;align-items:center;text-align:center}
 .tools{justify-content:center}.tools>#chips{justify-content:center}
@@ -397,19 +406,16 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
         <input type="file" accept="image/*" id="photo" multiple>
       </label>
       <div class="thumbs" id="thumbs"></div>
-      <label for="gTitle">مختصر الغرض <span class="hint">(يظهر على النافذة)</span></label>
-      <input class="field" id="gTitle" maxlength="40" placeholder="مثلًا: قطعة من سرير">
-      <label for="gDet">الشرح <span class="hint">(يظهر عند فتح السهم)</span></label>
-      <textarea class="field" id="gDet" maxlength="300" placeholder="المقاس، والحالة، وأي عيب بسيط، وما يحتاجه المستفيد ليعرف الغرض"></textarea>
-      <div class="two">
-        <div><label for="gArea">المنطقة والحي</label><input class="field" id="gArea" list="areas" maxlength="40" placeholder="سيهات / حي النور"></div>
-        <div><label for="gCond">الحالة</label><select class="field" id="gCond"><option>ممتازة</option><option selected>جيدة ونظيفة</option><option>فيها عيب بسيط موضّح</option></select></div>
-      </div>
-      <datalist id="areas"><option value="سيهات"><option value="تاروت"><option value="القطيف"><option value="صفوى"></datalist>
-      <label for="gCat">نوع الغرض</label>
-      <select class="field" id="gCat"><option>رجالي</option><option>نسائي</option><option>شبابي</option><option>أطفال</option><option>كهربائي</option><option>خشب وأثاث</option><option selected>أخرى</option></select>
-      <label for="gPick">طريقة الاستلام</label>
-      <select class="field" id="gPick"><option>من بيتي، والنقل على المستفيد</option><option>من بيتي، بموعد نتفق عليه في واتساب</option></select>
+      <p class="sample" style="text-align:right;margin:6px 0 0">الصورة هي الشرح: صوّر الغرض كاملًا وبوضوح، ومن أكثر من جهة إن أمكن، وأظهر أي عيب فيه.</p>
+      <label>التصنيف</label>
+      <div class="pick tiles" id="pCat"></div>
+      <div id="pSubWrap" hidden><label>الغرض</label><div class="pick" id="pSub"></div></div>
+      <label>الحالة</label>
+      <div class="pick" id="pCond"></div>
+      <label>المنطقة</label>
+      <div class="pick" id="pArea"></div>
+      <label>طريقة الاستلام</label>
+      <div class="pick" id="pPick"></div>
       <label class="check"><input type="checkbox" id="gOk1"> الغرض سليم ويمكن الانتفاع به، ومطابق للصورة.</label>
       <label class="check"><input type="checkbox" id="gOk2"> أتعهد ألّا أطلب مقابلًا ولا أجرة توصيل ولا أي شرط مادي.</label>
       <button class="btn primary wide" type="submit">أعلن الغرض واحصل على الكود</button>
@@ -535,7 +541,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 <script>
 {
 const DAY = 864e5, SLOTS = 9;
-const KEY = 'jisr-alataa-v8';
+const KEY = 'jisr-alataa-v9';
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
@@ -549,7 +555,29 @@ const ICONS = {
   books:`<svg viewBox="0 0 64 48" ${S}><rect x="12" y="8" width="9" height="34" rx="1"/><rect x="23" y="12" width="9" height="30" rx="1"/><path d="M36 14l8-2 7 29-8 2z"/></svg>`,
   box:`<svg viewBox="0 0 64 48" ${S}><path d="M12 16l20-8 20 8v20l-20 8-20-8z"/><path d="M12 16l20 8 20-8M32 24v20"/></svg>`
 };
-const PREFIX = {'سيهات':'SN','تاروت':'TR','القطيف':'QT','صفوى':'SF'};
+/* التصنيفات والأغراض والمناطق مأخوذة من سجل معروضات المبادرة (1440 معروضًا من فبراير إلى نوفمبر 2026) */
+const TAX = {
+  'أثاث منزلي ومكتبي':['سرير','مرتبة','كنب','دولاب','طاولة','تسريحة','كمدينة','رفوف','مكتب دراسي','كراسي'],
+  'ملابس وأقمشة':['ملابس نسائية','ملابس رجالية','ملابس بنات','ملابس أولاد','ملابس مواليد','فساتين'],
+  'أجهزة كهربائية وإلكترونية ورياضية':['تلفزيون','غسالة','ثلاجة','فرن','مكنسة','مروحة أو مكيف','طابعة','جهاز رياضي','جهاز آخر'],
+  'مستلزمات أطفال ومواليد':['سرير أطفال','عربة أطفال','كرسي سيارة','مشاية','حفاظات','مفارش أطفال'],
+  'أواني وأدوات مطبخ':['طقم أواني','صحون','صواني','فناجين وكاسات','قدور'],
+  'أحذية':['أحذية نسائية','أحذية رجالية','أحذية أطفال','أحذية رياضية'],
+  'مفارش وسجاد وستائر':['سجاد','ستائر','مفارش','مساند','بطانيات','مخدات'],
+  'عبايات ومستلزمات صلاة':['عبايات','جلابيات','سجادة صلاة'],
+  'مواد غذائية وحليب أطفال':['حليب أطفال','أرز','معلبات','مواد غذائية أخرى'],
+  'حقائب وشنط':['حقائب يد','حقائب مدرسية','حقائب سفر'],
+  'ألعاب أطفال':['ألعاب','ألعاب تركيب','دمى','دراجة'],
+  'ديكور وتحف وإكسسوارات وأدوات متنوعة':['ديكور','تحف','إكسسوارات','أدوات'],
+  'مستلزمات طبية وكبار السن':['كرسي متحرك','عكاز','سرير طبي','مشاية طبية','أجهزة قياس'],
+  'كتب ومستلزمات دينية':['كتب','مصاحف','كتب أدعية','ترب'],
+  'أخرى ومتنوعات':['متنوعات']
+};
+const CATS = Object.keys(TAX);
+const AREAS = ['تاروت','القطيف','سيهات','العوامية','صفوى','الأوجام','أم الحمام','الجارودية','الجش','أم الساهك','القديح','الدمام'];
+const CONDS = ['ممتازة','جيدة ونظيفة','فيها عيب بسيط يظهر في الصورة'];
+const PICKS = ['من بيتي، والنقل على المستفيد','من بيتي، بموعد نتفق عليه في واتساب'];
+const PREFIX = {'تاروت':'TR','القطيف':'QT','سيهات':'SN','العوامية':'AW','صفوى':'SF','الأوجام':'AJ','أم الحمام':'UH','الجارودية':'JR','الجش':'JS','أم الساهك':'US','القديح':'QD','الدمام':'DM'};
 
 /* أمثلة تجريبية */
 const seed = () => {
@@ -560,7 +588,8 @@ const seed = () => {
   const who = ['966500000011','966500000011','966500000011','966500000011','966500000022','966500000033','966500000044','966500000055','966500000066','966500000077','966500000088','966500000099','966500000011','966500000022'];
   for (let k = 0; k < 64; k++) {
     const tt = t - Math.floor(rnd() * 29 * DAY) - 3600e3, code = 'DM-' + (1000 + k), w = who[Math.floor(rnd() * who.length)];
-    const area = ['سيهات','سيهات','سيهات','تاروت','تاروت','القطيف','القطيف','صفوى','الجش'][Math.floor(rnd() * 9)], cat = ['رجالي','نسائي','شبابي','أطفال','كهربائي','خشب وأثاث','أخرى'][Math.floor(rnd() * 7)], ex = {area, cat};
+    const pickW = (arr, w) => { let x = rnd() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < arr.length; i++) { x -= w[i]; if (x <= 0) return arr[i]; } return arr[0]; };
+    const area = pickW(['تاروت','القطيف','سيهات','العوامية','صفوى','الأوجام','أم الحمام','الجارودية'], [50,28,19,7,5,4,4,3]), cat = pickW(Object.keys(TAX), [374,217,99,94,93,85,81,79,78,55,51,49,38,24,23]), ex = {area, cat};
     log.push({t:tt, type:'posted', code, who:'9665000001' + (10 + k % 30), ...ex});
     const x = rnd();
     if (x < .62) { log.push({t:tt + 3600e3, type:'booked', code, who:w, ...ex}); log.push({t:tt + 5 * 3600e3, type:'given', code, who:w, ...ex}); }
@@ -568,17 +597,17 @@ const seed = () => {
     else log.push({t:tt + DAY, type:'cancelled', code, who:null, ...ex});
   }
   return {offset:0, cycleStart:start, me:null, people, log, items:[
-    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'},cat:'خشب وأثاث'}),
-    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3,cat:'خشب وأثاث'}),
-    mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3,cat:'أخرى'}),
-    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2,cat:'خشب وأثاث'}),
-    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer',{cat:'كهربائي'}),
-    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3,cat:'أطفال'}),
-    mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books',{cat:'أطفال'}),
-    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3,cat:'أخرى'}),
-    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3,cat:'خشب وأثاث'}),
-    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null,cat:'كهربائي'}),
-    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null,cat:'خشب وأثاث'})
+    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'},cat:'أثاث منزلي ومكتبي'}),
+    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3,cat:'أثاث منزلي ومكتبي'}),
+    mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3,cat:'أخرى ومتنوعات'}),
+    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2,cat:'أثاث منزلي ومكتبي'}),
+    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer',{cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
+    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3,cat:'مستلزمات أطفال ومواليد'}),
+    mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books',{cat:'مستلزمات أطفال ومواليد'}),
+    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3,cat:'أخرى ومتنوعات'}),
+    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3,cat:'أثاث منزلي ومكتبي'}),
+    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null,cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
+    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null,cat:'أثاث منزلي ومكتبي'})
   ]};
 };
 
@@ -591,7 +620,7 @@ const open = new Set();
 
 const now = () => Date.now() + st.offset;
 /* سجل الأحداث للإحصاء: posted عُرض، booked حجز، given أُخذ، cancelled أُلغي، returned أُعيد (حجز لم يُستلم فعاد أو انتقل) */
-const logEv = (type, code, who) => { const it = st.items.find(i => i.code === code) || {}; (st.log = st.log || []).push({t:now(), type, code, who:who || null, area:(it.area || '').split('/')[0].trim() || 'غير محدد', cat:it.cat || 'أخرى'}); };
+const logEv = (type, code, who) => { const it = st.items.find(i => i.code === code) || {}; (st.log = st.log || []).push({t:now(), type, code, who:who || null, area:(it.area || '').split('/')[0].trim() || 'غير محدد', cat:it.cat || 'أخرى ومتنوعات'}); };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
@@ -882,21 +911,36 @@ const newCode = area => {
   let c; do { c = pre + '-' + (1000 + Math.floor(Math.random() * 9000)); } while (st.items.some(i => i.code === c));
   return c;
 };
+const sel = {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0]};
+const chips = (box, list, key, after) => {
+  $(box).innerHTML = list.map(v => `<button type="button" aria-pressed="${sel[key] === v}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
+  $(box).onclick = e => { const b = e.target.closest('button'); if (!b) return; sel[key] = b.dataset.v; if ($('#giveResult .err')) $('#giveResult').innerHTML = ''; chips(box, list, key, after); if (after) after(); };
+};
+const drawPicks = () => {
+  chips('#pCat', CATS, 'cat', () => { sel.sub = ''; drawSub(); });
+  drawSub();
+  chips('#pCond', CONDS, 'cond');
+  chips('#pArea', AREAS, 'area');
+  chips('#pPick', PICKS, 'pick');
+};
+const drawSub = () => { $('#pSubWrap').hidden = !sel.cat; if (sel.cat) chips('#pSub', TAX[sel.cat], 'sub'); };
+drawPicks();
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   if (needLogin()) return;
-  const title = $('#gTitle').value.trim(), area = $('#gArea').value.trim(), out = $('#giveResult');
-  if (!title || !area) { out.innerHTML = '<div class="result err">اكتب مختصر الغرض ومنطقته، ثم أعلنه.</div>'; return; }
+  const out = $('#giveResult'), area = sel.area, title = sel.sub || sel.cat;
+  const miss = [!photos.length && 'صورة الغرض', !sel.cat && 'التصنيف', sel.cat && TAX[sel.cat].length > 1 && !sel.sub && 'الغرض', !area && 'المنطقة'].filter(Boolean);
+  if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   const code = newCode(area);
-  st.items.push({code, title, det:$('#gDet').value.trim(), area, cond:$('#gCond').value, pick:$('#gPick').value, cat:$('#gCat').value, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  st.items.push({code, title, det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, area, cond:sel.cond, pick:sel.pick, cat:sel.cat, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
   logEv('posted', code, st.me);
   fill(now()); save();
   const it = st.items.find(i => i.code === code);
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
     <div class="row"><button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button><button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
-  e.target.reset(); photos = []; drawThumbs();
+  e.target.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0]}); drawPicks();
 });
 document.addEventListener('click', e => {
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }

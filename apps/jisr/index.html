@@ -214,6 +214,10 @@ textarea.field{min-height:96px;resize:vertical}
 @keyframes beckon{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(34,211,238,0)}}
 .win.open .grab{display:none}
 
+.onlywa{border-radius:18px;padding:12px 18px;margin:0 0 18px;background:var(--sand);text-align:center}
+.onlywa h3{font-size:24px;margin:0 0 2px;color:var(--green)}.onlywa p{margin:0;font-weight:700}
+.soon{margin:4px 0 14px;gap:10px}.soon .tag{background:var(--sand);border-color:transparent}
+
 /* التوسيط العربي: العناوين والعبارات القصيرة في الوسط، والشرح الطويل من اليمين */
 .sechead{flex-direction:column;align-items:center;text-align:center}
 .tools{justify-content:center}.tools>#chips{justify-content:center}
@@ -250,7 +254,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     </div>
     <div class="brand"><h1>جسر العطاء</h1><p>تدوير المقتنيات لمن ينتفع بها</p></div>
     <div class="status" role="status"><span class="dot"></span><span id="statusText">المنصة تعمل</span></div>
-    <button class="aboutbtn" data-go="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>حول</button>
+    <button class="aboutbtn" data-go="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>التعليمات</button>
   </div>
   <div class="liveline" aria-hidden="true"></div>
 </header>
@@ -347,10 +351,15 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
   <!-- حول التطبيق -->
   <section class="view" id="v-about">
     <article class="panel about">
-      <h2>حول جسر العطاء</h2>
+      <h2>تعليمات جسر العطاء</h2>
+      <button class="btn ghost wide soon" type="button" data-soon>حول البرنامج<span class="tag">قريبًا</span></button>
       <div class="nomoney" role="note">
         <h3>لا مال في جسر العطاء</h3>
         <p>يُمنع تداول الأموال في هذا التطبيق، مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء: لا ثمن للغرض، ولا أجرة توصيل، ولا مبلغ رمزي، وإنما يُقدَّم العطاء برجاء الثواب.</p>
+      </div>
+      <div class="onlywa" role="note">
+        <h3>التواصل واتساب فقط</h3>
+        <p>يُمنع التواصل بالهاتف أو الاتصال الهاتفي، والخدمة محصورة بالتواصل عبر واتساب فقط.</p>
       </div>
 
       <h3>الفكرة</h3>
@@ -383,7 +392,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <ol>
         <li>التسجيل برقم جوال حقيقي يملكه صاحبه، ويُوثَّق برمز في رسالة.</li>
         <li>الحجز بالكود وحده. عبارات مثل «أبيها» أو «احجزها» لا تُعتمد.</li>
-        <li>التواصل واتساب فقط، ويُمنع الاتصال الهاتفي.</li>
+        <li>يُمنع التواصل بالهاتف أو الاتصال الهاتفي، والخدمة محصورة بالتواصل عبر واتساب فقط.</li>
         <li>مهلة الاستلام 24 ساعة من تأكيد الحجز، ثم ينتقل الغرض لمن بعده.</li>
         <li>يُعرض الغرض سليمًا نظيفًا مطابقًا لصورته، ويُذكر أي عيب فيه بوضوح.</li>
         <li>نقل الغرض على المستفيد أو بموعد يتفقان عليه، دون أي شرط مادي.</li>
@@ -626,6 +635,7 @@ $('#giveForm').addEventListener('submit', e => {
   e.target.reset(); photos = []; drawThumbs();
 });
 document.addEventListener('click', e => {
+  if (e.target.closest('[data-soon]')) toast('صفحة «حول البرنامج» قريبًا: عن المصمم والجهة القائمة على المبادرة');
   const c = e.target.closest('[data-copy]');
   if (c) { try { navigator.clipboard.writeText(c.dataset.copy).then(() => toast('نُسخ الكود'), () => toast('انسخه يدويًا: ' + c.dataset.copy)); } catch(err) { toast('انسخه يدويًا: ' + c.dataset.copy); } }
   const g = e.target.closest('[data-go]'); if (g) go(g.dataset.go);

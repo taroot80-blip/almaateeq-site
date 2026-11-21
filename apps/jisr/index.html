@@ -67,6 +67,8 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .clock::before{content:"";position:absolute;inset:-60%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 70%,var(--gold) 82%,transparent 94%);animation:spin calc(var(--live) * 1.6) linear infinite}
 .clock::after{content:"";position:absolute;inset:2px;border-radius:16px;background:rgba(5,45,56,.96);z-index:-1}
 .clock small{display:block;font-size:13px;color:#BCEAF0}
+.clock .ct{display:block;font:700 22px/1.2 Markazi Text,serif;color:#fff}
+.clock .cn{max-width:30ch;margin:4px auto 0;font-size:12.5px;line-height:1.6}
 .clock .t{direction:ltr;display:block;font:700 34px/1.2 "Noto Naskh Arabic",serif;color:var(--gold);text-shadow:0 0 14px rgba(63,227,236,.45);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* الأزرار */
@@ -292,9 +294,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <div class="hero-in">
         <div>
           <p class="lead">احجز ما تحتاجه بكوده، وأول من يرسل الكود هو صاحب الغرض.</p>
-          <div class="stats" id="stats"></div>
         </div>
-        <div class="clock" role="timer" aria-live="off"><small>تتجدد المعروضات بعد</small><span class="t" id="clock">00:00:00</span></div>
+        <div class="clock" role="timer" aria-live="off"><b class="ct">العد التنازلي</b><small>لرفع معروضات اليوم</small><span class="t" id="clock">00:00:00</span><small class="cn">ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه</small></div>
       </div>
     </div>
 
@@ -584,7 +585,6 @@ const win = (it, i) => {
 const renderHome = () => {
   const list = shown().sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
   const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
-  $('#stats').innerHTML = `<span>في العرض <b>${list.length}</b> من ${SLOTS}</span><span>ذهب لمستفيدين <b>${given}</b></span><span>أُلغي <b>${st.items.filter(i => i.cancelled || i.status === 'cancelled').length}</b></span><span>ينتظر نافذة <b>${st.items.filter(i => i.status === 'waiting').length}</b></span>`;
   const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
   if (!regs.includes(region)) region = 'الكل';
   $('#chips').innerHTML = regs.map(r => `<button class="chip" aria-pressed="${r === region}" data-r="${esc(r)}">${esc(r)}</button>`).join('');

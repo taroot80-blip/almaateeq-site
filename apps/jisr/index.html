@@ -185,6 +185,7 @@ textarea.field{min-height:96px;resize:vertical}
 .result.err{border-color:var(--warn);color:var(--warn)}
 .result .code{font-size:34px;display:block;text-align:center;margin:6px 0}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.row .btn{flex:1 1 150px}
+body.srv .demo-only,body:not(.srv) .srv-only{display:none!important}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -341,6 +342,9 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 @media (hover:hover) and (pointer:fine){.win{transition:transform .2s var(--ease)}.win:hover{transform:translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
+<!-- الربط بالخادم: إن وُجدت مفاتيح في config.js عمل التطبيق على الخادم المشترك، وإلا عمل نسخة تجريبية على الجهاز -->
+<script src="config.js"></script>
+<script>if (window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');</script>
 </head>
 <body>
 <header id="hdr">
@@ -375,23 +379,33 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <div id="chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
     </div>
     <div class="grid" id="grid"></div>
-    <p class="sample">المعروضات أمثلة تجريبية لعرض الفكرة.</p>
+    <p class="sample demo-only">المعروضات أمثلة تجريبية لعرض الفكرة.</p>
 
     <div class="demo admin" id="adminBox" hidden>
       <h3>لوحة الإدارة</h3>
       <p>لا تظهر إلا للإدارة.</p>
       <div class="row">
         <button class="btn small" id="plusDay">تقديم يوم</button>
-        <button class="btn small" id="reset">إعادة الأغراض</button>
+        <button class="btn small demo-only" id="reset">إعادة الأغراض</button>
         <button class="btn small" id="wipe">مسح كل المعروضات</button>
         <button class="btn small ghost" id="adminOut">خروج من الإدارة</button>
       </div>
       <div id="wipeAsk"></div>
+      <div class="srv-only">
+        <h3 style="margin-top:16px">الأرقام</h3>
+        <label for="admPhone">رقم الجوال</label>
+        <input class="field ltr" id="admPhone" inputmode="tel" placeholder="05xxxxxxxx">
+        <div class="row"><button class="btn small" data-adm="ban">أوقف الرقم</button><button class="btn small ghost" data-adm="unban">أعِد الرقم</button><button class="btn small ghost" data-adm="admin">اجعله من الإدارة</button></div>
+        <label for="admCode">كود غرض</label>
+        <input class="field ltr" id="admCode" placeholder="QT-5780">
+        <div class="row"><button class="btn small ghost" data-adm="unlock_time">افتح تعديل وقت الاستلام</button></div>
+        <div class="row"><button class="btn small ghost" id="cleanPhotos">احذف صور ما انتهى منذ أسبوع</button></div>
+      </div>
       <h3 style="margin-top:16px">الإحصاء</h3>
       <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
       <div id="statBox"></div>
       <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
-      <p class="sample">الإحصاء الحالي فيه بيانات تجريبية لعرض الفكرة.</p>
+      <p class="sample demo-only">الإحصاء الحالي فيه بيانات تجريبية لعرض الفكرة.</p>
     </div>
   </section>
 
@@ -454,6 +468,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <article class="panel about">
       <h2>تعليمات جسر العطاء</h2>
       <button class="btn ghost wide soon" type="button" data-soon>حول البرنامج<span class="tag">قريبًا</span></button>
+      <a class="btn ghost wide" href="privacy.html" style="margin-top:8px">سياسة الخصوصية</a>
       <div class="nomoney" role="note">
         <h3>لا مال في جسر العطاء</h3>
         <p>يُمنع تداول الأموال في هذا التطبيق، مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء: لا ثمن للغرض، ولا أجرة توصيل، ولا مبلغ رمزي، وإنما يُقدَّم العطاء برجاء الثواب.</p>
@@ -615,10 +630,38 @@ const seed = () => {
   ]};
 };
 
+/* الخادم: يعمل إن وُجدت المفاتيح في config.js، وإلا فالنسخة التجريبية على الجهاز */
+const CFG = window.JISR_CONFIG || {};
+const SRV = !!(CFG.url && CFG.anonKey && window.supabase);
+const sb = SRV ? window.supabase.createClient(CFG.url, CFG.anonKey) : null;
 let mem = null;
-const load = () => { try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
-const save = () => { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
+const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, people:{}, log:[], items:[]}; try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
+const save = () => { if (SRV) return; mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
+/* تحويل ما يرسله الخادم إلى صيغة الواجهة: قائمة الحجز لا تحمل إلا ما يحق لك رؤيته */
+const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, profile:d.profile || null, people:d.people || {}, log:d.log || [],
+  items:(d.items || []).map(x => { const q = x.queue || Array(x.queueLen).fill('~'); if (!x.queue) { if (x.first) q[0] = x.first; if (x.myPos >= 0) q[x.myPos] = d.me; } return Object.assign({}, x, {owner:x.owner || '~', queue:q}); })});
+const api = async (fn, args) => {
+  const {data, error} = await sb.rpc(fn, args || {});
+  if (error) { toast('تعذّر الاتصال بالخادم، حاول بعد قليل'); throw error; }
+  return data || {};
+};
+let pulling = null;
+const pull = () => pulling || (pulling = (async () => {
+  try { const d = await api('jisr_board'); st = toSt(d); $('#adminBox').hidden = !isAdmin(); render(); }
+  catch(e) {} finally { pulling = null; }
+})());
+const ERR = {
+  login:'سجّل برقم جوالك أولًا.',
+  banned:'رقمك موقوف عن الحجز والعرض. تواصل مع إدارة المبادرة.',
+  missing:'اختر قبل الإعلان: الصورة والتصنيف والمنطقة.',
+  not_found:'لم نجد هذا الغرض.',
+  closed:'انتهى هذا العرض.',
+  no_booker:'لا يوجد صاحب حجز الآن.',
+  locked:'التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة.',
+  not_admin:'هذا الرقم ليس من أرقام الإدارة.'
+};
+const errMsg = r => ERR[r.err] || 'لم يتم الطلب، حاول مرة أخرى.';
 let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', photos = [];
 const open = new Set();
 
@@ -656,6 +699,7 @@ const roll = t => {
   fill(t);
 };
 const tick = () => {
+  if (SRV) return false;
   let changed = false;
   while (now() >= st.cycleStart + DAY) { roll(st.cycleStart + DAY); changed = true; }
   for (const it of st.items) {
@@ -677,7 +721,7 @@ const go = v => {
   view = v;
   document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-' + v));
   document.querySelectorAll('nav button').forEach(b => b.dataset.v === v ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
-  render();
+  render(); if (SRV) pull();
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
@@ -740,30 +784,50 @@ $('#grid').addEventListener('click', e => {
 const clock = () => {
   if (tick()) render();
   const ms = Math.max(0, st.cycleStart + DAY - now());
+  if (SRV && !ms && Date.now() - (clock.last || 0) > 15e3) { clock.last = Date.now(); pull(); }
   const p = n => String(n).padStart(2, '0');
   $('#clock').textContent = `${p(Math.floor(ms / 3600e3))}:${p(Math.floor(ms % 3600e3 / 60e3))}:${p(Math.floor(ms % 6e4 / 1e3))}`;
 };
 setInterval(clock, 1000);
-$('#plusDay').addEventListener('click', () => { st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
+$('#plusDay').addEventListener('click', async () => {
+  if (SRV) { const r = await api('jisr_admin', {_act:'roll'}); if (r.err) return toast(errMsg(r)); await pull(); return toast('تجددت الدفعة الآن'); }
+  st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
 $('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأغراض'); });
 
 /* لوحة الإدارة: مخفية، وتُفتح بالضغط على الشعار خمس مرات أو بالرابط #admin ثم الرمز السري.
    في هذه النسخة التجريبية الرمز داخل الصفحة؛ وفي التطبيق الحقيقي يُتحقق منه على الخادم. */
 const ADMIN_PIN = '1446', ADMIN_KEY = 'jisr-admin';
-const isAdmin = () => { try { return localStorage.getItem(ADMIN_KEY) === '1'; } catch(e) { return !!isAdmin.mem; } };
+const isAdmin = () => { if (SRV) return !!(st.profile && st.profile.isAdmin); try { return localStorage.getItem(ADMIN_KEY) === '1'; } catch(e) { return !!isAdmin.mem; } };
 const setAdmin = on => { isAdmin.mem = on; try { on ? localStorage.setItem(ADMIN_KEY, '1') : localStorage.removeItem(ADMIN_KEY); } catch(e) {} $('#adminBox').hidden = !on; if (on) renderStats(); };
-const askPin = () => { if (isAdmin()) { $('#adminBox').hidden = false; go('home'); $('#adminBox').scrollIntoView({block:'center'}); return; } $('#pinErr').innerHTML = ''; $('#pin').value = ''; $('#pinModal').hidden = false; setTimeout(() => $('#pin').focus(), 50); };
+const askPin = () => { if (SRV && !isAdmin()) { toast(st.me ? ERR.not_admin : 'سجّل برقم الإدارة أولًا'); if (!st.me) go('me'); return; } if (isAdmin()) { $('#adminBox').hidden = false; go('home'); $('#adminBox').scrollIntoView({block:'center'}); return; } $('#pinErr').innerHTML = ''; $('#pin').value = ''; $('#pinModal').hidden = false; setTimeout(() => $('#pin').focus(), 50); };
 $('#pinForm').addEventListener('submit', e => {
   e.preventDefault();
   if (digits($('#pin').value).trim() === ADMIN_PIN) { $('#pinModal').hidden = true; setAdmin(true); go('home'); setTimeout(() => $('#adminBox').scrollIntoView({block:'center'}), 100); toast('أهلًا بالإدارة'); }
   else $('#pinErr').innerHTML = '<div class="result err">الرمز غير صحيح.</div>';
 });
 $('#pinClose').addEventListener('click', () => { $('#pinModal').hidden = true; });
-$('#adminOut').addEventListener('click', () => { setAdmin(false); toast('خرجت من الإدارة'); });
+$('#adminOut').addEventListener('click', () => { if (SRV) { $('#adminBox').hidden = true; return toast('أُخفيت لوحة الإدارة'); } setAdmin(false); toast('خرجت من الإدارة'); });
 $('#wipe').addEventListener('click', () => {
   $('#wipeAsk').innerHTML = '<div class="result err">سيُمسح كل ما في المنصة من معروضات. هل أنت متأكد؟<div class="row"><button class="btn small" id="wipeYes">نعم، امسح الكل</button><button class="btn small ghost" id="wipeNo">تراجع</button></div></div>';
-  $('#wipeYes').addEventListener('click', () => { st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
+  $('#wipeYes').addEventListener('click', async () => { if (SRV) { const r = await api('jisr_admin', {_act:'wipe'}); $('#wipeAsk').innerHTML = ''; if (r.err) return toast(errMsg(r)); await pull(); return toast('مُسحت المعروضات الجارية'); } st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
   $('#wipeNo').addEventListener('click', () => { $('#wipeAsk').innerHTML = ''; });
+});
+/* أدوات الإدارة على الخادم */
+document.querySelectorAll('[data-adm]').forEach(b => b.addEventListener('click', async () => {
+  const act = b.dataset.adm, byCode = act === 'unlock_time';
+  const arg = byCode ? normCode($('#admCode').value) : phoneOk($('#admPhone').value);
+  if (!arg) return toast(byCode ? 'اكتب كود الغرض صحيحًا' : 'اكتب رقم جوال صحيحًا');
+  const r = await api('jisr_admin', {_act:act, _arg:arg});
+  if (r.err) return toast(errMsg(r));
+  toast({ban:'أُوقف الرقم', unban:'أُعيد الرقم', admin:'صار الرقم من الإدارة', unlock_time:'فُتح تعديل وقت الاستلام'}[act]); pull();
+}));
+$('#cleanPhotos').addEventListener('click', async () => {
+  const r = await api('jisr_old_photos'); if (r.err) return toast(errMsg(r));
+  const mark = '/object/public/jisr/', paths = [], codes = [];
+  for (const o of r.codes) { codes.push(o.code); for (const u of o.photos) { const k = u.indexOf(mark); if (k > -1) paths.push(decodeURIComponent(u.slice(k + mark.length))); } }
+  if (!codes.length) return toast('لا صور قديمة للحذف');
+  for (let k = 0; k < paths.length; k += 100) await sb.storage.from('jisr').remove(paths.slice(k, k + 100));
+  await api('jisr_forget_photos', {_codes:codes}); pull(); toast(`حُذفت صور ${codes.length} من المعروضات المنتهية`);
 });
 /* الإحصاء الأسبوعي والشهري */
 let per = 'week';
@@ -937,16 +1001,39 @@ $('#giveForm').addEventListener('submit', e => {
   const miss = [!photos.length && 'صورة الغرض', !sel.cat && 'التصنيف', sel.cat && TAX[sel.cat].length > 1 && !sel.sub && 'الغرض', !area && 'المنطقة'].filter(Boolean);
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
+  if (SRV) { postSrv(out, title, area, e.target); return; }
   const code = newCode(area);
   st.items.push({code, title, det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, area, cond:sel.cond, pick:sel.pick, cat:sel.cat, pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
   logEv('posted', code, st.me);
   fill(now()); save();
-  const it = st.items.find(i => i.code === code);
+  postDone(out, st.items.find(i => i.code === code), e.target);
+});
+const dataBlob = u => fetch(u).then(r => r.blob());
+const postSrv = async (out, title, area, form) => {
+  const btn = form.querySelector('[type=submit]'); btn.disabled = true; out.innerHTML = '<div class="result">جارٍ رفع الصور ونشر الإعلان…</div>';
+  try {
+    const {data:{user}} = await sb.auth.getUser(); if (!user) { out.innerHTML = `<div class="result err">${ERR.login}</div>`; return; }
+    const urls = [];
+    for (const [k, u] of photos.entries()) {
+      const path = `${user.id}/${Date.now()}-${k}.jpg`;
+      const up = await sb.storage.from('jisr').upload(path, await dataBlob(u), {contentType:'image/jpeg', upsert:false});
+      if (up.error) throw up.error;
+      urls.push(sb.storage.from('jisr').getPublicUrl(path).data.publicUrl);
+    }
+    const r = await api('jisr_post', {_title:title, _det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cat, _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
+    if (r.err) { out.innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
+    await pull();
+    postDone(out, st.items.find(i => i.code === r.code) || {code:r.code, status:r.status, pickTime:sel.pickTime}, form);
+  } catch(err) { out.innerHTML = '<div class="result err">لم يُنشر الإعلان: تعذّر رفع الصور أو الاتصال. حاول مرة أخرى.</div>'; }
+  finally { btn.disabled = false; }
+};
+const postDone = (out, it, form) => {
+  const code = it.code;
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
     ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
-  e.target.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
-});
+  form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
+};
 document.addEventListener('click', e => {
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
   if (e.target.closest('[data-soon]')) toast('صفحة «حول البرنامج» قريبًا: عن المصمم والجهة القائمة على المبادرة');
@@ -956,20 +1043,30 @@ document.addEventListener('click', e => {
 });
 
 /* احجز بالكود */
-$('#bookForm').addEventListener('submit', e => {
+$('#bookForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (needLogin()) return;
   tick();
   const out = $('#bookResult'), code = normCode($('#bCode').value);
   if (!code) { out.innerHTML = '<div class="result err">اكتب الكود كما هو: حرفان ثم أربعة أرقام، مثل QT-5780.</div>'; return; }
   $('#bCode').value = code;
+  if (SRV) {
+    const btn = e.target.querySelector('[type=submit]'); btn.disabled = true; out.innerHTML = '<div class="result">جارٍ إرسال الكود…</div>';
+    let r; try { r = await api('jisr_book', {_code:code}); } catch(err) { out.innerHTML = '<div class="result err">تعذّر الاتصال بالخادم، فلم يُرسل الكود. حاول مرة أخرى.</div>'; return; } finally { btn.disabled = false; }
+    const M = {not_found:`<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`, cancelled:'<div class="result">أُلغي عرض هذا الغرض، وهو عند صاحبه.</div>',
+      given:'<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>', own:'<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>',
+      not_shown:'<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>',
+      limit:`<div class="result err">لديك ${r.max || 3} حجوزات لم تُستلم بعد، وهذا هو الحد. استلمها أو ألغِ أحدها، ثم احجز.</div>`};
+    if (r.err) { out.innerHTML = M[r.err] || `<div class="result err">${errMsg(r)}</div>`; return; }
+    await pull();
+  }
   const it = st.items.find(i => i.code === code);
   if (!it) { out.innerHTML = `<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`; return; }
   if (it.cancelled || it.status === 'cancelled') { out.innerHTML = '<div class="result">أُلغي عرض هذا الغرض، وهو عند صاحبه.</div>'; return; }
   if (it.given || it.status === 'given') { out.innerHTML = '<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>'; return; }
   if (it.owner === st.me) { out.innerHTML = '<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>'; return; }
   let pos = it.queue.indexOf(st.me);
-  if (pos === -1) {
+  if (pos === -1 && !SRV) {
     if (it.status !== 'shown') { out.innerHTML = '<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>'; return; }
     it.queue.push(st.me); pos = it.queue.length - 1; if (pos === 0) it.bookedAt = now(); logEv('booked', it.code, st.me); save();
   }
@@ -994,12 +1091,32 @@ const renderMe = () => {
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       ${otp ? `<label for="otp">الرمز المرسل إليك</label><input class="field ltr big" id="otp" inputmode="numeric" maxlength="6" placeholder="••••••">
-        <div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل برسالة نصية.</div>` : ''}
+        ${SRV ? '<p class="hint">وصلك الرمز في رسالة نصية على رقمك.</p>' : `<div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل برسالة نصية.</div>`}` : ''}
       <button class="btn primary wide" type="submit" style="margin-top:14px">${otp ? 'تأكيد الرمز' : 'أرسل الرمز'}</button>
       <div id="loginMsg"></div></form>`;
-    $('#login').addEventListener('submit', ev => {
+    $('#login').addEventListener('submit', async ev => {
       ev.preventDefault();
       const msg = $('#loginMsg');
+      if (SRV) {
+        const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
+        try {
+          if (!otp) {
+            const p = phoneOk($('#ph').value);
+            if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
+            pendingName = $('#nm').value.trim();
+            const {error} = await sb.auth.signInWithOtp({phone:'+' + p});
+            if (error) { msg.innerHTML = '<div class="result err">لم نستطع إرسال الرسالة الآن. تأكد من الرقم وحاول بعد دقيقة.</div>'; return; }
+            pendingPhone = p; otp = 'sent'; renderMe(); $('#otp').focus();
+          } else {
+            const {error} = await sb.auth.verifyOtp({phone:'+' + pendingPhone, token:digits($('#otp').value).trim(), type:'sms'});
+            if (error) { msg.innerHTML = '<div class="result err">الرمز غير صحيح أو انتهت مدته. راجع الرسالة واكتبه من جديد.</div>'; return; }
+            await api('jisr_set_profile', {_name:pendingName}); otp = null; pendingPhone = null;
+            await pull(); toast('تم التحقق، أهلًا بك'); renderMe();
+          }
+        } catch(err) { msg.innerHTML = '<div class="result err">تعذّر الاتصال بالخادم. حاول مرة أخرى.</div>'; }
+        finally { btn.disabled = false; }
+        return;
+      }
       if (!otp) {
         const p = phoneOk($('#ph').value);
         if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
@@ -1036,11 +1153,19 @@ const renderMe = () => {
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
     <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج وتبديل الرقم</button>
   </div>`;
-  $('#logout').addEventListener('click', () => { st.me = null; save(); renderMe(); });
+  $('#logout').addEventListener('click', async () => { if (SRV) { await sb.auth.signOut(); await pull(); return; } st.me = null; save(); renderMe(); });
 };
-$('#meBox').addEventListener('click', e => {
+$('#meBox').addEventListener('click', async e => {
   const find = c => st.items.find(i => i.code === c);
-  const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]');
+  const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]'), xc0 = e.target.closest('[data-xcancel]');
+  if (SRV && (d || s || c || xc0)) {
+    const b = d || s || c || xc0; b.disabled = true;
+    const r = c ? await api('jisr_cancel_booking', {_code:c.dataset.cancel}).catch(() => ({err:'net'}))
+      : await api('jisr_owner_action', {_code:(d || s || xc0).dataset[d ? 'done' : s ? 'skip' : 'xcancel'], _act:d ? 'given' : s ? 'skip' : 'cancel'}).catch(() => ({err:'net'}));
+    if (r.err) { b.disabled = false; return r.err === 'net' || toast(errMsg(r)); }
+    await pull();
+    return toast(d ? 'ذهب لمستفيد، الشكر الجزيل لك' : s ? 'انتقل الحجز للتالي، أو أُلغي إن لم يبق أحد' : c ? 'أُلغي حجزك' : 'أُلغي العرض، والغرض عندك');
+  }
   if (d) { const it = find(d.dataset.done); logEv('given', it.code, it.queue[0]); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
   if (s) { const it = find(s.dataset.skip); logEv('returned', it.code, it.queue.shift()); it.bookedAt = now(); if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
   const xc = e.target.closest('[data-xcancel]');
@@ -1097,16 +1222,26 @@ $('#ckFrom').addEventListener('click', () => { ck.step = 0; drawClock(); });
 $('#ckTo').addEventListener('click', () => { ck.step = 2; drawClock(); });
 $('#ckClose').addEventListener('click', () => { $('#clockModal').hidden = true; });
 $('#clockModal').addEventListener('click', e => { if (e.target.id === 'clockModal') $('#clockModal').hidden = true; });
-$('#ckSave').addEventListener('click', () => {
+$('#ckSave').addEventListener('click', async () => {
   const [a, b] = ck.t;
   if (mins(b) <= mins(a)) { $('#ckErr').innerHTML = '<div class="result err">وقت النهاية يجب أن يكون بعد وقت البداية.</div>'; return; }
   if (ck.code === null) { sel.pickTime = {from:fmtT(a), to:fmtT(b)}; $('#formClock').textContent = `وقت الاستلام: من ${sel.pickTime.from} إلى ${sel.pickTime.to} (اضغط للتغيير)`; $('#formClock').classList.add('primary'); $('#clockModal').hidden = true; return; }
   const it = st.items.find(i => i.code === ck.code);
+  if (SRV) {
+    const r = await api('jisr_set_pick_time', {_code:ck.code, _from:fmtT(a), _to:fmtT(b)}).catch(() => ({err:'net'}));
+    if (r.err) { if (r.err !== 'net') $('#ckErr').innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
+    $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${fmtT(a)} إلى ${fmtT(b)}`); return pull();
+  }
   it.pickTime = {from:fmtT(a), to:fmtT(b)}; save();
   $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`); render();
 });
 
-fill(now()); save();
+if (SRV) {
+  document.body.classList.add('srv');
+  pull(); setInterval(() => { if (!document.hidden) pull(); }, 20e3);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
+  sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') pull(); });
+} else { fill(now()); save(); }
 clock(); render();
 /* يعمل كتطبيق عند استضافته: تخزين للعمل دون إنترنت */
 try { if ('serviceWorker' in navigator && location.protocol === 'https:' && !/claude/.test(location.host)) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch(e) {}

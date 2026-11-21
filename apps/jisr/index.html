@@ -143,6 +143,9 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .empty-win .btn{min-height:38px;padding:4px 8px;font-size:12.5px;white-space:nowrap}
 .sample{font-size:13px;color:var(--muted);margin:10px 0 0}
 .demo{margin:26px 0 8px;border:1px dashed var(--line);border-radius:18px;padding:14px 16px}
+.demo.admin{border:2px solid var(--warn);background:light-dark(#FFF7F5,#2a1a18)}
+.demo.admin h3{color:var(--warn)}
+.demo[hidden]{display:none}
 .demo h3{font-size:22px}.demo p{margin:2px 0 10px;font-size:14px;color:var(--muted)}
 .demo .row{display:flex;flex-wrap:wrap;gap:8px}
 
@@ -244,6 +247,42 @@ textarea.field{min-height:96px;resize:vertical}
 .picktime{margin:6px 0;font-size:15px}
 .picktime b{direction:rtl}
 
+/* الإحصاء */
+.stabs{display:flex;justify-content:center;gap:8px;margin:14px 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:8px 4px;text-align:center}
+.kpi b{display:block;font:700 26px/1.1 "Noto Naskh Arabic",serif;color:var(--green)}
+.kpi span{font-size:12.5px;color:var(--muted)}
+.kpi.x b{color:var(--warn)}.kpi.r b{color:#0E7490}
+.ratio{margin:10px 0 4px;font-size:14px;text-align:center}
+.bars{display:grid;gap:6px;margin-top:8px}
+.bar{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;align-items:center;font-size:13.5px}
+.bar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .tr{position:relative;height:22px;background:var(--mint);border-radius:6px;overflow:hidden}
+.bar .fb{position:absolute;inset-block:0;inset-inline-start:0;background:#9ADCE6;border-radius:6px}
+.bar .ft{position:absolute;inset-block:0;inset-inline-start:0;background:var(--green);border-radius:6px}
+.bar .lb{position:absolute;inset-inline-end:4px;top:2px;line-height:18px;font-size:12px;font-weight:700;background:var(--paper);color:var(--ink);padding:0 6px;border-radius:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar.flag .nm{color:var(--warn);font-weight:700}
+.legend{display:flex;justify-content:center;gap:14px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-inline-end:4px}
+.ptable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+.ptable th{background:var(--green);color:#fff;padding:5px 6px;text-align:right;font-weight:700}
+.ptable td{border-bottom:1px solid var(--line);padding:5px 6px}
+.ptable td.n{text-align:center;font-variant-numeric:tabular-nums}
+.ptable tr.flag td{background:light-dark(#FDECEA,#3A1E1B)}
+.flagnote{font-size:13px;color:var(--warn);margin:8px 0 0;text-align:center}
+#printArea{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{padding:0;background:#fff;color:#111}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block}
+  #printArea .kpi,#printArea .ptable th,#printArea .bar .ft,#printArea .bar .fb,#printArea tr.flag td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea h2{font:700 24pt "Markazi Text",serif;text-align:center;color:#2D5530;margin:0}
+  #printArea .sub{text-align:center;font-size:11pt;color:#555;margin:2px 0 10px}
+  #printArea h3{font:700 16pt "Markazi Text",serif;color:#2D5530;margin:14px 0 4px;text-align:center}
+}
+
 /* التوسيط العربي: العناوين والعبارات القصيرة في الوسط، والشرح الطويل من اليمين */
 .sechead{flex-direction:column;align-items:center;text-align:center}
 .tools{justify-content:center}.tools>#chips{justify-content:center}
@@ -275,7 +314,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 <body>
 <header id="hdr">
   <div class="wrap top">
-    <div class="logo" aria-hidden="true">
+    <div class="logo" aria-hidden="true" style="cursor:pointer">
       <svg viewBox="0 0 40 40" fill="#fff"><path d="M20 36V14" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M20 22c-8 0-13-5-13-12 7 0 13 4 13 12z"/><path d="M20 18c7 0 12-5 12-11-7 0-12 4-12 11z" opacity=".8"/></svg>
     </div>
     <div class="brand"><h1>جسر العطاء</h1><p>تدوير المقتنيات لمن ينتفع بها</p></div>
@@ -307,13 +346,21 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <div class="grid" id="grid"></div>
     <p class="sample">المعروضات أمثلة تجريبية لعرض الفكرة.</p>
 
-    <div class="demo">
-      <h3>أدوات التجربة</h3>
-      <p>لترى دورة العرض دون انتظار، قدّم الوقت. هذه الأدوات للمعاينة فقط ولا تظهر في التطبيق.</p>
+    <div class="demo admin" id="adminBox" hidden>
+      <h3>لوحة الإدارة</h3>
+      <p>لا تظهر إلا للإدارة.</p>
       <div class="row">
-        <button class="btn small" id="plusDay">قدّم الوقت يومًا</button>
-        <button class="btn small ghost" id="reset">أعد الأمثلة</button>
+        <button class="btn small" id="plusDay">تقديم يوم</button>
+        <button class="btn small" id="reset">إعادة الأغراض</button>
+        <button class="btn small" id="wipe">مسح كل المعروضات</button>
+        <button class="btn small ghost" id="adminOut">خروج من الإدارة</button>
       </div>
+      <div id="wipeAsk"></div>
+      <h3 style="margin-top:16px">الإحصاء</h3>
+      <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
+      <div id="statBox"></div>
+      <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
+      <p class="sample">الإحصاء الحالي فيه بيانات تجريبية لعرض الفكرة.</p>
     </div>
   </section>
 
@@ -338,6 +385,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
         <div><label for="gCond">الحالة</label><select class="field" id="gCond"><option>ممتازة</option><option selected>جيدة ونظيفة</option><option>فيها عيب بسيط موضّح</option></select></div>
       </div>
       <datalist id="areas"><option value="سيهات"><option value="تاروت"><option value="القطيف"><option value="صفوى"></datalist>
+      <label for="gCat">نوع الغرض</label>
+      <select class="field" id="gCat"><option>رجالي</option><option>نسائي</option><option>شبابي</option><option>أطفال</option><option>كهربائي</option><option>خشب وأثاث</option><option selected>أخرى</option></select>
       <label for="gPick">طريقة الاستلام</label>
       <select class="field" id="gPick"><option>من بيتي، والنقل على المستفيد</option><option>من بيتي، بموعد نتفق عليه في واتساب</option></select>
       <label class="check"><input type="checkbox" id="gOk1"> الغرض سليم ويمكن الانتفاع به، ومطابق للصورة.</label>
@@ -450,12 +499,22 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <div class="row"><button class="btn primary" type="button" id="ckSave">احفظ التوقيت</button><button class="btn ghost" type="button" id="ckClose">إلغاء</button></div>
   </div>
 </div>
+<div class="modal" id="pinModal" hidden role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <form class="sheet" id="pinForm" novalidate>
+    <h3 id="pinTitle">دخول الإدارة</h3>
+    <p class="stepname">اكتب الرمز السري للإدارة</p>
+    <input class="field ltr big" id="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
+    <div id="pinErr"></div>
+    <div class="row"><button class="btn primary" type="submit">دخول</button><button class="btn ghost" type="button" id="pinClose">إلغاء</button></div>
+  </form>
+</div>
+<div id="printArea"></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 {
 const DAY = 864e5, SLOTS = 9;
-const KEY = 'jisr-alataa-v6';
+const KEY = 'jisr-alataa-v8';
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
@@ -475,18 +534,30 @@ const PREFIX = {'سيهات':'SN','تاروت':'TR','القطيف':'QT','صفو�
 const seed = () => {
   const t = Date.now(), start = t - 9 * 3600e3;
   const mk = (code, title, det, area, cond, icon, extra) => Object.assign({code, title, det, area, cond, pick:'من بيت المتبرع، والنقل على المستفيد', icon, owner:'9665000000' + String(10 + code.length + title.length).slice(-2), queue:[], status:'shown', shows:1, shownAt:start, created:start - DAY}, extra);
-  return {offset:0, cycleStart:start, me:null, items:[
-    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'}}),
-    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3}),
-    mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3}),
-    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2}),
-    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer'),
-    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3}),
-    mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books'),
-    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3}),
-    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3}),
-    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null}),
-    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null})
+  const people = {'966500000011':'ق م', '966500000022':'ع ح', '966500000033':'أم قاسم', '966500000044':'ز ع', '966500000055':'م س', '966500000066':'ف ر', '966500000077':'ح ك', '966500000088':'ن ب', '966500000099':'س د'};
+  const log = []; let r = 7; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  const who = ['966500000011','966500000011','966500000011','966500000011','966500000022','966500000033','966500000044','966500000055','966500000066','966500000077','966500000088','966500000099','966500000011','966500000022'];
+  for (let k = 0; k < 64; k++) {
+    const tt = t - Math.floor(rnd() * 29 * DAY) - 3600e3, code = 'DM-' + (1000 + k), w = who[Math.floor(rnd() * who.length)];
+    const area = ['سيهات','سيهات','سيهات','تاروت','تاروت','القطيف','القطيف','صفوى','الجش'][Math.floor(rnd() * 9)], cat = ['رجالي','نسائي','شبابي','أطفال','كهربائي','خشب وأثاث','أخرى'][Math.floor(rnd() * 7)], ex = {area, cat};
+    log.push({t:tt, type:'posted', code, who:'9665000001' + (10 + k % 30), ...ex});
+    const x = rnd();
+    if (x < .62) { log.push({t:tt + 3600e3, type:'booked', code, who:w, ...ex}); log.push({t:tt + 5 * 3600e3, type:'given', code, who:w, ...ex}); }
+    else if (x < .78) { log.push({t:tt + 3600e3, type:'booked', code, who:w, ...ex}); log.push({t:tt + DAY, type:'returned', code, who:w, ...ex}); log.push({t:tt + DAY + 60e3, type:'cancelled', code, who:null, ...ex}); }
+    else log.push({t:tt + DAY, type:'cancelled', code, who:null, ...ex});
+  }
+  return {offset:0, cycleStart:start, me:null, people, log, items:[
+    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'},cat:'خشب وأثاث'}),
+    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3,cat:'خشب وأثاث'}),
+    mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3,cat:'أخرى'}),
+    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2,cat:'خشب وأثاث'}),
+    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer',{cat:'كهربائي'}),
+    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3,cat:'أطفال'}),
+    mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books',{cat:'أطفال'}),
+    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3,cat:'أخرى'}),
+    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3,cat:'خشب وأثاث'}),
+    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null,cat:'كهربائي'}),
+    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null,cat:'خشب وأثاث'})
   ]};
 };
 
@@ -494,10 +565,12 @@ let mem = null;
 const load = () => { try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
 const save = () => { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
-let region = 'الكل', otp = null, pendingPhone = null, photos = [];
+let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', photos = [];
 const open = new Set();
 
 const now = () => Date.now() + st.offset;
+/* سجل الأحداث للإحصاء: posted عُرض، booked حجز، given أُخذ، cancelled أُلغي، returned أُعيد (حجز لم يُستلم فعاد أو انتقل) */
+const logEv = (type, code, who) => { const it = st.items.find(i => i.code === code) || {}; (st.log = st.log || []).push({t:now(), type, code, who:who || null, area:(it.area || '').split('/')[0].trim() || 'غير محدد', cat:it.cat || 'أخرى'}); };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
@@ -517,7 +590,7 @@ const fill = t => {
   const back = [];
   for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }
 };
-const toStore = (it, t) => { it.status = 'cancelled'; it.cancelledAt = t; it.queue = []; };
+const toStore = (it, t) => { it.status = 'cancelled'; it.cancelledAt = t; it.queue = []; logEv('cancelled', it.code, it.owner); };
 const roll = t => {
   for (const it of shown()) {
     if (it.given) it.status = 'given';
@@ -533,7 +606,7 @@ const tick = () => {
   while (now() >= st.cycleStart + DAY) { roll(st.cycleStart + DAY); changed = true; }
   for (const it of st.items) {
     if (!['shown', 'reserved'].includes(it.status) || it.given || it.cancelled) continue;
-    while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; it.queue.shift(); changed = true; }
+    while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; logEv('returned', it.code, it.queue.shift()); changed = true; }
     if (it.status === 'reserved' && !it.queue.length) { toStore(it, now()); changed = true; }
   }
   if (changed) save();
@@ -554,7 +627,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { tick(); if (view === 'home') renderHome(); if (view === 'me') renderMe(); };
+const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); } if (view === 'me') renderMe(); };
 const needLogin = () => { if (st.me) return false; toast('سجّل برقم جوالك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
@@ -618,7 +691,110 @@ const clock = () => {
 };
 setInterval(clock, 1000);
 $('#plusDay').addEventListener('click', () => { st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
-$('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأمثلة'); });
+$('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأغراض'); });
+
+/* لوحة الإدارة: مخفية، وتُفتح بالضغط على الشعار خمس مرات أو بالرابط #admin ثم الرمز السري.
+   في هذه النسخة التجريبية الرمز داخل الصفحة؛ وفي التطبيق الحقيقي يُتحقق منه على الخادم. */
+const ADMIN_PIN = '1446', ADMIN_KEY = 'jisr-admin';
+const isAdmin = () => { try { return localStorage.getItem(ADMIN_KEY) === '1'; } catch(e) { return !!isAdmin.mem; } };
+const setAdmin = on => { isAdmin.mem = on; try { on ? localStorage.setItem(ADMIN_KEY, '1') : localStorage.removeItem(ADMIN_KEY); } catch(e) {} $('#adminBox').hidden = !on; if (on) renderStats(); };
+const askPin = () => { if (isAdmin()) { $('#adminBox').hidden = false; go('home'); $('#adminBox').scrollIntoView({block:'center'}); return; } $('#pinErr').innerHTML = ''; $('#pin').value = ''; $('#pinModal').hidden = false; setTimeout(() => $('#pin').focus(), 50); };
+$('#pinForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (digits($('#pin').value).trim() === ADMIN_PIN) { $('#pinModal').hidden = true; setAdmin(true); go('home'); setTimeout(() => $('#adminBox').scrollIntoView({block:'center'}), 100); toast('أهلًا بالإدارة'); }
+  else $('#pinErr').innerHTML = '<div class="result err">الرمز غير صحيح.</div>';
+});
+$('#pinClose').addEventListener('click', () => { $('#pinModal').hidden = true; });
+$('#adminOut').addEventListener('click', () => { setAdmin(false); toast('خرجت من الإدارة'); });
+$('#wipe').addEventListener('click', () => {
+  $('#wipeAsk').innerHTML = '<div class="result err">سيُمسح كل ما في المنصة من معروضات. هل أنت متأكد؟<div class="row"><button class="btn small" id="wipeYes">نعم، امسح الكل</button><button class="btn small ghost" id="wipeNo">تراجع</button></div></div>';
+  $('#wipeYes').addEventListener('click', () => { st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
+  $('#wipeNo').addEventListener('click', () => { $('#wipeAsk').innerHTML = ''; });
+});
+/* الإحصاء الأسبوعي والشهري */
+let per = 'week';
+const maskP = p => p ? '+' + p.slice(0, 3) + ' ' + p.slice(3, 5) + ' •••• ' + p.slice(-3) : '';
+const nameOf = p => (st.people || {})[p] || maskP(p);
+const calc = () => {
+  const end = now(), start = end - (per === 'week' ? 7 : 30) * DAY;
+  const ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
+  const n = ty => ev.filter(e => e.type === ty).length;
+  const k = {posted:n('posted'), given:n('given'), cancelled:n('cancelled'), returned:n('returned'), booked:n('booked')};
+  const ppl = {};
+  for (const e of ev) if (e.who && ['booked', 'given', 'returned'].includes(e.type)) { const o = ppl[e.who] = ppl[e.who] || {p:e.who, booked:0, given:0, returned:0}; o[e.type]++; }
+  const list = Object.values(ppl).sort((a, b) => b.given - a.given || b.booked - a.booked);
+  const lim = per === 'week' ? 3 : 6, total = k.given || 1;
+  list.forEach(o => { o.share = Math.round(o.given / total * 100); o.flag = o.given >= lim || (k.given >= 6 && o.share >= 20); });
+  return {k, list, lim, start, end};
+};
+const fmtD = t => new Intl.DateTimeFormat('ar', {day:'numeric', month:'long', year:'numeric'}).format(new Date(t));
+const statHTML = (forPrint) => {
+  const {k, list, lim, start, end} = calc(), pct = (a, b) => b ? Math.round(a / b * 100) + '٪' : '—';
+  const max = Math.max(1, ...list.map(o => o.booked));
+  const bars = list.slice(0, 12).map(o => `<div class="bar${o.flag ? ' flag' : ''}"><span class="nm">${esc(nameOf(o.p))}</span><span class="tr"><span class="fb" style="width:${o.booked / max * 100}%"></span><span class="ft" style="width:${o.given / max * 100}%"></span><span class="lb">${o.given} من ${o.booked}</span></span></div>`).join('');
+  const rows = list.map(o => `<tr class="${o.flag ? 'flag' : ''}"><td>${esc(nameOf(o.p))}</td><td dir="ltr" style="text-align:right">${maskP(o.p)}</td><td class="n">${o.booked}</td><td class="n">${o.given}</td><td class="n">${o.returned}</td><td class="n">${pct(o.given, o.booked)}</td><td class="n">${o.share}٪</td></tr>`).join('');
+  const flagged = list.filter(o => o.flag);
+  return `${forPrint ? `<h2>إحصاء جسر العطاء ${per === 'week' ? 'الأسبوعي' : 'الشهري'}</h2><p class="sub">من ${fmtD(start)} إلى ${fmtD(end)}</p>` : `<p class="ratio">من ${fmtD(start)} إلى ${fmtD(end)}</p>`}
+    ${forPrint ? '<h3>أولًا: حركة المقتنيات</h3>' : ''}
+    <div class="kpis"><div class="kpi"><b>${k.posted}</b><span>عُرض</span></div><div class="kpi"><b>${k.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${k.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${k.returned}</b><span>أُعيد</span></div></div>
+    <p class="ratio">نسبة ما أُخذ مما عُرض: <b>${pct(k.given, k.posted)}</b> · نسبة ما أُلغي: <b>${pct(k.cancelled, k.posted)}</b> · عدد الحجوزات: <b>${k.booked}</b></p>
+    <p class="sample" style="margin:0">«أُعيد»: حجز لم يُستلم أو ألغاه صاحبه، فعاد الغرض أو انتقل لمن بعده.</p>
+    ${forPrint ? '<h3>ثانيًا: الأشخاص: الحجز والأخذ</h3>' : '<h3 style="margin-top:14px">الأشخاص هذه الفترة</h3>'}
+    <div class="bars">${bars || '<p class="sample">لا حجوزات في هذه الفترة.</p>'}</div>
+    <div class="legend"><span><i style="background:var(--green)"></i>أُخذ</span><span><i style="background:#9ADCE6"></i>حجز</span></div>
+    ${flagged.length ? `<p class="flagnote">للنظر في أمرهم (${per === 'week' ? 'أخذوا 3 أغراض فأكثر في الأسبوع' : 'أخذوا 6 أغراض فأكثر في الشهر، أو خُمس ما أُخذ'}): ${flagged.map(o => esc(nameOf(o.p))).join('، ')}</p>` : ''}
+    ${rows ? `<table class="ptable"><tr><th>الاسم</th><th>الرقم</th><th>حجز</th><th>أُخذ</th><th>أُعيد</th><th>أخذ من حجزه</th><th>من كل ما أُخذ</th></tr>${rows}</table>` : ''}`;
+};
+const group = (ev, key) => {
+  const g = {};
+  for (const e of ev) { const o = g[e[key] || 'غير محدد'] = g[e[key] || 'غير محدد'] || {name:e[key] || 'غير محدد', posted:0, booked:0, given:0, cancelled:0, returned:0}; if (o[e.type] !== undefined) o[e.type]++; }
+  return Object.values(g).map(o => ({...o, cred:o.booked ? Math.round(o.given / o.booked * 100) : null, take:o.posted ? Math.round(o.given / o.posted * 100) : null})).sort((a, b) => b.given - a.given || b.posted - a.posted);
+};
+const reportHTML = (forPrint) => {
+  const end = now(), start = end - 30 * DAY, ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
+  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned')};
+  const pc = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const areas = group(ev, 'area'), cats = group(ev, 'cat');
+  const hbars = (arr, val, lab) => { const mx = Math.max(1, ...arr.map(val)); return `<div class="bars">${arr.map(o => `<div class="bar"><span class="nm">${esc(o.name)}</span><span class="tr"><span class="ft" style="width:${val(o) / mx * 100}%"></span><span class="lb">${lab(o)}</span></span></div>`).join('')}</div>`; };
+  const tbl = arr => `<table class="ptable"><tr><th>البند</th><th>عُرض</th><th>حجز</th><th>أُخذ</th><th>أُلغي</th><th>أُعيد</th><th>نسبة الأخذ</th><th>المصداقية</th></tr>${arr.map(o => `<tr class="${o.cred !== null && o.cred < 60 ? 'flag' : ''}"><td>${esc(o.name)}</td><td class="n">${o.posted}</td><td class="n">${o.booked}</td><td class="n">${o.given}</td><td class="n">${o.cancelled}</td><td class="n">${o.returned}</td><td class="n">${o.take === null ? '—' : o.take + '٪'}</td><td class="n">${o.cred === null ? '—' : o.cred + '٪'}</td></tr>`).join('')}</table>`;
+  const topA = areas[0], lowA = [...areas].filter(o => o.cred !== null).sort((a, b) => a.cred - b.cred)[0], topC = cats[0];
+  const people = calc.call(null, per = 'month').list; per = 'report';
+  const credP = people.filter(o => o.booked >= 2).map(o => ({name:nameOf(o.p), cred:Math.round(o.given / o.booked * 100), o}));
+  const lowP = credP.filter(x => x.cred < 60);
+  return `${forPrint ? `<h2>التقرير الشهري العام لجسر العطاء</h2><p class="sub">من ${fmtD(start)} إلى ${fmtD(end)}</p>` : `<p class="ratio">آخر 30 يومًا: من ${fmtD(start)} إلى ${fmtD(end)}</p>`}
+    <h3>المختصر</h3>
+    <div class="kpis"><div class="kpi"><b>${K.posted}</b><span>عُرض</span></div><div class="kpi"><b>${K.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${K.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${pc(K.given, K.booked)}٪</b><span>المصداقية</span></div></div>
+    <ul style="margin:10px 0 0;font-size:14.5px">
+      <li>ذهب لمستفيدين ${K.given} غرضًا من ${K.posted}، أي ${pc(K.given, K.posted)}٪ مما عُرض، وأُلغي ${pc(K.cancelled, K.posted)}٪.</li>
+      ${topA ? `<li>أكثر المناطق عطاءً وأخذًا: <b>${esc(topA.name)}</b> (${topA.given} غرضًا).</li>` : ''}
+      ${lowA ? `<li>أقل المناطق مصداقية في الاستلام: <b>${esc(lowA.name)}</b> (${lowA.cred}٪ من حجوزاتها استُلمت).</li>` : ''}
+      ${topC ? `<li>أكثر الأنواع أخذًا: <b>${esc(topC.name)}</b> (${topC.given} غرضًا).</li>` : ''}
+      <li>من حجز ثم لم يستلم أو ألغى: ${K.returned} حجزًا من ${K.booked}.</li>
+    </ul>
+    <p class="sample" style="margin:6px 0 0">المصداقية: نسبة الحجوزات التي انتهت باستلام فعلي. ونسبة الأخذ: ما أُخذ مما عُرض.</p>
+    <h3>الفروق بين المناطق</h3>
+    ${hbars(areas, o => o.given, o => `${o.given} أُخذ · مصداقية ${o.cred === null ? '—' : o.cred + '٪'}`)}
+    ${tbl(areas)}
+    <h3>الفروق بين أنواع المقتنيات</h3>
+    ${hbars(cats, o => o.given, o => `${o.given} من ${o.posted}`)}
+    ${tbl(cats)}
+    <h3>مصداقية الأشخاص</h3>
+    ${credP.length ? hbars(credP.sort((a, b) => a.cred - b.cred), x => x.cred, x => `${x.cred}٪ · ${x.o.given} من ${x.o.booked}`) : '<p class="sample">لا بيانات كافية.</p>'}
+    ${lowP.length ? `<p class="flagnote">مصداقيتهم أقل من 60٪ (يحجزون ولا يستلمون): ${lowP.map(x => esc(x.name)).join('، ')}</p>` : ''}`;
+};
+const renderStats = () => { if (!isAdmin()) return; $('#statBox').innerHTML = per === 'report' ? reportHTML(false) : statHTML(false); document.querySelectorAll('[data-per]').forEach(b => b.setAttribute('aria-pressed', b.dataset.per === per)); };
+document.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => { per = b.dataset.per; renderStats(); }));
+$('#printStats').addEventListener('click', () => {
+  $('#printArea').innerHTML = per === 'report' ? reportHTML(true) : statHTML(true);
+  try { window.print(); } catch(e) { toast('الطباعة لا تعمل في صفحة المعاينة، افتح الرابط almaateeq.com/jisr'); }
+});
+
+let taps = 0, tapT = 0;
+document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; askPin(); } });
+const hashAdmin = () => { if (location.hash === '#admin') askPin(); };
+addEventListener('hashchange', hashAdmin);
+$('#adminBox').hidden = !isAdmin(); renderStats();
+setTimeout(hashAdmin, 300);
 
 /* اعرض غرضًا */
 const shrink = f => new Promise(res => {
@@ -658,7 +834,8 @@ $('#giveForm').addEventListener('submit', e => {
   if (!title || !area) { out.innerHTML = '<div class="result err">اكتب مختصر الغرض ومنطقته، ثم أعلنه.</div>'; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   const code = newCode(area);
-  st.items.push({code, title, det:$('#gDet').value.trim(), area, cond:$('#gCond').value, pick:$('#gPick').value, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  st.items.push({code, title, det:$('#gDet').value.trim(), area, cond:$('#gCond').value, pick:$('#gPick').value, cat:$('#gCat').value, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  logEv('posted', code, st.me);
   fill(now()); save();
   const it = st.items.find(i => i.code === code);
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
@@ -690,7 +867,7 @@ $('#bookForm').addEventListener('submit', e => {
   let pos = it.queue.indexOf(st.me);
   if (pos === -1) {
     if (it.status !== 'shown') { out.innerHTML = '<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>'; return; }
-    it.queue.push(st.me); pos = it.queue.length - 1; if (pos === 0) it.bookedAt = now(); save();
+    it.queue.push(st.me); pos = it.queue.length - 1; if (pos === 0) it.bookedAt = now(); logEv('booked', it.code, st.me); save();
   }
   out.innerHTML = pos === 0
     ? `<div class="result ok"><strong>الغرض لك، فأنت أول من أرسل الكود.</strong><span class="code">${code}</span>
@@ -710,6 +887,8 @@ const renderMe = () => {
       <p>نرسل لك رمزًا في رسالة لنتأكد أن الرقم رقمك أنت.</p>
       <label for="ph">رقم الجوال</label>
       <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${pendingPhone ? '0' + pendingPhone.slice(3) : ''}">
+      <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
+      <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       ${otp ? `<label for="otp">الرمز المرسل إليك</label><input class="field ltr big" id="otp" inputmode="numeric" maxlength="6" placeholder="••••••">
         <div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل برسالة نصية.</div>` : ''}
       <button class="btn primary wide" type="submit" style="margin-top:14px">${otp ? 'تأكيد الرمز' : 'أرسل الرمز'}</button>
@@ -720,9 +899,9 @@ const renderMe = () => {
       if (!otp) {
         const p = phoneOk($('#ph').value);
         if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
-        pendingPhone = p; otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
+        pendingPhone = p; pendingName = $('#nm').value.trim(); otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
       } else if (digits($('#otp').value).trim() === otp) {
-        st.me = pendingPhone; otp = null; pendingPhone = null; save(); toast('تم التحقق، أهلًا بك'); renderMe();
+        st.me = pendingPhone; (st.people = st.people || {})[st.me] = pendingName || (st.people || {})[st.me] || ''; otp = null; pendingPhone = null; save(); toast('تم التحقق، أهلًا بك'); renderMe();
       } else msg.innerHTML = '<div class="result err">الرمز غير صحيح. راجع الرسالة واكتبه من جديد.</div>';
     });
     return;
@@ -758,11 +937,11 @@ const renderMe = () => {
 $('#meBox').addEventListener('click', e => {
   const find = c => st.items.find(i => i.code === c);
   const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]');
-  if (d) { const it = find(d.dataset.done); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
-  if (s) { const it = find(s.dataset.skip); it.queue.shift(); it.bookedAt = now(); if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
+  if (d) { const it = find(d.dataset.done); logEv('given', it.code, it.queue[0]); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
+  if (s) { const it = find(s.dataset.skip); logEv('returned', it.code, it.queue.shift()); it.bookedAt = now(); if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
   const xc = e.target.closest('[data-xcancel]');
-  if (xc) { const it = find(xc.dataset.xcancel); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); toast('أُلغي العرض، والغرض عندك'); renderMe(); }
-  if (c) { const it = find(c.dataset.cancel); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
+  if (xc) { const it = find(xc.dataset.xcancel); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); toast('أُلغي العرض، والغرض عندك'); renderMe(); }
+  if (c) { const it = find(c.dataset.cancel); logEv('returned', it.code, st.me); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
 });
 
 /* ساعة توقيت الاستلام: من (ساعة ثم دقيقة) ثم إلى (ساعة ثم دقيقة) */

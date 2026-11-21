@@ -416,6 +416,9 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <div class="pick" id="pArea"></div>
       <label>طريقة الاستلام</label>
       <div class="pick" id="pPick"></div>
+      <label>وقت الاستلام المناسب لك</label>
+      <button class="btn ghost wide" type="button" id="formClock">حدّد الوقت بالساعة: من … إلى …</button>
+      <p class="sample" style="text-align:right;margin:4px 0 0">يرى الحاجز هذا الوقت فيأتي فيه، ولا يتغير بعد الإعلان إلا عبر الإدارة.</p>
       <label class="check"><input type="checkbox" id="gOk1"> الغرض سليم ويمكن الانتفاع به، ومطابق للصورة.</label>
       <label class="check"><input type="checkbox" id="gOk2"> أتعهد ألّا أطلب مقابلًا ولا أجرة توصيل ولا أي شرط مادي.</label>
       <button class="btn primary wide" type="submit">أعلن الغرض واحصل على الكود</button>
@@ -911,7 +914,7 @@ const newCode = area => {
   let c; do { c = pre + '-' + (1000 + Math.floor(Math.random() * 9000)); } while (st.items.some(i => i.code === c));
   return c;
 };
-const sel = {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0]};
+const sel = {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null};
 const chips = (box, list, key, after) => {
   $(box).innerHTML = list.map(v => `<button type="button" aria-pressed="${sel[key] === v}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
   $(box).onclick = e => { const b = e.target.closest('button'); if (!b) return; sel[key] = b.dataset.v; if ($('#giveResult .err')) $('#giveResult').innerHTML = ''; chips(box, list, key, after); if (after) after(); };
@@ -925,6 +928,7 @@ const drawPicks = () => {
 };
 const drawSub = () => { $('#pSubWrap').hidden = !sel.cat; if (sel.cat) chips('#pSub', TAX[sel.cat], 'sub'); };
 drawPicks();
+$('#formClock').addEventListener('click', () => openClock(null));
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   if (needLogin()) return;
@@ -933,14 +937,14 @@ $('#giveForm').addEventListener('submit', e => {
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   const code = newCode(area);
-  st.items.push({code, title, det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, area, cond:sel.cond, pick:sel.pick, cat:sel.cat, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  st.items.push({code, title, det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, area, cond:sel.cond, pick:sel.pick, cat:sel.cat, pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
   logEv('posted', code, st.me);
   fill(now()); save();
   const it = st.items.find(i => i.code === code);
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
-    <div class="row"><button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button><button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
-  e.target.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0]}); drawPicks();
+    ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
+  e.target.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
 });
 document.addEventListener('click', e => {
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
@@ -1066,6 +1070,7 @@ const drawClock = () => {
     <circle cx="120" cy="120" r="6" fill="var(--green)"/>${nums}`;
 };
 const openClock = code => {
+  if (code === null) { ck.code = null; ck.step = 0; ck.t = [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]; $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false; return; }
   const it = st.items.find(i => i.code === code);
   if (!it) return;
   if (it.pickTime) { toast('التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة'); return; }
@@ -1087,6 +1092,7 @@ $('#clockModal').addEventListener('click', e => { if (e.target.id === 'clockModa
 $('#ckSave').addEventListener('click', () => {
   const [a, b] = ck.t;
   if (mins(b) <= mins(a)) { $('#ckErr').innerHTML = '<div class="result err">وقت النهاية يجب أن يكون بعد وقت البداية.</div>'; return; }
+  if (ck.code === null) { sel.pickTime = {from:fmtT(a), to:fmtT(b)}; $('#formClock').textContent = `وقت الاستلام: من ${sel.pickTime.from} إلى ${sel.pickTime.to} (اضغط للتغيير)`; $('#formClock').classList.add('primary'); $('#clockModal').hidden = true; return; }
   const it = st.items.find(i => i.code === ck.code);
   it.pickTime = {from:fmtT(a), to:fmtT(b)}; save();
   $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`); render();

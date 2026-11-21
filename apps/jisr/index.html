@@ -218,6 +218,29 @@ textarea.field{min-height:96px;resize:vertical}
 .onlywa h3{font-size:24px;margin:0 0 2px;color:var(--green)}.onlywa p{margin:0;font-weight:700}
 .soon{margin:4px 0 14px;gap:10px}.soon .tag{background:var(--sand);border-color:transparent}
 
+/* ساعة توقيت الاستلام */
+.modal{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:16px;background:rgba(4,30,36,.55);backdrop-filter:blur(3px)}
+.modal[hidden]{display:none}
+.sheet{width:min(100%,380px);background:var(--paper);border-radius:22px;padding:18px 18px 16px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:center;animation:pop .3s var(--ease)}
+.sheet h3{font-size:28px}
+.sheet .stepname{margin:2px 0 10px;color:var(--muted);font-size:15px}
+.span2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.span2 button{min-height:56px;border-radius:14px;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--muted)}
+.span2 button b{font-size:20px;color:var(--ink);direction:rtl}
+.span2 button.on{border-color:var(--green);background:var(--mint)}
+.dial{width:min(230px,66vw);height:auto;display:block;margin:0 auto;touch-action:manipulation}
+.dial .num{cursor:pointer}
+.dial .num text{font:700 15px "Noto Naskh Arabic",serif;fill:var(--ink)}
+.dial .num circle{fill:transparent;transition:fill .2s}
+.dial .num.on circle{fill:var(--green)}.dial .num.on text{fill:#fff}
+.dial .hand{transition:transform .35s var(--ease);transform-origin:120px 120px}
+.ampm{display:flex;justify-content:center;gap:8px;margin:10px 0 4px}
+.ampm button{min-width:72px;min-height:40px;border-radius:999px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-weight:700}
+.ampm button.on{background:var(--green);color:#fff;border-color:var(--green)}
+.lock{font-size:13px;color:var(--warn);margin:8px 0 0}
+.picktime{margin:6px 0;font-size:15px}
+.picktime b{direction:rtl}
+
 /* التوسيط العربي: العناوين والعبارات القصيرة في الوسط، والشرح الطويل من اليمين */
 .sechead{flex-direction:column;align-items:center;text-align:center}
 .tools{justify-content:center}.tools>#chips{justify-content:center}
@@ -418,12 +441,24 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <button data-v="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>حسابي</button>
   </div>
 </nav>
+<div class="modal" id="clockModal" hidden role="dialog" aria-modal="true" aria-labelledby="ckTitle">
+  <div class="sheet">
+    <h3 id="ckTitle">توقيت الاستلام</h3>
+    <p class="stepname" id="ckStep"></p>
+    <div class="span2"><button type="button" id="ckFrom"><span>من</span><b></b></button><button type="button" id="ckTo"><span>إلى</span><b></b></button></div>
+    <svg class="dial" id="dial" viewBox="0 0 240 240" aria-label="ساعة"></svg>
+    <div class="ampm"><button type="button" data-ap="0">صباحًا</button><button type="button" data-ap="1">مساءً</button></div>
+    <p class="lock">بعد الحفظ لا يتغير التوقيت إلا بالتواصل مع إدارة المبادرة.</p>
+    <div id="ckErr"></div>
+    <div class="row"><button class="btn primary" type="button" id="ckSave">احفظ التوقيت</button><button class="btn ghost" type="button" id="ckClose">إلغاء</button></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 {
 const DAY = 864e5, WEEK = 7 * DAY, SLOTS = 9, MAX_SHOWS = 3;
-const KEY = 'jisr-alataa-v3';
+const KEY = 'jisr-alataa-v4';
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
@@ -444,7 +479,7 @@ const seed = () => {
   const t = Date.now(), start = t - 9 * 3600e3;
   const mk = (code, title, det, area, cond, icon, extra) => Object.assign({code, title, det, area, cond, pick:'من موقعي، والنقل على المستفيد', icon, owner:'9665000000' + String(10 + code.length + title.length).slice(-2), queue:[], status:'shown', shows:1, shownAt:start, created:start - DAY}, extra);
   return {offset:0, cycleStart:start, me:null, items:[
-    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed'),
+    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'}}),
     mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3}),
     mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3}),
     mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2}),
@@ -542,7 +577,8 @@ const win = (it, i) => {
       <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
-        <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
+        <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
+        ${!g && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
         ${g ? '' : `<p class="free-note">مجاني تمامًا، والتواصل واتساب فقط.</p>
           <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
       </div></div></div>
@@ -631,10 +667,11 @@ $('#giveForm').addEventListener('submit', e => {
   const it = st.items.find(i => i.code === code);
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
-    <div class="row"><button class="btn primary" type="button" data-copy="${code}">انسخ الكود</button><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
+    <div class="row"><button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button><button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
   e.target.reset(); photos = []; drawThumbs();
 });
 document.addEventListener('click', e => {
+  const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
   if (e.target.closest('[data-soon]')) toast('صفحة «حول البرنامج» قريبًا: عن المصمم والجهة القائمة على المبادرة');
   const c = e.target.closest('[data-copy]');
   if (c) { try { navigator.clipboard.writeText(c.dataset.copy).then(() => toast('نُسخ الكود'), () => toast('انسخه يدويًا: ' + c.dataset.copy)); } catch(err) { toast('انسخه يدويًا: ' + c.dataset.copy); } }
@@ -660,7 +697,7 @@ $('#bookForm').addEventListener('submit', e => {
   }
   out.innerHTML = pos === 0
     ? `<div class="result ok"><strong>الغرض لك، فأنت أول من أرسل الكود.</strong><span class="code">${code}</span>
-       ${esc(it.title)} · ${esc(it.area)}<br>تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
+       ${esc(it.title)} · ${esc(it.area)}<br>${it.pickTime ? `وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}.<br>` : ''}تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
        <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">تواصل واتساب</a></div>
        <p class="free-note">رقم المتبرع: <span dir="ltr">${showPhone(it.owner)}</span> · لا تدفع أي مقابل.</p></div>`
     : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، ويصلك إشعار إن أُلغي الحجز قبلك.</div>`;
@@ -725,6 +762,7 @@ const renderMe = () => {
     <div class="list">${mine.map(i => `<div class="mini">
       <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${stateName(i)}</span></div>
       <p>${esc(i.title)}</p>
+      ${i.status === 'refused' || i.given || i.status === 'given' ? '' : i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b><br><span class="hint">محفوظ، ولتغييره تواصل مع إدارة المبادرة.</span></p>` : `<button class="btn ghost wide" data-clock="${esc(i.code)}" style="margin:6px 0">توقيت الاستلام</button>`}
       ${active(i) ? `<p>صاحب الحجز: <span dir="ltr">${showPhone(i.queue[0])}</span>، وبقي على مهلته ${hm(i.bookedAt + DAY - now())}.</p>
         <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب</a>
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
@@ -748,6 +786,55 @@ $('#meBox').addEventListener('click', e => {
   if (d) { const it = find(d.dataset.done); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
   if (s) { const it = find(s.dataset.skip); it.queue.shift(); it.bookedAt = now(); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
   if (c) { const it = find(c.dataset.cancel); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
+});
+
+/* ساعة توقيت الاستلام: من (ساعة ثم دقيقة) ثم إلى (ساعة ثم دقيقة) */
+const ck = {code:null, step:0, t:[{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]};
+const two = n => String(n).padStart(2, '0');
+const fmtT = x => `${x.h}:${two(x.m)} ${x.pm ? 'مساءً' : 'صباحًا'}`;
+const mins = x => ((x.h % 12) + (x.pm ? 12 : 0)) * 60 + x.m;
+const STEPS = ['اختر ساعة البداية', 'اختر دقيقة البداية', 'اختر ساعة النهاية', 'اختر دقيقة النهاية'];
+const drawClock = () => {
+  const side = ck.step < 2 ? 0 : 1, cur = ck.t[side], isMin = ck.step % 2 === 1;
+  $('#ckStep').textContent = STEPS[ck.step];
+  $('#ckFrom b').textContent = fmtT(ck.t[0]); $('#ckTo b').textContent = fmtT(ck.t[1]);
+  $('#ckFrom').classList.toggle('on', side === 0); $('#ckTo').classList.toggle('on', side === 1);
+  document.querySelectorAll('.ampm button').forEach(b => b.classList.toggle('on', +b.dataset.ap === cur.pm));
+  const val = isMin ? cur.m : cur.h, ang = isMin ? cur.m * 6 : (cur.h % 12) * 30;
+  let nums = '';
+  for (let k = 0; k < 12; k++) {
+    const v = isMin ? k * 5 : (k || 12), a = (k * 30 - 90) * Math.PI / 180, x = 120 + 88 * Math.cos(a), y = 120 + 88 * Math.sin(a);
+    nums += `<g class="num${v === val ? ' on' : ''}" data-v="${v}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17"/><text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle">${isMin ? two(v) : v}</text></g>`;
+  }
+  $('#dial').innerHTML = `<circle cx="120" cy="120" r="114" fill="var(--mint)"/><circle cx="120" cy="120" r="114" fill="none" stroke="var(--line)"/>
+    <g class="hand" style="transform:rotate(${ang}deg)"><line x1="120" y1="120" x2="120" y2="${isMin ? 40 : 52}" stroke="var(--green)" stroke-width="${isMin ? 3 : 5}" stroke-linecap="round"/></g>
+    <circle cx="120" cy="120" r="6" fill="var(--green)"/>${nums}`;
+};
+const openClock = code => {
+  const it = st.items.find(i => i.code === code);
+  if (!it) return;
+  if (it.pickTime) { toast('التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة'); return; }
+  ck.code = code; ck.step = 0; ck.t = [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}];
+  $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false;
+};
+$('#dial').addEventListener('click', e => {
+  const g = e.target.closest('.num'); if (!g) return;
+  const cur = ck.t[ck.step < 2 ? 0 : 1], v = +g.dataset.v;
+  if (ck.step % 2) cur.m = v; else cur.h = v;
+  drawClock();
+  if (ck.step < 3) setTimeout(() => { ck.step++; drawClock(); }, 260);
+});
+document.querySelectorAll('.ampm button').forEach(b => b.addEventListener('click', () => { ck.t[ck.step < 2 ? 0 : 1].pm = +b.dataset.ap; drawClock(); }));
+$('#ckFrom').addEventListener('click', () => { ck.step = 0; drawClock(); });
+$('#ckTo').addEventListener('click', () => { ck.step = 2; drawClock(); });
+$('#ckClose').addEventListener('click', () => { $('#clockModal').hidden = true; });
+$('#clockModal').addEventListener('click', e => { if (e.target.id === 'clockModal') $('#clockModal').hidden = true; });
+$('#ckSave').addEventListener('click', () => {
+  const [a, b] = ck.t;
+  if (mins(b) <= mins(a)) { $('#ckErr').innerHTML = '<div class="result err">وقت النهاية يجب أن يكون بعد وقت البداية.</div>'; return; }
+  const it = st.items.find(i => i.code === ck.code);
+  it.pickTime = {from:fmtT(a), to:fmtT(b)}; save();
+  $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`); render();
 });
 
 fill(now()); save();

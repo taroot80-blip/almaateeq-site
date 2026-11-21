@@ -271,6 +271,27 @@ textarea.field{min-height:96px;resize:vertical}
 .ptable td.n{text-align:center;font-variant-numeric:tabular-nums}
 .ptable tr.flag td{background:light-dark(#FDECEA,#3A1E1B)}
 .flagnote{font-size:13px;color:var(--warn);margin:8px 0 0;text-align:center}
+/* نماذج الرسوم: شريط 100٪، قمع، أعمدة أسبوعية، دمبل، خريطة حرارية، مستويات */
+.cap{text-align:center;font-weight:700;font-size:14.5px;margin:14px 0 6px}
+.stack{display:flex;height:30px;border-radius:8px;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.stack span{display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden}
+.funnel{display:grid;gap:4px;justify-items:center}
+.funnel div{height:30px;border-radius:6px;background:var(--green);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cols{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:12px;align-items:end;height:150px;padding:0 6px;border-bottom:1px solid var(--line)}
+.cols .g{display:flex;gap:3px;align-items:end;justify-content:center;height:100%}
+.cols .c{width:min(26px,40%);border-radius:5px 5px 0 0;position:relative;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cols .c b{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:11px}
+.colx{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:12px;font-size:12px;text-align:center;color:var(--muted);margin-top:4px}
+.dumb svg{width:100%;height:auto;display:block}
+.heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:12.5px;table-layout:fixed}
+.heat th{font-weight:700;padding:3px;font-size:12px}
+.heat td{text-align:center;border-radius:5px;padding:6px 2px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lvls div{border-radius:12px;padding:8px;text-align:center;font-size:12.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lvls b{display:block;font-size:22px}
+.lvls small{display:block;color:inherit;opacity:.85;margin-top:2px}
+#printArea .cap{font-size:12pt}
+#printArea section{break-inside:avoid}
 #printArea{display:none}
 @media print{
   @page{size:A4;margin:14mm}
@@ -739,11 +760,37 @@ const statHTML = (forPrint) => {
     <div class="kpis"><div class="kpi"><b>${k.posted}</b><span>عُرض</span></div><div class="kpi"><b>${k.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${k.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${k.returned}</b><span>أُعيد</span></div></div>
     <p class="ratio">نسبة ما أُخذ مما عُرض: <b>${pct(k.given, k.posted)}</b> · نسبة ما أُلغي: <b>${pct(k.cancelled, k.posted)}</b> · عدد الحجوزات: <b>${k.booked}</b></p>
     <p class="sample" style="margin:0">«أُعيد»: حجز لم يُستلم أو ألغاه صاحبه، فعاد الغرض أو انتقل لمن بعده.</p>
+    <section><p class="cap">مصير ما عُرض في هذه الفترة</p>${stack100([{l:'أُخذ', v:k.given, c:C.g}, {l:'أُلغي', v:k.cancelled, c:C.x}, {l:'معروض أو محجوز', v:Math.max(0, k.posted - k.given - k.cancelled), c:C.b}])}</section>
+    <section><p class="cap">من العرض إلى الأخذ</p>${funnel([{l:'عُرض', v:k.posted}, {l:'حُجز', v:k.booked}, {l:'أُخذ', v:k.given}])}</section>
     ${forPrint ? '<h3>ثانيًا: الأشخاص: الحجز والأخذ</h3>' : '<h3 style="margin-top:14px">الأشخاص هذه الفترة</h3>'}
     <div class="bars">${bars || '<p class="sample">لا حجوزات في هذه الفترة.</p>'}</div>
     <div class="legend"><span><i style="background:var(--green)"></i>أُخذ</span><span><i style="background:#9ADCE6"></i>حجز</span></div>
     ${flagged.length ? `<p class="flagnote">للنظر في أمرهم (${per === 'week' ? 'أخذوا 3 أغراض فأكثر في الأسبوع' : 'أخذوا 6 أغراض فأكثر في الشهر، أو خُمس ما أُخذ'}): ${flagged.map(o => esc(nameOf(o.p))).join('، ')}</p>` : ''}
     ${rows ? `<table class="ptable"><tr><th>الاسم</th><th>الرقم</th><th>حجز</th><th>أُخذ</th><th>أُعيد</th><th>أخذ من حجزه</th><th>من كل ما أُخذ</th></tr>${rows}</table>` : ''}`;
+};
+const C = {g:'#2D5530', x:'#B5483B', r:'#0E7490', w:'#C9A227', b:'#9ADCE6'};
+const stack100 = parts => { const tot = parts.reduce((a, p) => a + p.v, 0) || 1; return `<div class="stack">${parts.filter(p => p.v).map(p => `<span style="width:${p.v / tot * 100}%;background:${p.c}" title="${p.l}">${Math.round(p.v / tot * 100) >= 9 ? p.l + ' ' + Math.round(p.v / tot * 100) + '٪' : ''}</span>`).join('')}</div><div class="legend">${parts.map(p => `<span><i style="background:${p.c}"></i>${p.l} ${p.v}</span>`).join('')}</div>`; };
+const funnel = steps => { const mx = Math.max(1, steps[0].v); return `<div class="funnel">${steps.map((s, i) => `<div style="width:${Math.max(28, s.v / mx * 100)}%;opacity:${1 - i * .18}">${s.l}: ${s.v}${i ? ' (' + Math.round(s.v / (steps[i - 1].v || 1) * 100) + '٪)' : ''}</div>`).join('')}</div>`; };
+const weekCols = (ev, start) => {
+  const wk = [0, 1, 2, 3].map(i => ({l:'الأسبوع ' + ['الأول', 'الثاني', 'الثالث', 'الرابع'][i], g:0, x:0}));
+  for (const e of ev) { const i = Math.min(3, Math.floor((e.t - start) / (7.5 * DAY))); if (i < 0) continue; if (e.type === 'given') wk[i].g++; if (e.type === 'cancelled') wk[i].x++; }
+  const mx = Math.max(1, ...wk.map(w => Math.max(w.g, w.x)));
+  return `<div class="cols">${wk.map(w => `<div class="g"><span class="c" style="height:${w.g / mx * 100}%;background:${C.g}"><b>${w.g}</b></span><span class="c" style="height:${w.x / mx * 100}%;background:${C.x}"><b>${w.x}</b></span></div>`).join('')}</div><div class="colx">${wk.map(w => `<span>${w.l}</span>`).join('')}</div><div class="legend"><span><i style="background:${C.g}"></i>أُخذ</span><span><i style="background:${C.x}"></i>أُلغي</span></div>`;
+};
+const dumbbell = rows => {
+  const W = 640, rh = 34, top = 26, H = top + rows.length * rh + 10, x0 = 120, x1 = W - 20, X = v => x0 + (v / 100) * (x1 - x0);
+  const ticks = [0, 25, 50, 75, 100].map(v => `<line x1="${X(v)}" x2="${X(v)}" y1="${top - 8}" y2="${H - 6}" stroke="#D9E3D0"/><text x="${X(v)}" y="${top - 12}" font-size="11" text-anchor="middle" fill="#5B6857">${v}٪</text>`).join('');
+  const lines = rows.map((r, i) => { const y = top + i * rh + rh / 2, a = r.take ?? 0, b = r.cred ?? 0; return `<text x="${x0 - 10}" y="${y + 4}" font-size="13" text-anchor="end" fill="currentColor">${esc(r.name)}</text><line x1="${X(a)}" x2="${X(b)}" y1="${y}" y2="${y}" stroke="#9AA79A" stroke-width="3"/><circle cx="${X(a)}" cy="${y}" r="7" fill="${C.w}"/><circle cx="${X(b)}" cy="${y}" r="7" fill="${C.g}"/>`; }).join('');
+  return `<div class="dumb"><svg viewBox="0 0 ${W} ${H}" direction="ltr" role="img" aria-label="نسبة الأخذ والمصداقية لكل منطقة">${ticks}${lines}</svg></div><div class="legend"><span><i style="background:${C.w}"></i>نسبة الأخذ مما عُرض</span><span><i style="background:${C.g}"></i>المصداقية</span></div>`;
+};
+const heatmap = (ev, rowsKey, colsKey) => {
+  const g = ev.filter(e => e.type === 'given'), R2 = [...new Set(g.map(e => e[rowsKey]))], C2 = [...new Set(g.map(e => e[colsKey]))];
+  const v = (r, c) => g.filter(e => e[rowsKey] === r && e[colsKey] === c).length, mx = Math.max(1, ...R2.flatMap(r => C2.map(c => v(r, c))));
+  return `<table class="heat"><tr><th></th>${C2.map(c => `<th>${esc(c)}</th>`).join('')}</tr>${R2.map(r => `<tr><th style="text-align:right">${esc(r)}</th>${C2.map(c => { const n = v(r, c), a = n / mx; return `<td style="background:rgba(45,85,48,${(.08 + a * .85).toFixed(2)});color:${a > .5 ? '#fff' : 'inherit'}">${n || ''}</td>`; }).join('')}</tr>`).join('')}</table>`;
+};
+const levels = list => {
+  const L = [{n:'منتظم', d:'85٪ فأكثر', bg:'#E2EDD8', fg:'#2D5530', f:c => c >= 85}, {n:'متوسط', d:'60 إلى 84٪', bg:'#FFF3D6', fg:'#7A5B00', f:c => c >= 60 && c < 85}, {n:'ضعيف', d:'أقل من 60٪', bg:'#FDECEA', fg:'#9C3E33', f:c => c < 60}];
+  return `<div class="lvls">${L.map(l => { const m = list.filter(x => l.f(x.cred)); return `<div style="background:${l.bg};color:${l.fg}"><b>${m.length}</b>${l.n}<small>${l.d}</small></div>`; }).join('')}</div>`;
 };
 const group = (ev, key) => {
   const g = {};
@@ -772,13 +819,21 @@ const reportHTML = (forPrint) => {
       <li>من حجز ثم لم يستلم أو ألغى: ${K.returned} حجزًا من ${K.booked}.</li>
     </ul>
     <p class="sample" style="margin:6px 0 0">المصداقية: نسبة الحجوزات التي انتهت باستلام فعلي. ونسبة الأخذ: ما أُخذ مما عُرض.</p>
+    <section><p class="cap">مصير ما عُرض هذا الشهر: ${pc(K.given, K.posted)}٪ ذهب لمستفيدين</p>
+    ${stack100([{l:'أُخذ', v:K.given, c:C.g}, {l:'أُلغي', v:K.cancelled, c:C.x}, {l:'ما زال معروضًا أو محجوزًا', v:Math.max(0, K.posted - K.given - K.cancelled), c:C.b}])}</section>
+    <section><p class="cap">من العرض إلى الأخذ: كل مرحلة ونسبتها مما قبلها</p>
+    ${funnel([{l:'عُرض', v:K.posted}, {l:'حُجز', v:K.booked}, {l:'أُخذ', v:K.given}])}</section>
+    <section><p class="cap">سير الشهر أسبوعًا بأسبوع</p>${weekCols(ev, start)}</section>
     <h3>الفروق بين المناطق</h3>
     ${hbars(areas, o => o.given, o => `${o.given} أُخذ · مصداقية ${o.cred === null ? '—' : o.cred + '٪'}`)}
+    <section><p class="cap">لكل منطقة: نسبة الأخذ مما عُرض، ومصداقية الاستلام</p>${dumbbell(areas)}</section>
     ${tbl(areas)}
     <h3>الفروق بين أنواع المقتنيات</h3>
     ${hbars(cats, o => o.given, o => `${o.given} من ${o.posted}`)}
     ${tbl(cats)}
+    <section><p class="cap">ما أُخذ من كل نوع في كل منطقة (كلما اشتد اللون زاد العدد)</p>${heatmap(ev, 'area', 'cat')}</section>
     <h3>مصداقية الأشخاص</h3>
+    ${credP.length ? `<p class="cap">مستويات الأشخاص في الاستلام (لمن حجز مرتين فأكثر)</p>${levels(credP)}` : ''}
     ${credP.length ? hbars(credP.sort((a, b) => a.cred - b.cred), x => x.cred, x => `${x.cred}٪ · ${x.o.given} من ${x.o.booked}`) : '<p class="sample">لا بيانات كافية.</p>'}
     ${lowP.length ? `<p class="flagnote">مصداقيتهم أقل من 60٪ (يحجزون ولا يستلمون): ${lowP.map(x => esc(x.name)).join('، ')}</p>` : ''}`;
 };

@@ -137,7 +137,7 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .free-note{margin:8px 0;font-size:13px;color:var(--muted)}
 .empty-win{border:2px dashed var(--line);border-radius:16px;min-height:150px;font-size:13px;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted);animation:enter .45s var(--ease) both;animation-delay:calc(var(--i) * 60ms)}
 .empty-win b{display:block;color:var(--ink);font-size:15px}
-.empty-win .btn{min-height:40px;padding:4px 10px;font-size:13px}
+.empty-win .btn{min-height:38px;padding:4px 8px;font-size:12.5px;white-space:nowrap}
 .sample{font-size:13px;color:var(--muted);margin:10px 0 0}
 .demo{margin:26px 0 8px;border:1px dashed var(--line);border-radius:18px;padding:14px 16px}
 .demo h3{font-size:22px}.demo p{margin:2px 0 10px;font-size:14px;color:var(--muted)}
@@ -198,6 +198,21 @@ textarea.field{min-height:96px;resize:vertical}
 .cycle{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px;margin-top:8px}
 .cycle div{background:var(--sand);border-radius:14px;padding:10px 12px;text-align:center;font-size:14px}
 .cycle b{display:block;font:700 24px/1.2 "Markazi Text",serif;color:var(--green)}
+
+/* بريق النوافذ: ضوء يدور حول النافذة الحية، وأبطأ حول الفارغة، وزر ينبض على الغرض المتاح */
+.win,.empty-win{position:relative;isolation:isolate}
+.win.live,.win.held{border-color:transparent}
+.win.live::before,.win.held::before,.empty-win::before{content:"";position:absolute;inset:-60%;z-index:-2;animation:spin var(--ring,3.6s) linear infinite;pointer-events:none}
+.win.live::before{background:conic-gradient(from 0deg,transparent 0 62%,#22D3EE 74%,#7FE3B0 82%,transparent 92%)}
+.win.held::before{--ring:7s;background:conic-gradient(from 0deg,transparent 0 72%,#9ADCE6 84%,transparent 94%)}
+.win.live::after,.win.held::after{content:"";position:absolute;inset:2px;border-radius:18px;background:var(--paper);z-index:-1;pointer-events:none}
+.empty-win{border:0;overflow:hidden;background:none}
+.empty-win::before{--ring:11s;background:conic-gradient(from 0deg,transparent 0 78%,color-mix(in srgb,#22D3EE 55%,transparent) 88%,transparent 96%)}
+.empty-win::after{content:"";position:absolute;inset:2px;border-radius:14px;background:var(--bg);border:1px dashed var(--line);z-index:-1}
+.win.live::before{animation-duration:3.6s}.win.held::before{animation-duration:7s}.empty-win::before{animation-duration:11s}
+.grab{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:6px;padding:2px 14px;border:0;border-radius:999px;background:var(--green);color:#fff;font:700 13px/1 "Noto Naskh Arabic",serif;cursor:pointer;animation:beckon 1.6s ease-in-out infinite}
+@keyframes beckon{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(34,211,238,0)}}
+.win.open .grab{display:none}
 
 /* التوسيط العربي: العناوين والعبارات القصيرة في الوسط، والشرح الطويل من اليمين */
 .sechead{flex-direction:column;align-items:center;text-align:center}
@@ -506,13 +521,14 @@ const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.t
 const win = (it, i) => {
   const g = it.given, isOpen = open.has(it.code);
   const tag = g ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
-  return `<article class="win${g ? ' given' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
+  return `<article class="win${g ? ' given' : it.queue.length ? ' held' : ' live'}${isOpen ? ' open' : ''}" style="--i:${i}">
     <div class="pic">${picOf(it)}<span class="shows">عرض ${it.shows} من ${MAX_SHOWS}</span>${g ? '<span class="stamp">ذهب لمستفيد</span>' : ''}</div>
     <div class="sum">
       <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
       <div class="titlerow"><h3>${esc(it.title)}</h3>
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
+      ${!g && !it.queue.length ? `<button class="grab" data-book="${esc(it.code)}">احجز الآن</button>` : ''}
       ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : ''}
       <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}

@@ -109,7 +109,8 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .pic{position:relative;aspect-ratio:4/3;background:var(--mint);display:grid;place-items:center}
 .pic img{width:100%;height:100%;object-fit:cover}
 .pic svg{width:44%;color:var(--green);opacity:.85}
-.given .pic img,.given .pic svg{filter:grayscale(1);opacity:.4}
+.given .pic img,.given .pic svg,.cancelled .pic img,.cancelled .pic svg{filter:grayscale(1);opacity:.4}
+.cancelled .stamp{border-color:var(--warn);color:var(--warn)}
 .stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);border:3px solid var(--green);color:var(--green);background:color-mix(in srgb,var(--paper) 88%,transparent);padding:2px 14px;border-radius:10px;font:700 24px/1.3 "Markazi Text",serif;white-space:nowrap;animation:stamp .5s var(--ease) both}
 @keyframes stamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.25)}}
 .shows{position:absolute;inset-block-start:10px;inset-inline-start:10px;background:rgba(6,53,64,.8);color:#F0FBFD;border-radius:999px;padding:0 10px;font-size:13px}
@@ -256,7 +257,7 @@ textarea.field{min-height:96px;resize:vertical}
 
 /* التنقل */
 nav{position:fixed;inset:auto 0 0 0;z-index:6;background:var(--paper);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav .wrap{display:grid;grid-template-columns:repeat(5,1fr);padding-inline:2px}
+nav .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding-inline:2px}
 nav button{border:0;background:none;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
 nav svg{width:24px;height:24px}
 nav button[aria-current=page]{color:var(--green);font-weight:700}
@@ -307,10 +308,9 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 
     <div class="demo">
       <h3>أدوات التجربة</h3>
-      <p>لترى دورة العرض والتخزين دون انتظار، قدّم الوقت. هذه الأدوات للمعاينة فقط ولا تظهر في التطبيق.</p>
+      <p>لترى دورة العرض دون انتظار، قدّم الوقت. هذه الأدوات للمعاينة فقط ولا تظهر في التطبيق.</p>
       <div class="row">
         <button class="btn small" id="plusDay">قدّم الوقت يومًا</button>
-        <button class="btn small" id="plusWeek">قدّم الوقت أسبوعًا</button>
         <button class="btn small ghost" id="reset">أعد الأمثلة</button>
       </div>
     </div>
@@ -320,7 +320,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
   <section class="view" id="v-give">
     <form class="panel" id="giveForm" novalidate>
       <h2>اعرض غرضًا</h2>
-      <p>يدخل غرضك أول نافذة تفرغ، ويبقى معروضًا 24 ساعة. وإن لم يُؤخذ ينزل إلى المخزن ويعود بعد أسبوع، حتى ثلاث مرات.</p>
+      <p>يدخل غرضك أول نافذة تفرغ، ويبقى معروضًا 24 ساعة. والغرض يبقى عندك حتى يأتي من حجزه فيستلمه منك. وإن لم يُستلم يُكتب عليه «أُلغي»، ويبقى عندك تتصرف به.</p>
       <label for="photo">صور الغرض <span class="hint">(حتى 3 صور، والأولى تظهر على النافذة)</span></label>
       <label class="drop" id="drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
@@ -338,7 +338,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       </div>
       <datalist id="areas"><option value="سيهات"><option value="تاروت"><option value="القطيف"><option value="صفوى"></datalist>
       <label for="gPick">طريقة الاستلام</label>
-      <select class="field" id="gPick"><option>من موقعي، والنقل على المستفيد</option><option>بموعد نتفق عليه في واتساب</option></select>
+      <select class="field" id="gPick"><option>من بيتي، والنقل على المستفيد</option><option>من بيتي، بموعد نتفق عليه في واتساب</option></select>
       <label class="check"><input type="checkbox" id="gOk1"> الغرض سليم ويمكن الانتفاع به، ومطابق للصورة.</label>
       <label class="check"><input type="checkbox" id="gOk2"> أتعهد ألّا أطلب مقابلًا ولا أجرة توصيل ولا أي شرط مادي.</label>
       <button class="btn primary wide" type="submit">أعلن الغرض واحصل على الكود</button>
@@ -367,9 +367,6 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       </div>
     </form>
   </section>
-
-  <!-- المخزن -->
-  <section class="view" id="v-store"><div id="storeBox"></div></section>
 
   <!-- حول التطبيق -->
   <section class="view" id="v-about">
@@ -407,8 +404,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <div class="cycle">
         <div><b>9</b>نوافذ في كل يوم</div>
         <div><b>24 ساعة</b>عرض ثابت ثم تجديد</div>
-        <div><b>7 أيام</b>في المخزن قبل العودة</div>
-        <div><b>3 عروض</b>ثم يُعتذر عن الغرض</div>
+        <div><b>عند صاحبه</b>يُستلم منه مباشرة</div>
+        <div><b>أُلغي</b>إن لم يُستلم، ويبقى عند صاحبه</div>
       </div>
 
       <h3>القوانين</h3>
@@ -437,7 +434,6 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <button data-v="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>عرض اليوم</button>
     <button data-v="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>اعرض غرضًا</button>
     <button data-v="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l2 2 3-4"/></svg>احجز بالكود</button>
-    <button data-v="store"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 9l9-5 9 5v11H3z"/><path d="M8 20v-6h8v6"/></svg>المخزن</button>
     <button data-v="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>حسابي</button>
   </div>
 </nav>
@@ -457,8 +453,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 
 <script>
 {
-const DAY = 864e5, WEEK = 7 * DAY, SLOTS = 9, MAX_SHOWS = 3;
-const KEY = 'jisr-alataa-v4';
+const DAY = 864e5, SLOTS = 9;
+const KEY = 'jisr-alataa-v6';
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
@@ -477,7 +473,7 @@ const PREFIX = {'سيهات':'SN','تاروت':'TR','القطيف':'QT','صفو�
 /* أمثلة تجريبية */
 const seed = () => {
   const t = Date.now(), start = t - 9 * 3600e3;
-  const mk = (code, title, det, area, cond, icon, extra) => Object.assign({code, title, det, area, cond, pick:'من موقعي، والنقل على المستفيد', icon, owner:'9665000000' + String(10 + code.length + title.length).slice(-2), queue:[], status:'shown', shows:1, shownAt:start, created:start - DAY}, extra);
+  const mk = (code, title, det, area, cond, icon, extra) => Object.assign({code, title, det, area, cond, pick:'من بيت المتبرع، والنقل على المستفيد', icon, owner:'9665000000' + String(10 + code.length + title.length).slice(-2), queue:[], status:'shown', shows:1, shownAt:start, created:start - DAY}, extra);
   return {offset:0, cycleStart:start, me:null, items:[
     mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'}}),
     mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3}),
@@ -488,8 +484,8 @@ const seed = () => {
     mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books'),
     mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3}),
     mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3}),
-    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'stored',shows:1,shownAt:null,storedAt:t - 4 * DAY}),
-    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'refused',shows:3,shownAt:null,storedAt:t - 2 * DAY})
+    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null}),
+    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null})
   ]};
 };
 
@@ -513,17 +509,18 @@ const hm = ms => { ms = Math.max(0, ms); const h = Math.floor(ms / 3600e3), m = 
 const days = ms => { const d = Math.ceil(Math.max(0, ms) / DAY); return d === 1 ? 'يوم واحد' : d === 2 ? 'يومين' : d <= 10 ? `${d} أيام` : `${d} يومًا`; };
 const shown = () => st.items.filter(i => i.status === 'shown');
 
-/* محرّك الدورة: تجديد كل 24 ساعة، والمخزن، والفرص الثلاث */
+/* محرّك الدورة: عرض وأخذ فقط. تتجدد النوافذ كل 24 ساعة، وما لم يُستلم يُكتب عليه «أُلغي» ويبقى عند صاحبه */
 const fill = t => {
   let free = SLOTS - shown().length;
   const fresh = st.items.filter(i => i.status === 'waiting').sort((a, b) => a.created - b.created);
-  const back = st.items.filter(i => i.status === 'stored' && t - i.storedAt >= WEEK).sort((a, b) => a.storedAt - b.storedAt);
+  const back = [];
   for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }
 };
-const toStore = (it, t) => { it.status = it.shows >= MAX_SHOWS ? 'refused' : 'stored'; it.storedAt = t; it.queue = []; };
+const toStore = (it, t) => { it.status = 'cancelled'; it.cancelledAt = t; it.queue = []; };
 const roll = t => {
   for (const it of shown()) {
     if (it.given) it.status = 'given';
+    else if (it.cancelled) toStore(it, t);
     else if (it.queue.length) it.status = 'reserved';
     else toStore(it, t);
   }
@@ -534,7 +531,7 @@ const tick = () => {
   let changed = false;
   while (now() >= st.cycleStart + DAY) { roll(st.cycleStart + DAY); changed = true; }
   for (const it of st.items) {
-    if (!['shown', 'reserved'].includes(it.status) || it.given) continue;
+    if (!['shown', 'reserved'].includes(it.status) || it.given || it.cancelled) continue;
     while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; it.queue.shift(); changed = true; }
     if (it.status === 'reserved' && !it.queue.length) { toStore(it, now()); changed = true; }
   }
@@ -556,30 +553,30 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { tick(); if (view === 'home') renderHome(); if (view === 'store') renderStore(); if (view === 'me') renderMe(); };
+const render = () => { tick(); if (view === 'home') renderHome(); if (view === 'me') renderMe(); };
 const needLogin = () => { if (st.me) return false; toast('سجّل برقم جوالك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
 const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : ICONS[it.icon] || ICONS.box;
 const win = (it, i) => {
-  const g = it.given, isOpen = open.has(it.code);
-  const tag = g ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
-  return `<article class="win${g ? ' given' : it.queue.length ? ' held' : ' live'}${isOpen ? ' open' : ''}" style="--i:${i}">
-    <div class="pic">${picOf(it)}<span class="shows">عرض ${it.shows} من ${MAX_SHOWS}</span>${g ? '<span class="stamp">ذهب لمستفيد</span>' : ''}</div>
+  const g = it.given, x = it.cancelled, isOpen = open.has(it.code);
+  const tag = g || x ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
+  return `<article class="win${g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${isOpen ? ' open' : ''}" style="--i:${i}">
+    <div class="pic">${picOf(it)}${g ? '<span class="stamp">ذهب لمستفيد</span>' : x ? '<span class="stamp">أُلغي</span>' : ''}</div>
     <div class="sum">
       <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
       <div class="titlerow"><h3>${esc(it.title)}</h3>
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
-      ${!g && !it.queue.length ? `<button class="grab" data-book="${esc(it.code)}">احجز الآن</button>` : ''}
-      ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : ''}
+      ${!g && !x && !it.queue.length ? `<button class="grab" data-book="${esc(it.code)}">احجز الآن</button>` : ''}
+      ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : x ? '<p class="thanks">أُلغي العرض، والغرض عند صاحبه.</p>' : ''}
       <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
-        ${!g && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
-        ${g ? '' : `<p class="free-note">مجاني تمامًا، والتواصل واتساب فقط.</p>
+        ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
+        ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل واتساب فقط.</p>
           <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
       </div></div></div>
     </div></article>`;
@@ -587,7 +584,7 @@ const win = (it, i) => {
 const renderHome = () => {
   const list = shown().sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
   const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
-  $('#stats').innerHTML = `<span>في العرض <b>${list.length}</b> من ${SLOTS}</span><span>ذهب لمستفيدين <b>${given}</b></span><span>في المخزن <b>${st.items.filter(i => i.status === 'stored').length}</b></span><span>ينتظر نافذة <b>${st.items.filter(i => i.status === 'waiting').length}</b></span>`;
+  $('#stats').innerHTML = `<span>في العرض <b>${list.length}</b> من ${SLOTS}</span><span>ذهب لمستفيدين <b>${given}</b></span><span>أُلغي <b>${st.items.filter(i => i.cancelled || i.status === 'cancelled').length}</b></span><span>ينتظر نافذة <b>${st.items.filter(i => i.status === 'waiting').length}</b></span>`;
   const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
   if (!regs.includes(region)) region = 'الكل';
   $('#chips').innerHTML = regs.map(r => `<button class="chip" aria-pressed="${r === region}" data-r="${esc(r)}">${esc(r)}</button>`).join('');
@@ -621,7 +618,6 @@ const clock = () => {
 };
 setInterval(clock, 1000);
 $('#plusDay').addEventListener('click', () => { st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
-$('#plusWeek').addEventListener('click', () => { st.offset += WEEK; save(); clock(); render(); toast('مضى أسبوع'); });
 $('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأمثلة'); });
 
 /* اعرض غرضًا */
@@ -688,6 +684,7 @@ $('#bookForm').addEventListener('submit', e => {
   $('#bCode').value = code;
   const it = st.items.find(i => i.code === code);
   if (!it) { out.innerHTML = `<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`; return; }
+  if (it.cancelled || it.status === 'cancelled') { out.innerHTML = '<div class="result">أُلغي عرض هذا الغرض، وهو عند صاحبه.</div>'; return; }
   if (it.given || it.status === 'given') { out.innerHTML = '<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>'; return; }
   if (it.owner === st.me) { out.innerHTML = '<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>'; return; }
   let pos = it.queue.indexOf(st.me);
@@ -703,31 +700,8 @@ $('#bookForm').addEventListener('submit', e => {
     : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، ويصلك إشعار إن أُلغي الحجز قبلك.</div>`;
 });
 
-/* المخزن */
-const renderStore = () => {
-  const stored = st.items.filter(i => i.status === 'stored').sort((a, b) => a.storedAt - b.storedAt);
-  const waiting = st.items.filter(i => i.status === 'waiting');
-  const refused = st.items.filter(i => i.status === 'refused');
-  const row = (i, note) => `<div class="mini"><div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${note}</span></div><p>${esc(i.title)} · ${esc(i.area)}</p></div>`;
-  $('#storeBox').innerHTML = `<div class="panel">
-    <h2>المخزن</h2>
-    <p>ما لم يُؤخذ في يوم عرضه ينزل هنا، ويبقى عند صاحبه. يعود إلى نافذة بعد أسبوع في يوم لا يكفي فيه المعروض الجديد.</p>
-    <div class="rule-line"><b>24 ساعة</b><span>مدة العرض الثابت في النافذة</span></div>
-    <div class="rule-line"><b>7 أيام</b><span>أقل مدة في المخزن قبل العودة</span></div>
-    <div class="rule-line"><b>3 عروض</b><span>بعدها يُعتذر عن الغرض ولا يُقبل مرة أخرى</span></div>
-    <div class="rule-line"><b>الجديد أولًا</b><span>المعروض الجديد يتقدم على العائد من المخزن</span></div>
-    <h3 style="font-size:24px;margin-top:16px">ينتظر نافذة (${waiting.length})</h3>
-    <div class="list">${waiting.map(i => row(i, 'في الدفعة القادمة')).join('') || '<p class="sample">لا شيء.</p>'}</div>
-    <h3 style="font-size:24px;margin-top:16px">في المخزن (${stored.length})</h3>
-    <div class="list">${stored.map(i => { const w = i.storedAt + WEEK - now(); return row(i, w > 0 ? `يعود بعد ${days(w)} · عُرض ${i.shows} من ${MAX_SHOWS}` : `جاهز للعودة · عُرض ${i.shows} من ${MAX_SHOWS}`); }).join('') || '<p class="sample">المخزن فارغ.</p>'}</div>
-    <h3 style="font-size:24px;margin-top:16px">لا يُقبل مرة أخرى (${refused.length})</h3>
-    <div class="list">${refused.map(i => row(i, 'استنفد عروضه الثلاثة')).join('') || '<p class="sample">لا شيء.</p>'}</div>
-    <p class="sample">يصل صاحب الغرض المعتذر عنه شكر واعتذار لطيف.</p>
-  </div>`;
-};
-
 /* حسابي */
-const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', stored:'في المخزن', reserved:'محجوز بعد العرض', refused:'لا يُقبل مرة أخرى'})[i.status];
+const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد' : i.cancelled || i.status === 'cancelled' ? 'أُلغي، وهو عندك' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', reserved:'محجوز بعد العرض'})[i.status];
 const renderMe = () => {
   const box = $('#meBox');
   if (!st.me) {
@@ -755,19 +729,20 @@ const renderMe = () => {
   }
   const mine = st.items.filter(i => i.owner === st.me);
   const booked = st.items.filter(i => i.queue.includes(st.me));
-  const active = i => !i.given && ['shown', 'reserved'].includes(i.status) && i.queue.length;
+  const active = i => !i.given && !i.cancelled && ['shown', 'reserved'].includes(i.status) && i.queue.length;
   box.innerHTML = `<div class="panel">
     <h2>حسابي</h2><p>رقمك الموثّق: <span dir="ltr">${showPhone(st.me)}</span></p>
     <h3 style="font-size:24px">معروضاتي</h3>
     <div class="list">${mine.map(i => `<div class="mini">
       <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${stateName(i)}</span></div>
       <p>${esc(i.title)}</p>
-      ${i.status === 'refused' || i.given || i.status === 'given' ? '' : i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b><br><span class="hint">محفوظ، ولتغييره تواصل مع إدارة المبادرة.</span></p>` : `<button class="btn ghost wide" data-clock="${esc(i.code)}" style="margin:6px 0">توقيت الاستلام</button>`}
+      ${i.given || i.cancelled || ['given', 'cancelled'].includes(i.status) ? '' : i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b><br><span class="hint">محفوظ، ولتغييره تواصل مع إدارة المبادرة.</span></p>` : `<button class="btn ghost wide" data-clock="${esc(i.code)}" style="margin:6px 0">توقيت الاستلام</button>`}
       ${active(i) ? `<p>صاحب الحجز: <span dir="ltr">${showPhone(i.queue[0])}</span>، وبقي على مهلته ${hm(i.bookedAt + DAY - now())}.</p>
         <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب</a>
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
         <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
-      ${i.status === 'refused' ? '<p>الشكر الجزيل لك. عُرض الغرض ثلاث مرات ولم يُطلب، فنعتذر عن عرضه مرة أخرى.</p>' : ''}
+      ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ العرض، لم يعد متاحًا</button>` : ''}
+      ${i.cancelled || i.status === 'cancelled' ? '<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p>' : ''}
       ${i.given || i.status === 'given' ? '<p>الشكر الجزيل لك على ما قدّمت.</p>' : ''}
     </div>`).join('') || '<p class="sample">لم تعرض شيئًا بعد.</p><button class="btn ghost" data-go="give">اعرض غرضًا</button>'}</div>
     <h3 style="font-size:24px;margin-top:18px">حجوزاتي</h3>
@@ -784,7 +759,9 @@ $('#meBox').addEventListener('click', e => {
   const find = c => st.items.find(i => i.code === c);
   const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]');
   if (d) { const it = find(d.dataset.done); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
-  if (s) { const it = find(s.dataset.skip); it.queue.shift(); it.bookedAt = now(); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
+  if (s) { const it = find(s.dataset.skip); it.queue.shift(); it.bookedAt = now(); if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
+  const xc = e.target.closest('[data-xcancel]');
+  if (xc) { const it = find(xc.dataset.xcancel); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); toast('أُلغي العرض، والغرض عندك'); renderMe(); }
   if (c) { const it = find(c.dataset.cancel); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
 });
 

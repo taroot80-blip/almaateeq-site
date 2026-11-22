@@ -23,7 +23,7 @@ jobs:
         working-directory: android/jisr
         run: |
           mkdir -p app/src/main/assets
-          cp ../../apps/jisr/index.html ../../apps/jisr/hero.jpg ../../apps/jisr/manifest.json ../../apps/jisr/icon-192.png ../../apps/jisr/icon-512.png ../../apps/jisr/config.js ../../apps/jisr/privacy.html app/src/main/assets/
+          cp ../../apps/jisr/index.html ../../apps/jisr/hero.jpg ../../apps/jisr/manifest.json ../../apps/jisr/icon-192.png ../../apps/jisr/icon-512.png ../../apps/jisr/config.js ../../apps/jisr/privacy.html ../../apps/jisr/logo-96.png app/src/main/assets/ && cp -r ../../apps/jisr/demo app/src/main/assets/
           gradle :app:assembleRelease --no-daemon --stacktrace
           mkdir -p ../../out && cp app/build/outputs/apk/release/app-release.apk ../../out/jisr-alataa.apk
       - uses: actions/upload-artifact@v4

@@ -1,5 +1,5 @@
-const CACHE = 'jisr-alataa-v9';
-const FILES = ['./', './index.html', './config.js', './privacy.html', './hero.jpg', './manifest.json', './icon-192.png', './icon-512.png'];
+const CACHE = 'jisr-alataa-v10';
+const FILES = ['./', './index.html', './config.js', './privacy.html', './logo-96.png', './hero.jpg', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 /* الشبكة أولًا: يظهر آخر تحديث دائمًا، والنسخة المحفوظة تُستعمل فقط حين ينقطع الإنترنت */

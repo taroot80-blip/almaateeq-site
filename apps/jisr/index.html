@@ -38,8 +38,8 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* الرأس */
 header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .top{display:flex;align-items:center;gap:12px;padding-block:10px}
-.logo{width:46px;height:46px;border-radius:50%;background:var(--green);display:grid;place-items:center;flex:none}
-.logo svg{width:28px;height:28px;transform-origin:50% 85%;animation:sway var(--live) ease-in-out infinite alternate}
+.logo{width:50px;height:50px;border-radius:50%;background:#fff;border:1.5px solid var(--line);display:grid;place-items:center;flex:none;overflow:hidden}
+.logo img{width:44px;height:44px;border-radius:50%;transform-origin:50% 85%;animation:sway var(--live) ease-in-out infinite alternate}
 @keyframes sway{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
 .brand h1{font-size:29px}.brand p{margin:0;font-size:14px;color:var(--muted)}
 .status{margin-inline-start:auto;display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted);white-space:nowrap}
@@ -186,6 +186,7 @@ textarea.field{min-height:96px;resize:vertical}
 .result .code{font-size:34px;display:block;text-align:center;margin:6px 0}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.row .btn{flex:1 1 150px}
 body.srv .demo-only,body:not(.srv) .srv-only{display:none!important}
+.pic .nopic{position:absolute;top:6px;inset-inline:6px;font-size:12px;text-align:center;color:var(--muted);background:#ffffffd9;border-radius:8px;padding:1px 4px}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -350,7 +351,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 <header id="hdr">
   <div class="wrap top">
     <div class="logo" aria-hidden="true" style="cursor:pointer">
-      <svg viewBox="0 0 40 40" fill="#fff"><path d="M20 36V14" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M20 22c-8 0-13-5-13-12 7 0 13 4 13 12z"/><path d="M20 18c7 0 12-5 12-11-7 0-12 4-12 11z" opacity=".8"/></svg>
+      <img src="logo-96.png" alt="" width="44" height="44">
     </div>
     <div class="brand"><h1>جسر العطاء</h1><p>تدوير المقتنيات لمن ينتفع بها</p></div>
     <div class="status" role="status"><span class="dot"></span><span id="statusText">المنصة تعمل</span></div>
@@ -414,21 +415,24 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
     <form class="panel" id="giveForm" novalidate>
       <h2>اعرض غرضًا</h2>
       <p>يدخل غرضك أول نافذة تفرغ، ويبقى معروضًا 24 ساعة. والغرض يبقى عندك حتى يأتي من حجزه فيستلمه منك. وإن لم يُستلم يُكتب عليه «أُلغي»، ويبقى عندك تتصرف به.</p>
-      <label for="photo">صور الغرض <span class="hint">(حتى 3 صور، والأولى تظهر على النافذة)</span></label>
+      <label for="photo">صور الغرض <span class="hint">(اختيارية، حتى 3 صور، والأولى تظهر على النافذة)</span></label>
       <label class="drop" id="drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
         <b>صوّر الغرض أو اختر صوره</b><span>اضغط هنا، ويفتح لك الجوال الكاميرا أو الاستوديو</span>
         <input type="file" accept="image/*" id="photo" multiple>
       </label>
       <div class="thumbs" id="thumbs"></div>
-      <p class="sample" style="text-align:right;margin:6px 0 0">الصورة هي الشرح: صوّر الغرض كاملًا وبوضوح، ومن أكثر من جهة إن أمكن، وأظهر أي عيب فيه.</p>
+      <p class="sample" style="text-align:right;margin:6px 0 0">الصورة هي الشرح: صوّر الغرض كاملًا وبوضوح، وأظهر أي عيب فيه. وإن لم تكن عندك صورة فاكتب تفصيلًا قصيرًا تحت التصنيف، ويُكتب على الإعلان «لا توجد صور».</p>
       <label>التصنيف</label>
       <div class="pick tiles" id="pCat"></div>
       <div id="pSubWrap" hidden><label>الغرض</label><div class="pick" id="pSub"></div></div>
+      <label for="gNote">تفصيل قصير <span class="hint">(اختياري، مثل المقاس أو العدد)</span></label>
+      <input class="field" id="gNote" maxlength="60" placeholder="مثلًا: مقاس M (10-12 UK)">
       <label>الحالة</label>
       <div class="pick" id="pCond"></div>
       <label>المنطقة</label>
       <div class="pick" id="pArea"></div>
+      <div id="pNbWrap" hidden><label>الحي</label><div class="pick" id="pNb"></div></div>
       <label>طريقة الاستلام</label>
       <div class="pick" id="pPick"></div>
       <label>وقت الاستلام المناسب لك</label>
@@ -560,7 +564,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 <script>
 {
 const DAY = 864e5, SLOTS = 9;
-const KEY = 'jisr-alataa-v9';
+const KEY = 'jisr-alataa-v10';
 const PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
 const S = 'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
@@ -594,8 +598,16 @@ const TAX = {
 };
 const CATS = Object.keys(TAX);
 const AREAS = ['تاروت','القطيف','سيهات','العوامية','صفوى','الأوجام','أم الحمام','الجارودية','الجش','أم الساهك','القديح','الدمام'];
-const CONDS = ['ممتازة','جيدة ونظيفة','فيها عيب بسيط يظهر في الصورة'];
+const CONDS = ['جديد','نظيف','ممتاز','فيه عيب بسيط موضّح'];
 const PICKS = ['من بيتي، والنقل على المستفيد','من بيتي، بموعد نتفق عليه في واتساب'];
+/* الأحياء: الحي ← حرفه في الكود. الكود = حرف المدينة + حرف الحي، مثل TM-1012 لتاروت/المناخ.
+   تُكمل القائمة بأحياء كل منطقة كما تستعملها المبادرة. */
+const TOWN = {'تاروت':'T','سيهات':'S','القطيف':'Q','العوامية':'A','صفوى':'F','الأوجام':'O','أم الحمام':'H','الجارودية':'J','الجش':'G','أم الساهك':'U','القديح':'D','الدمام':'M'};
+const NBH = {
+  'تاروت':{'المناخ':'M','تركيه':'T'},
+  'سيهات':{'حي النور':'N'}
+};
+const GROUP = {name:'جسر العطاء الثاني 2️⃣', link:'https://chat.whatsapp.com/Jlydg5jeog868RHfjUVbLS'};
 const PREFIX = {'تاروت':'TR','القطيف':'QT','سيهات':'SN','العوامية':'AW','صفوى':'SF','الأوجام':'AJ','أم الحمام':'UH','الجارودية':'JR','الجش':'JS','أم الساهك':'US','القديح':'QD','الدمام':'DM'};
 
 /* أمثلة تجريبية */
@@ -616,17 +628,19 @@ const seed = () => {
     else log.push({t:tt + DAY, type:'cancelled', code, who:null, ...ex});
   }
   return {offset:0, cycleStart:start, me:null, people, log, items:[
-    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','جيدة ونظيفة','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'},cat:'أثاث منزلي ومكتبي'}),
-    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','جيدة ونظيفة','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3,cat:'أثاث منزلي ومكتبي'}),
+    mk('TT-7148','حليب أطفال للخدج','حليب أطفال للخدج، النوع موضح بالصورة.','تاروت / تركيه','جديد','box',{photos:['demo/tt-7148.jpg'],cat:'مواد غذائية وحليب أطفال'}),
+    mk('TM-1012','ملابس نسائية','ملابس نسائية، مقاس M (10-12 UK).','تاروت / المناخ','نظيف','box',{cat:'ملابس وأقمشة'}),
+    mk('SN-5504','سرير نفر ونصف','سرير خشبي نظيف بلا مرتبة، مفكوك وجاهز للنقل. يحتاج سيارة متوسطة.','سيهات / حي النور','نظيف','bed',{pickTime:{from:'4:00 مساءً',to:'7:30 مساءً'},cat:'أثاث منزلي ومكتبي'}),
+    mk('QT-5780','مرتبة متر ونصف','مرتبة إسفنجية نظيفة مقاس متر ونصف، استعمال سنة واحدة.','تاروت / تركيه','نظيف','mattress',{queue:['966500000099'],bookedAt:t - 2 * 3600e3,cat:'أثاث منزلي ومكتبي'}),
     mk('SF-2217','كراسي بلاستيك عدد 4','أربعة كراسي بيضاء تصلح للحوش أو للمناسبات.','صفوى','ممتازة','chair',{given:true,givenAt:t - 3600e3,cat:'أخرى ومتنوعات'}),
-    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيها عيب بسيط موضّح','table',{shows:2,cat:'أثاث منزلي ومكتبي'}),
-    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','جيدة ونظيفة','washer',{cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
-    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','جيدة ونظيفة','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3,cat:'مستلزمات أطفال ومواليد'}),
+    mk('QT-3091','طاولة دراسة خشبية','طاولة دراسة صغيرة لطفل، فيها خدش بسيط على السطح موضّح في الصورة.','القطيف','فيه عيب بسيط موضّح','table',{shows:2,cat:'أثاث منزلي ومكتبي'}),
+    mk('SN-4410','غسالة ملابس تعمل','غسالة عادية بحوضين تعمل جيدًا، والمستفيد يتكفل بنقلها.','سيهات','نظيف','washer',{cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
+    mk('TR-7725','عربة أطفال','عربة أطفال قابلة للطي، العجلات سليمة.','تاروت','نظيف','stroller',{queue:['966500000088','966500000077'],bookedAt:t - 5 * 3600e3,cat:'مستلزمات أطفال ومواليد'}),
     mk('SF-6038','كتب الصف الخامس','كتب مدرسية للصف الخامس الابتدائي، الفصل الأول، بحالة نظيفة.','صفوى','ممتازة','books',{cat:'مستلزمات أطفال ومواليد'}),
-    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','جيدة ونظيفة','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3,cat:'أخرى ومتنوعات'}),
-    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','جيدة ونظيفة','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3,cat:'أثاث منزلي ومكتبي'}),
-    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','جيدة ونظيفة','box',{status:'cancelled',shows:1,shownAt:null,cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
-    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيها عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null,cat:'أثاث منزلي ومكتبي'})
+    mk('JA-1182','ستائر غرفة','ستارتان بلون بيج، عرض كل منهما متر ونصف.','الجش','نظيف','box',{status:'waiting',shows:0,shownAt:null,created:t - 3600e3,cat:'أخرى ومتنوعات'}),
+    mk('QT-9054','مكتبة صغيرة','مكتبة خشبية بثلاثة رفوف.','القطيف','نظيف','books',{status:'waiting',shows:0,shownAt:null,created:t - 1800e3,cat:'أثاث منزلي ومكتبي'}),
+    mk('SN-2290','مدفأة كهربائية','مدفأة تعمل، بلا الكرتون الأصلي.','سيهات','نظيف','box',{status:'cancelled',shows:1,shownAt:null,cat:'أجهزة كهربائية وإلكترونية ورياضية'}),
+    mk('TR-3317','دولاب حديد','دولاب حديد بابين، فيه صدأ بسيط.','تاروت','فيه عيب بسيط موضّح','box',{status:'cancelled',shows:1,shownAt:null,cat:'أثاث منزلي ومكتبي'})
   ]};
 };
 
@@ -738,7 +752,7 @@ const needLogin = () => { if (st.me) return false; toast('سجّل برقم جو
 
 /* عرض اليوم */
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
-const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : ICONS[it.icon] || ICONS.box;
+const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : (ICONS[it.icon] || ICONS.box) + '<span class="nopic">لا توجد صور</span>';
 const win = (it, i) => {
   const g = it.given, x = it.cancelled, isOpen = open.has(it.code);
   const tag = g || x ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
@@ -756,6 +770,7 @@ const win = (it, i) => {
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
+        ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
           <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
       </div></div></div>
@@ -982,12 +997,16 @@ const drop = $('#drop');
 ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
 drop.addEventListener('drop', e => { e.preventDefault(); addFiles(e.dataTransfer.files); });
 $('#thumbs').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { photos.splice(+b.dataset.rm, 1); drawThumbs(); } });
+const prefixOf = area => {
+  const [town, nb] = area.split('/').map(x => x.trim());
+  return nb && TOWN[town] && NBH[town] && NBH[town][nb] ? TOWN[town] + NBH[town][nb] : PREFIX[town] || 'JA';
+};
 const newCode = area => {
-  const pre = PREFIX[area.split('/')[0].trim()] || 'JA';
+  const pre = prefixOf(area);
   let c; do { c = pre + '-' + (1000 + Math.floor(Math.random() * 9000)); } while (st.items.some(i => i.code === c));
   return c;
 };
-const sel = {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null};
+const sel = {cat:'', sub:'', cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null};
 const chips = (box, list, key, after) => {
   $(box).innerHTML = list.map(v => `<button type="button" aria-pressed="${sel[key] === v}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
   $(box).onclick = e => { const b = e.target.closest('button'); if (!b) return; sel[key] = b.dataset.v; if ($('#giveResult .err')) $('#giveResult').innerHTML = ''; chips(box, list, key, after); if (after) after(); };
@@ -996,29 +1015,32 @@ const drawPicks = () => {
   chips('#pCat', CATS, 'cat', () => { sel.sub = ''; drawSub(); });
   drawSub();
   chips('#pCond', CONDS, 'cond');
-  chips('#pArea', AREAS, 'area');
+  chips('#pArea', AREAS, 'area', () => { sel.nb = ''; drawNb(); });
+  drawNb();
   chips('#pPick', PICKS, 'pick');
 };
+const drawNb = () => { const l = NBH[sel.area] ? Object.keys(NBH[sel.area]) : []; $('#pNbWrap').hidden = !l.length; if (l.length) chips('#pNb', l, 'nb'); };
 const drawSub = () => { $('#pSubWrap').hidden = !sel.cat; if (sel.cat) chips('#pSub', TAX[sel.cat], 'sub'); };
 drawPicks();
 $('#formClock').addEventListener('click', () => openClock(null));
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   if (needLogin()) return;
-  const out = $('#giveResult'), area = sel.area, title = sel.sub || sel.cat;
-  const miss = [!photos.length && 'صورة الغرض', !sel.cat && 'التصنيف', sel.cat && TAX[sel.cat].length > 1 && !sel.sub && 'الغرض', !area && 'المنطقة'].filter(Boolean);
+  const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = sel.sub || sel.cat, note = $('#gNote').value.trim();
+  const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cat && 'التصنيف', sel.cat && TAX[sel.cat].length > 1 && !sel.sub && 'الغرض', !area && 'المنطقة'].filter(Boolean);
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
-  if (SRV) { postSrv(out, title, area, e.target); return; }
+  if (SRV) { postSrv(out, title, area, e.target, note); return; }
   const code = newCode(area);
-  st.items.push({code, title, det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, area, cond:sel.cond, pick:sel.pick, cat:sel.cat, pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  st.items.push({code, title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cat, pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
   logEv('posted', code, st.me);
   fill(now()); save();
   postDone(out, st.items.find(i => i.code === code), e.target);
 });
+const detOf = (title, note) => note ? `${title}، ${note}.` : `${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`;
 const dataBlob = u => fetch(u).then(r => r.blob());
-const postSrv = async (out, title, area, form) => {
-  const btn = form.querySelector('[type=submit]'); btn.disabled = true; out.innerHTML = '<div class="result">جارٍ رفع الصور ونشر الإعلان…</div>';
+const postSrv = async (out, title, area, form, note) => {
+  const btn = form.querySelector('[type=submit]'); btn.disabled = true; out.innerHTML = `<div class="result">${photos.length ? 'جارٍ رفع الصور ونشر الإعلان…' : 'جارٍ نشر الإعلان…'}</div>`;
   try {
     const {data:{user}} = await sb.auth.getUser(); if (!user) { out.innerHTML = `<div class="result err">${ERR.login}</div>`; return; }
     const urls = [];
@@ -1028,7 +1050,7 @@ const postSrv = async (out, title, area, form) => {
       if (up.error) throw up.error;
       urls.push(sb.storage.from('jisr').getPublicUrl(path).data.publicUrl);
     }
-    const r = await api('jisr_post', {_title:title, _det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cat, _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
+    const r = await api('jisr_post', {_prefix:prefixOf(area), _title:title, _det:detOf(title, note), _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cat, _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
     if (r.err) { out.innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
     await pull(true);
     postDone(out, st.items.find(i => i.code === r.code) || {code:r.code, status:r.status, pickTime:sel.pickTime}, form);
@@ -1039,10 +1061,28 @@ const postDone = (out, it, form) => {
   const code = it.code;
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
-    ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div><div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
-  form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'جيدة ونظيفة', area:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
+    ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div>
+    <div class="row"><button class="btn ghost" type="button" data-wapost="${code}">انسخ الإعلان لواتساب</button><button class="btn ghost" type="button" data-washare="${code}">شاركه في واتساب</button></div>
+    <div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
+  form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
 };
+/* نص الإعلان بصيغة مجموعة واتساب */
+const waPost = it => [
+  `${it.code}⬅️`, 'للحجز أرسل هذا الكود فقط ⬆️', '',
+  `📍${(it.det || it.title).replace(/ من تصنيف «.*$/, '').replace(/\.$/, '')}`, '',
+  `الحالة: ${it.cond}💫`,
+  pics(it).length ? 'النوع موضح بالصورة 📸' : '🚫لايوجد صور 📸', '',
+  '🚫 📞يمنع الاتصال بأي شكل', 'التواصل واتساب فقط', '',
+  '🚗 الاستلام على المستفيد من:', `*${it.area.replace(/\s*\/\s*/g, '-')}*`,
+  ...(it.pickTime ? [`⏰ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`] : []), '',
+  '⛔️ الحجز يلغى بعد 24 ', 'ساعة إذا لم يتم الاستلام', '',
+  GROUP.name, GROUP.link
+].join('\n');
+const copyText = (t, ok) => { try { navigator.clipboard.writeText(t).then(() => toast(ok), () => toast('لم يُنسخ، فاستعمل زر المشاركة')); } catch(err) { toast('لم يُنسخ، فاستعمل زر المشاركة'); } };
 document.addEventListener('click', e => {
+  const wp = e.target.closest('[data-wapost]'), ws = e.target.closest('[data-washare]');
+  if (wp || ws) { const it = st.items.find(i => i.code === (wp || ws).dataset[wp ? 'wapost' : 'washare']); if (!it) return;
+    if (wp) copyText(waPost(it), 'نُسخ الإعلان، فالصقه في مجموعة واتساب'); else window.open('https://wa.me/?text=' + encodeURIComponent(waPost(it)), '_blank', 'noopener'); return; }
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
   if (e.target.closest('[data-soon]')) toast('صفحة «حول البرنامج» قريبًا: عن المصمم والجهة القائمة على المبادرة');
   const c = e.target.closest('[data-copy]');

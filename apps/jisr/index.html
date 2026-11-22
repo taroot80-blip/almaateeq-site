@@ -187,6 +187,11 @@ textarea.field{min-height:96px;resize:vertical}
 .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.row .btn{flex:1 1 150px}
 body.srv .demo-only,body:not(.srv) .srv-only{display:none!important}
 .pic .nopic{position:absolute;top:6px;inset-inline:6px;font-size:12px;text-align:center;color:var(--muted);background:#ffffffd9;border-radius:8px;padding:1px 4px}
+a.btn{color:inherit;text-decoration:none;text-align:center}
+.biglogo{display:block;width:180px;max-width:60%;height:auto;margin:4px auto 8px}
+.aboutprog{background:var(--paper,#fff);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin:10px 0;text-align:center}
+.aboutprog .biglogo{width:130px}
+.aboutprog p{text-align:right}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -470,8 +475,16 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
   <!-- حول التطبيق -->
   <section class="view" id="v-about">
     <article class="panel about">
+      <img class="biglogo" src="logo.webp" alt="شعار جسر العطاء" width="200" height="202">
       <h2>تعليمات جسر العطاء</h2>
-      <button class="btn ghost wide soon" type="button" data-soon>حول البرنامج<span class="tag">قريبًا</span></button>
+      <button class="btn ghost wide" type="button" id="aboutProgBtn" aria-expanded="false" aria-controls="aboutProg">حول البرنامج</button>
+      <div class="aboutprog" id="aboutProg" hidden>
+        <img class="biglogo" src="logo.webp" alt="شعار جسر العطاء" width="150" height="152">
+        <h3>حول البرنامج</h3>
+        <p>جسر العطاء مبادرة خيرية تطوعية فردية لتدوير المقتنيات: ما زاد عن حاجتك يصل إلى من ينتفع به، دون مال ولا مقابل، برجاء الثواب.</p>
+        <p>تعمل المبادرة عبر مجموعتي واتساب «جسر العطاء الأول» و«جسر العطاء الثاني»، وعبر هذه المنصة.</p>
+        <p class="sample">تفاصيل المصمم والجهة القائمة على المبادرة تُضاف قريبًا.</p>
+      </div>
       <a class="btn ghost wide" href="privacy.html" style="margin-top:8px">سياسة الخصوصية</a>
       <div class="nomoney" role="note">
         <h3>لا مال في جسر العطاء</h3>
@@ -1084,7 +1097,7 @@ document.addEventListener('click', e => {
   if (wp || ws) { const it = st.items.find(i => i.code === (wp || ws).dataset[wp ? 'wapost' : 'washare']); if (!it) return;
     if (wp) copyText(waPost(it), 'نُسخ الإعلان، فالصقه في مجموعة واتساب'); else window.open('https://wa.me/?text=' + encodeURIComponent(waPost(it)), '_blank', 'noopener'); return; }
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
-  if (e.target.closest('[data-soon]')) toast('صفحة «حول البرنامج» قريبًا: عن المصمم والجهة القائمة على المبادرة');
+  const ab = e.target.closest('#aboutProgBtn'); if (ab) { const o = $('#aboutProg').hidden; $('#aboutProg').hidden = !o; ab.setAttribute('aria-expanded', o); }
   const c = e.target.closest('[data-copy]');
   if (c) { try { navigator.clipboard.writeText(c.dataset.copy).then(() => toast('نُسخ الكود'), () => toast('انسخه يدويًا: ' + c.dataset.copy)); } catch(err) { toast('انسخه يدويًا: ' + c.dataset.copy); } }
   const g = e.target.closest('[data-go]'); if (g) go(g.dataset.go);

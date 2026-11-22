@@ -15,6 +15,8 @@ create table if not exists jisr_settings (
   max_active int not null default 3                 -- أقصى عدد حجوزات نشطة (الأول في الدور) للشخص
 );
 insert into jisr_settings (id) values (1) on conflict do nothing;
+-- أين تُنشر المعروضات: المنصة فقط، أو واتساب فقط، أو كلاهما (تتحكم فيه الإدارة)
+alter table jisr_settings add column if not exists wa_mode text not null default 'both';
 
 create table if not exists jisr_profiles (
   phone text primary key,                -- بصيغة 9665xxxxxxxx
@@ -46,6 +48,7 @@ create table if not exists jisr_items (
   shown_at timestamptz, booked_at timestamptz, given_at timestamptz, cancelled_at timestamptz
 );
 alter table jisr_items add column if not exists cancels int not null default 0;  -- كم مرة أُلغي الحجز الأول
+alter table jisr_items add column if not exists wa_sent_at timestamptz;          -- متى نُشر في مجموعة واتساب (مرة واحدة)
 create index if not exists jisr_items_status on jisr_items (status);
 create index if not exists jisr_items_owner on jisr_items (owner);
 
@@ -169,12 +172,12 @@ begin
   select json_build_object(
     'serverNow', floor(extract(epoch from now()) * 1000),
     'cycleStart', floor(extract(epoch from s.cycle_start) * 1000),
-    'slots', s.slots, 'me', me, 'profile', prof,
+    'slots', s.slots, 'me', me, 'profile', prof, 'waMode', s.wa_mode,
     'items', coalesce((select json_agg(json_build_object(
         'code', i.code, 'title', i.title, 'det', i.det, 'area', i.area, 'cond', i.cond, 'pick', i.pick,
         'cat', i.cat, 'icon', i.icon, 'photos', i.photos,
         'pickTime', case when i.pick_from is null then null else json_build_object('from', i.pick_from, 'to', i.pick_to) end,
-        'status', i.status, 'given', i.given, 'cancelled', i.cancelled, 'shows', i.shows, 'cancels', i.cancels,
+        'status', i.status, 'given', i.given, 'cancelled', i.cancelled, 'shows', i.shows, 'cancels', i.cancels, 'waSent', case when adm or i.owner = me then i.wa_sent_at is not null end,
         'created', floor(extract(epoch from i.created) * 1000),
         'shownAt', floor(extract(epoch from i.shown_at) * 1000),
         'bookedAt', floor(extract(epoch from i.booked_at) * 1000),
@@ -185,7 +188,7 @@ begin
         'queue', case when adm then to_json(i.queue) end
       ) order by i.created)
       from jisr_items i
-      where i.status = 'shown' or (me is not null and (i.owner = me or me = any(i.queue)))
+      where (i.status = 'shown' and s.wa_mode <> 'whatsapp') or (me is not null and (i.owner = me or me = any(i.queue)))
          or (adm and i.created > now() - interval '62 days')), '[]'::json),
     'log', case when adm then coalesce((select json_agg(json_build_object('t', floor(extract(epoch from e.t) * 1000), 'type', e.type, 'code', e.code, 'who', e.who, 'area', e.area, 'cat', e.cat) order by e.t)
         from jisr_events e where e.t > now() - interval '62 days'), '[]'::json) end,
@@ -320,6 +323,10 @@ begin
     insert into jisr_profiles (phone) values (_arg) on conflict do nothing;
     update jisr_profiles set is_admin = (_act = 'admin') where phone = _arg and phone <> me;
   elsif _act = 'unlock_time' then update jisr_items set pick_from = null, pick_to = null where code = _arg;
+  elsif _act = 'wa_mode' then
+    if _arg not in ('platform','whatsapp','both') then return json_build_object('err', 'bad_action'); end if;
+    update jisr_settings set wa_mode = _arg where id = 1;
+  elsif _act = 'wa_sent' then update jisr_items set wa_sent_at = coalesce(wa_sent_at, now()) where code = _arg;
   else return json_build_object('err', 'bad_action');
   end if;
   return json_build_object('ok', true);

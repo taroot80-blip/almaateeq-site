@@ -197,6 +197,8 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .heldbox button.sure,[data-cancel].sure{background:#b3261e;color:#fff;white-space:normal;line-height:1.4}
 .grab.held{background:var(--mint);color:var(--ink);opacity:.8;cursor:not-allowed;box-shadow:none;animation:none}
 .cnt{margin:6px 0 0;text-align:center;font-size:13px;font-weight:700;color:#b45309}
+.waq{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line);text-align:right}
+.waq small{color:var(--muted)}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -412,6 +414,11 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
         <div class="row"><button class="btn small ghost" data-adm="unlock_time">افتح تعديل وقت الاستلام</button></div>
         <div class="row"><button class="btn small ghost" id="cleanPhotos">احذف صور ما انتهى منذ أسبوع</button></div>
       </div>
+      <h3 style="margin-top:16px">النشر في مجموعة واتساب</h3>
+      <p class="hint" style="margin:0 0 6px">أين تظهر المعروضات الجديدة:</p>
+      <div class="pick" id="waMode" role="radiogroup" aria-label="مكان النشر"></div>
+      <p class="sample" id="waModeNote" style="text-align:right"></p>
+      <div id="waQueue"></div>
       <h3 style="margin-top:16px">الإحصاء</h3>
       <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
       <div id="statBox"></div>
@@ -625,6 +632,7 @@ const NBH = {
   'تاروت':{'المناخ':'M','تركيه':'T'},
   'سيهات':{'حي النور':'N'}
 };
+const SITE = 'https://almaateeq.com/jisr/';
 const GROUP = {name:'جسر العطاء الثاني 2️⃣', link:'https://chat.whatsapp.com/Jlydg5jeog868RHfjUVbLS'};
 const PREFIX = {'تاروت':'TR','القطيف':'QT','سيهات':'SN','العوامية':'AW','صفوى':'SF','الأوجام':'AJ','أم الحمام':'UH','الجارودية':'JR','الجش':'JS','أم الساهك':'US','القديح':'QD','الدمام':'DM'};
 
@@ -671,7 +679,7 @@ const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, 
 const save = () => { if (SRV) return; mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
 /* تحويل ما يرسله الخادم إلى صيغة الواجهة: قائمة الحجز لا تحمل إلا ما يحق لك رؤيته */
-const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, profile:d.profile || null, people:d.people || {}, log:d.log || [],
+const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', profile:d.profile || null, people:d.people || {}, log:d.log || [],
   items:(d.items || []).map(x => { const q = x.queue || Array(x.queueLen).fill('~'); if (!x.queue) { if (x.first) q[0] = x.first; if (x.myPos >= 0) q[x.myPos] = d.me; } return Object.assign({}, x, {owner:x.owner || '~', queue:q}); })});
 const api = async (fn, args) => {
   const {data, error} = await sb.rpc(fn, args || {});
@@ -701,6 +709,7 @@ const ERR = {
 const errMsg = r => ERR[r.err] || 'لم يتم الطلب، حاول مرة أخرى.';
 let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', pendingEmail = '', photos = [];
 const open = new Set();
+let wantCode = null; const linked = new Set();   // رابط غرض قادم من إعلان واتساب
 
 const now = () => Date.now() + st.offset;
 /* سجل الأحداث للإحصاء: posted عُرض، booked حجز، given أُخذ، cancelled أُلغي، returned أُعيد (حجز لم يُستلم فعاد أو انتقل) */
@@ -719,6 +728,26 @@ const wa = (p, msg) => `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
 const hm = ms => { ms = Math.max(0, ms); const h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3); return h ? `${h} ساعة و${m} دقيقة` : `${m} دقيقة`; };
 const days = ms => { const d = Math.ceil(Math.max(0, ms) / DAY); return d === 1 ? 'يوم واحد' : d === 2 ? 'يومين' : d <= 10 ? `${d} أيام` : `${d} يومًا`; };
 const shown = () => st.items.filter(i => i.status === 'shown');
+/* مكان النشر وطابور واتساب للإدارة */
+const WA_MODES = {platform:'المنصة فقط', whatsapp:'واتساب فقط', both:'المنصة وواتساب'};
+const WA_NOTE = {
+  platform:'تظهر المعروضات في نوافذ المنصة، ولا تدخل طابور واتساب.',
+  whatsapp:'لا تظهر المعروضات في نوافذ المنصة للعامة، وتدخل طابور واتساب. ويبقى الحجز بالكود متاحًا في المنصة.',
+  both:'تظهر المعروضات في المنصة، وتدخل طابور واتساب لتُنشر في المجموعة مرة واحدة.'
+};
+const waMode = () => st.waMode || 'both';
+const renderWa = () => {
+  if (!isAdmin()) return;
+  const m = waMode();
+  $('#waMode').innerHTML = Object.entries(WA_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === m}" aria-checked="${k === m}" data-wamode="${k}">${v}</button>`).join('');
+  $('#waModeNote').textContent = WA_NOTE[m];
+  if (m === 'platform') { $('#waQueue').innerHTML = ''; return; }
+  const q = st.items.filter(i => (i.status === 'shown' || i.status === 'waiting') && !i.given && !i.cancelled && !i.waSent && !i.waSentAt);
+  const sent = st.items.filter(i => (i.waSent || i.waSentAt) && (i.status === 'shown' || i.status === 'waiting')).length;
+  $('#waQueue').innerHTML = `<p class="hint" style="margin:8px 0 6px">بانتظار النشر: ${q.length} · نُشر: ${sent}</p>` + (q.map(i =>
+    `<div class="waq"><div><span class="code">${esc(i.code)}</span> ${esc(i.title)}<br><small>${esc(i.area)}${pics(i).length ? ' · بالصور' : ' · بلا صور'}</small></div>
+      <button class="btn small primary" type="button" data-wasend="${esc(i.code)}">انشر في واتساب</button></div>`).join('') || '<p class="sample">لا شيء بانتظار النشر.</p>');
+};
 
 /* محرّك الدورة: عرض وأخذ فقط. تتجدد النوافذ كل 24 ساعة، وما لم يُستلم يُكتب عليه «أُلغي» ويبقى عند صاحبه */
 const fill = t => {
@@ -765,7 +794,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); } if (view === 'me') renderMe(); };
+const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe(); };
 const needLogin = () => { if (st.me) return false; toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
@@ -800,7 +829,7 @@ const win = (it, i) => {
     </div></article>`;
 };
 const renderHome = () => {
-  const list = shown().sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
+  const list = shown().filter(i => waMode() !== 'whatsapp' || isAdmin() || i.owner === st.me || i.queue.includes(st.me) || linked.has(i.code)).sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
   const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
   const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
   if (!regs.includes(region)) region = 'الكل';
@@ -808,8 +837,10 @@ const renderHome = () => {
   const q = $('#q').value.trim().replace(/ى/g, 'ي').toUpperCase();
   const vis = list.filter(i => region === 'الكل' || i.area.startsWith(region)).filter(i => !q || (i.title + i.area + i.code + i.det).replace(/ى/g, 'ي').toUpperCase().includes(q));
   let html = vis.map(win).join('');
-  if (!q && region === 'الكل') for (let k = list.length; k < SLOTS; k++) html += `<div class="empty-win" style="--i:${k}"><div><b>نافذة فارغة</b>تنتظر غرضًا جديدًا<br><button class="btn small ghost" data-go="give" style="margin-top:10px">اعرض غرضًا</button></div></div>`;
+  if (waMode() === 'whatsapp' && !isAdmin()) html += `<div class="panel" style="grid-column:1/-1;text-align:center"><h3>المعروضات تُنشر في مجموعة واتساب</h3><p>تابع الإعلانات في المجموعة، ثم احجز هنا بالكود من «احجز بالكود».</p><div class="row" style="justify-content:center"><a class="btn primary" href="${GROUP.link}" target="_blank" rel="noopener">افتح ${GROUP.name}</a><button class="btn ghost" type="button" data-go="book">احجز بالكود</button></div></div>`;
+  else if (!q && region === 'الكل') for (let k = list.length; k < SLOTS; k++) html += `<div class="empty-win" style="--i:${k}"><div><b>نافذة فارغة</b>تنتظر غرضًا جديدًا<br><button class="btn small ghost" data-go="give" style="margin-top:10px">اعرض غرضًا</button></div></div>`;
   $('#grid').innerHTML = html || '<p class="sample">لا نتائج. جرّب كلمة أخرى.</p>';
+  if (wantCode) setTimeout(showWanted, 0);
 };
 $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { region = b.dataset.r; renderHome(); } });
 $('#q').addEventListener('input', renderHome);
@@ -845,8 +876,8 @@ $('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.
    في هذه النسخة التجريبية الرمز داخل الصفحة؛ وفي التطبيق الحقيقي يُتحقق منه على الخادم. */
 const ADMIN_PIN = '1446', ADMIN_KEY = 'jisr-admin';
 const isAdmin = () => { if (SRV) return !!(st.profile && st.profile.isAdmin); try { return localStorage.getItem(ADMIN_KEY) === '1'; } catch(e) { return !!isAdmin.mem; } };
-const setAdmin = on => { isAdmin.mem = on; try { on ? localStorage.setItem(ADMIN_KEY, '1') : localStorage.removeItem(ADMIN_KEY); } catch(e) {} $('#adminBox').hidden = !on; if (on) renderStats(); };
-const askPin = () => { if (SRV && !isAdmin()) { toast(st.me ? ERR.not_admin : 'سجّل برقم الإدارة أولًا'); if (!st.me) go('me'); return; } if (isAdmin()) { $('#adminBox').hidden = false; go('home'); $('#adminBox').scrollIntoView({block:'center'}); return; } $('#pinErr').innerHTML = ''; $('#pin').value = ''; $('#pinModal').hidden = false; setTimeout(() => $('#pin').focus(), 50); };
+const setAdmin = on => { isAdmin.mem = on; try { on ? localStorage.setItem(ADMIN_KEY, '1') : localStorage.removeItem(ADMIN_KEY); } catch(e) {} $('#adminBox').hidden = !on; render(); };
+const askPin = () => { if (SRV && !isAdmin()) { toast(st.me ? ERR.not_admin : 'سجّل دخولك بإيميل الإدارة أولًا'); if (!st.me) go('me'); return; } if (isAdmin()) { $('#adminBox').hidden = false; go('home'); $('#adminBox').scrollIntoView({block:'center'}); return; } $('#pinErr').innerHTML = ''; $('#pin').value = ''; $('#pinModal').hidden = false; setTimeout(() => $('#pin').focus(), 50); };
 $('#pinForm').addEventListener('submit', e => {
   e.preventDefault();
   if (digits($('#pin').value).trim() === ADMIN_PIN) { $('#pinModal').hidden = true; setAdmin(true); go('home'); setTimeout(() => $('#adminBox').scrollIntoView({block:'center'}), 100); toast('أهلًا بالإدارة'); }
@@ -990,9 +1021,21 @@ $('#printStats').addEventListener('click', () => {
 
 let taps = 0, tapT = 0;
 document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; askPin(); } });
-const hashAdmin = () => { if (location.hash === '#admin') askPin(); };
+const hashAdmin = () => {
+  if (location.hash === '#admin') return askPin();
+  const c = normCode(decodeURIComponent(location.hash.slice(1)));
+  if (c) { wantCode = c; linked.add(c); if (view !== 'home') go('home'); else render(); }
+};
+/* فتح نافذة الغرض حين يأتي الزائر من رابط الإعلان في واتساب */
+const showWanted = () => {
+  if (!wantCode) return;
+  const b = document.querySelector(`[data-more="${wantCode}"]`);
+  if (!b) return;
+  open.add(wantCode); const c = wantCode; wantCode = null; renderHome();
+  const el = document.querySelector(`[data-more="${c}"]`); if (el) el.closest('article').scrollIntoView({behavior:'smooth', block:'center'});
+};
 addEventListener('hashchange', hashAdmin);
-$('#adminBox').hidden = !isAdmin(); renderStats();
+$('#adminBox').hidden = !isAdmin(); renderStats(); renderWa();
 setTimeout(hashAdmin, 300);
 
 /* اعرض غرضًا */
@@ -1100,13 +1143,43 @@ const waPost = it => [
   '🚗 الاستلام على المستفيد من:', `*${it.area.replace(/\s*\/\s*/g, '-')}*`,
   ...(it.pickTime ? [`⏰ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`] : []), '',
   '⛔️ الحجز يلغى بعد 24 ', 'ساعة إذا لم يتم الاستلام', '',
+  `🔗 التفاصيل والصور والحجز: ${SITE}#${it.code}`, '',
   GROUP.name, GROUP.link
 ].join('\n');
+/* المشاركة: الصور مع النص حيث يدعمه الجهاز، وإلا فالنص مع رابط الصور */
+const shareItem = async it => {
+  const text = waPost(it);
+  try {
+    if (navigator.canShare && pics(it).length) {
+      const files = await Promise.all(pics(it).slice(0, 3).map(async (u, k) => { const b = await (await fetch(u)).blob(); return new File([b], `${it.code}-${k + 1}.jpg`, {type:b.type || 'image/jpeg'}); }));
+      if (navigator.canShare({files, text})) { await navigator.share({files, text}); return true; }
+    }
+  } catch(err) { if (err && err.name === 'AbortError') return false; }
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  return true;
+};
+document.addEventListener('click', async e => {
+  const mb = e.target.closest('[data-wamode]');
+  if (mb) {
+    const m = mb.dataset.wamode;
+    if (SRV) { const r = await api('jisr_admin', {_act:'wa_mode', _arg:m}); if (r.err) return toast(errMsg(r)); await pull(true); }
+    else { st.waMode = m; save(); render(); }
+    return toast('مكان النشر: ' + WA_MODES[m]);
+  }
+  const sb2 = e.target.closest('[data-wasend]');
+  if (sb2) {
+    const it = st.items.find(i => i.code === sb2.dataset.wasend); if (!it) return;
+    if (!await shareItem(it)) return;
+    if (SRV) { const r = await api('jisr_admin', {_act:'wa_sent', _arg:it.code}); if (r.err) return toast(errMsg(r)); await pull(true); }
+    else { it.waSentAt = now(); save(); render(); }
+    toast(`سُجّل نشر ${it.code} في واتساب، فلا يُنشر مرة أخرى`);
+  }
+});
 const copyText = (t, ok) => { try { navigator.clipboard.writeText(t).then(() => toast(ok), () => toast('لم يُنسخ، فاستعمل زر المشاركة')); } catch(err) { toast('لم يُنسخ، فاستعمل زر المشاركة'); } };
 document.addEventListener('click', e => {
   const wp = e.target.closest('[data-wapost]'), ws = e.target.closest('[data-washare]');
   if (wp || ws) { const it = st.items.find(i => i.code === (wp || ws).dataset[wp ? 'wapost' : 'washare']); if (!it) return;
-    if (wp) copyText(waPost(it), 'نُسخ الإعلان، فالصقه في مجموعة واتساب'); else window.open('https://wa.me/?text=' + encodeURIComponent(waPost(it)), '_blank', 'noopener'); return; }
+    if (wp) copyText(waPost(it), 'نُسخ الإعلان، فالصقه في مجموعة واتساب'); else shareItem(it); return; }
   const ck = e.target.closest('[data-clock]'); if (ck) { openClock(ck.dataset.clock); return; }
   const ab = e.target.closest('#aboutProgBtn'); if (ab) { const o = $('#aboutProg').hidden; $('#aboutProg').hidden = !o; ab.setAttribute('aria-expanded', o); }
   const c = e.target.closest('[data-copy]');

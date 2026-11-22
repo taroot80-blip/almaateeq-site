@@ -1150,6 +1150,11 @@ const waPost = it => [
 /* المشاركة: الصور مع النص حيث يدعمه الجهاز، وإلا فالنص مع رابط الصور */
 const shareItem = async it => {
   const text = waPost(it);
+  /* داخل تطبيق أندرويد: جسر يرسل النص والصور إلى واتساب مباشرة */
+  if (window.JisrAndroid && JisrAndroid.canShareFiles && JisrAndroid.canShareFiles()) {
+    JisrAndroid.share(text, JSON.stringify(pics(it).slice(0, 3).map(u => new URL(u, location.href).href)));
+    return true;
+  }
   try {
     if (navigator.canShare && pics(it).length) {
       const files = await Promise.all(pics(it).slice(0, 3).map(async (u, k) => { const b = await (await fetch(u)).blob(); return new File([b], `${it.code}-${k + 1}.jpg`, {type:b.type || 'image/jpeg'}); }));

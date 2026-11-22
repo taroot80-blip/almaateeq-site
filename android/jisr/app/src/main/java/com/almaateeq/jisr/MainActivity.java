@@ -10,6 +10,8 @@ import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -18,7 +20,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.core.content.FileProvider;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import org.json.JSONArray;
 
 // جسر العطاء: تطبيق هاتف عمودي، يفتح نسخة الموقع مع الإنترنت (آخر تحديث دائمًا)، والنسخة المدمجة بلا إنترنت
 public class MainActivity extends Activity {
@@ -79,6 +88,7 @@ public class MainActivity extends Activity {
         return true;
       }
     });
+    web.addJavascriptInterface(new Bridge(), "JisrAndroid");
     web.loadUrl(online() ? LIVE : LOCAL);
   }
 
@@ -105,6 +115,65 @@ public class MainActivity extends Activity {
     }
     pending.onReceiveValue(out);
     pending = null;
+  }
+
+  // جسر طابور النشر: يرسل نص الإعلان وصوره إلى واتساب مباشرة (الصفحة داخل التطبيق لا تستطيع مشاركة الصور وحدها)
+  private class Bridge {
+    @JavascriptInterface public boolean canShareFiles() { return true; }
+    @JavascriptInterface public void share(final String text, final String urlsJson) {
+      new Thread(() -> {
+        final ArrayList<Uri> uris = new ArrayList<>();
+        try {
+          JSONArray a = new JSONArray(urlsJson);
+          File dir = new File(getCacheDir(), "shots"); dir.mkdirs();
+          for (int i = 0; i < a.length() && i < 3; i++) {
+            byte[] data = read(a.getString(i));
+            if (data == null) continue;
+            File f = new File(dir, "share_" + System.currentTimeMillis() + "_" + i + ".jpg");
+            try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
+            uris.add(FileProvider.getUriForFile(MainActivity.this, "com.almaateeq.jisr.files", f));
+          }
+        } catch (Exception e) { /* إن تعذرت الصور يُرسل النص وحده */ }
+        runOnUiThread(() -> send(text, uris));
+      }).start();
+    }
+  }
+
+  private byte[] read(String u) {
+    try {
+      if (u.startsWith("data:")) return Base64.decode(u.substring(u.indexOf(',') + 1), Base64.DEFAULT);
+      InputStream in;
+      if (u.startsWith("file:///android_asset/")) in = getAssets().open(u.substring("file:///android_asset/".length()));
+      else {
+        HttpURLConnection c = (HttpURLConnection) new URL(u).openConnection();
+        c.setConnectTimeout(10000); c.setReadTimeout(15000);
+        in = c.getInputStream();
+      }
+      try (InputStream is = in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        byte[] buf = new byte[16384]; int n;
+        while ((n = is.read(buf)) > 0) out.write(buf, 0, n);
+        return out.toByteArray();
+      }
+    } catch (Exception e) { return null; }
+  }
+
+  private void send(String text, ArrayList<Uri> uris) {
+    Intent it;
+    if (uris.isEmpty()) { it = new Intent(Intent.ACTION_SEND); it.setType("text/plain"); }
+    else if (uris.size() == 1) { it = new Intent(Intent.ACTION_SEND); it.setType("image/*"); it.putExtra(Intent.EXTRA_STREAM, uris.get(0)); }
+    else { it = new Intent(Intent.ACTION_SEND_MULTIPLE); it.setType("image/*"); it.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris); }
+    it.putExtra(Intent.EXTRA_TEXT, text);
+    if (!uris.isEmpty()) {
+      ClipData clip = ClipData.newRawUri("", uris.get(0));
+      for (int i = 1; i < uris.size(); i++) clip.addItem(new ClipData.Item(uris.get(i)));
+      it.setClipData(clip);
+      it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+    // واتساب أولًا، ثم واتساب للأعمال، وإلا قائمة المشاركة
+    for (String pkg : new String[]{"com.whatsapp", "com.whatsapp.w4b"}) {
+      try { Intent t = new Intent(it); t.setPackage(pkg); startActivity(t); return; } catch (Exception e) {}
+    }
+    try { startActivity(Intent.createChooser(it, "انشر في واتساب")); } catch (Exception e) {}
   }
 
   @Override public void onBackPressed() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }

@@ -337,6 +337,22 @@ body.testmode .iconbtn.testBtn{background:linear-gradient(145deg,#f0abfc,#d946ef
 @keyframes teston{50%{transform:translateY(-1px) scale(1.06);filter:brightness(1.25)}}
 #testRibbon{display:none;position:fixed;left:10px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:80;padding:5px 12px;border-radius:999px;font:800 12px Cairo,Tajawal,sans-serif;color:#fff;background:linear-gradient(90deg,#c026d3,#7c3aed);box-shadow:0 0 18px rgba(217,70,239,.7);pointer-events:none}
 body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infinite}
+/* ضغط بطاقات البصمات الثلاث لتظهر معًا في شاشة الهاتف (للرجوع: احذف هذا القسم) */
+.ev{gap:1px;padding:7px 10px 8px;margin-top:6px;border-radius:16px}
+.ev .head{gap:7px}
+.ev .ic{width:24px;height:24px;border-radius:8px;font-size:14px}
+.ev h4{font-size:15.5px;line-height:1.3}
+.ev .range{font-size:18px;line-height:1.25}
+.ev .range span{font-size:13px}
+.ev .stat{margin-top:1px;padding:1px 9px;font-size:12px}
+.ev .cd{font-size:12px;line-height:1.35}
+.ev .act{margin-top:4px;gap:6px}
+.ev .act .btn{min-height:36px;font-size:14px;padding:3px 8px}
+.ev .btn.moe{min-height:32px;margin-top:5px;font-size:13px;padding:2px 10px;gap:6px}
+.ev .btn.moe img{width:20px;height:20px}
+/* تنسيق عربي وتوسيط */
+.notes{list-style:none!important;padding:0!important;text-align:center}
+.notes li::before{content:"• ";color:var(--gold)}
 </style>
 </head>
 <body>
@@ -404,10 +420,10 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <svg id="pick" viewBox="0 0 300 300"></svg>
     <div class="bigtime num" id="pickTxt">7:00 ص</div>
     <div class="row" style="justify-content:center;margin:8px 0 12px">
-      <button class="btn ghost" data-step="-5">٥ دقائق −</button>
+      <button class="btn ghost" data-step="-5">5 دقائق −</button>
       <button class="btn ghost" data-step="-1">دقيقة −</button>
       <button class="btn ghost" data-step="1">دقيقة +</button>
-      <button class="btn ghost" data-step="5">٥ دقائق +</button>
+      <button class="btn ghost" data-step="5">5 دقائق +</button>
     </div>
     <div class="row">
       <button class="btn primary" style="flex:2" id="pickOk">اعتمد هذا الوقت</button>
@@ -436,7 +452,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.4</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.5</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -680,6 +696,9 @@ function openPermStart(end){const c=C(),$=id=>document.getElementById(id);const 
     if(pl.n<1||pl.min<len){closeM();toast(`رصيد الاستئذانات لا يكفي (المتبقي ${Math.max(0,pl.n)} مرات و${dur(Math.max(0,pl.min))}). اختر «تأخير».`);setTimeout(()=>openLateChoice(pendingIn),220);return}
     closeM();S.perms=S.perms.filter(p=>!(p.date===k&&p.morning));S.perms.push({date:k,from:toHHMM(from),to:toHHMM(end),morning:true});pendingIn=null;permFromSel=from;setPunch(end,"perm")};
   openM("mPermStart")}
+/* ساعات العمل بصيغة ساعة:دقيقة */
+const hmStr=m=>`${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,"0")}`;
+function hmParse(v,def){v=String(v).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim();let m=v.match(/^(\d{1,2})\s*[:.٫]\s*(\d{1,2})$/);if(m&&v.includes(":"))return +m[1]*60+ +m[2];const x=parseFloat(v.replace("٫","."));return isFinite(x)&&x>0?Math.round(x*60):def}
 function setPunch(m,mode){m=Math.round(m*60)/60;
   if(!mode&&m>=lateFrom()&&m<=lateTo()){pendingIn=m;openLateChoice(m);return}
   const d=today();d.in=m;delete d.est;d.cfg=snap();if(mode)d.cfg.mode=mode;if(mode==="perm"&&permFromSel!=null){d.cfg.permFrom=permFromSel;permFromSel=null}d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(mode==='late'?`سُجّل حضورك ${fmt(d.in)} تأخيرًا ${dur(d.in-C().graceEnd)} من رصيدك`:mode==='perm'?`سُجّل استئذان صباحي من ${fmt(d.cfg.permFrom??C().earliest)} حتى ${fmt(d.in)}`:`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
@@ -965,7 +984,7 @@ function renderForgot(){
     al>0?`إن سُجّل اليوم غيابًا ولم تُعالَج البصمة، فلديك <b>${al}</b> من العرضية، وتُحتسب حتى بعد مرور اليوم.`:"رصيد العرضية مستنفد؛ فركّز على النموذج المعتمد من الرئيس المباشر."],true)+
   T("#14B8A6","نسيت بصمة التواجد",[
     "إن كان لك استئذان يقع جزء منه داخل نافذة التواجد فأنت معفى منها؛ تأكد أن القسم الإداري أدخله في النظام.",
-    `<b>إن فاتت النافذة وأنت في العمل فابصم فور انتباهك:</b> تُحسب المدة من انقضاء الساعتين على حضورك حتى بصمتك تأخيرًا يُخصم من رصيدك الشهري (المتبقي <b>${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}</b> من ${LATE_ALLOW} دقيقة). <span class="src">النشرة ٤٠/٢٠٢٤</span>`,
+    `<b>إن فاتت النافذة وأنت في العمل فابصم فور انتباهك:</b> تُحسب المدة من انقضاء الساعتين على حضورك حتى بصمتك تأخيرًا يُخصم من رصيدك الشهري (المتبقي <b>${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}</b> من ${LATE_ALLOW} دقيقة). <span class="src">النشرة 40/2024</span>`,
     `<b>إن لم تبصم التواجد أصلًا</b> فأنت في حكم المنصرف دون إذن، ولا يعالَج إلا بأحد أمرين لا ثالث لهما: <b>استئذان بيني رسمي</b> ${pl>0&&hl>0?"من رصيدك":"(رصيدك مستنفد)"}، أو <b>عرضية</b> تُحتسب لليوم كله.`,
     "تكرار عدم الالتزام بمواعيد البصمة مخالفة تجيز المساءلة، ففعّل التنبيه ولا تُغلق التطبيق قبل وقت التواجد."])+
   T("#F2B632","نسيت بصمة الانصراف أو انصرفت مبكرًا",[
@@ -994,8 +1013,8 @@ function renderRules(){
       <div class="li"><span>🔋 <b>البطارية</b><br><small class="muted">في Honor وHuawei: تشغيل التطبيقات ← بصمتي المرنة ← إدارة يدوية وفعّل الخيارات الثلاثة</small></span><button class="btn ghost" style="min-height:40px;font-size:14px;padding:6px 12px" id="sBat">افتح</button></div>
     </div></div>`}
   document.getElementById("v-rules").innerHTML=setup+`
-  ${c.cadre==="sup"?`<div class="card soon"><h3>⏳ موجه فني</h3><p style="text-align:center;font-weight:800;color:var(--gold)">قريبًا تتوفر خدمة الموجه الفني</p><p style="text-align:center">اللوائح المنظمة لدوام الموجه الفني وبصماته غير متوفرة الآن، وتُضاف حين تكتمل.</p><p class="muted" style="text-align:center">الأزرار تعمل الآن بمواعيد تقريبية للتعرف العام على التطبيق ومميزاته والتعامل معه، فلا تعتمد عليها رسميًا.</p></div>`:`<div class="card"><h3>مواعيدك وفق النشرة ٤٠/٢٠٢٤</h3>
-  <p class="muted" style="margin:-4px 0 6px">${c.cadre==="sup"?"موجه فني · القرار الوزاري ١٧١/٢٠٢٣":`${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}`}</p>
+  ${c.cadre==="sup"?`<div class="card soon"><h3>⏳ موجه فني</h3><p style="text-align:center;font-weight:800;color:var(--gold)">قريبًا تتوفر خدمة الموجه الفني</p><p style="text-align:center">اللوائح المنظمة لدوام الموجه الفني وبصماته غير متوفرة الآن، وتُضاف حين تكتمل.</p><p class="muted" style="text-align:center">الأزرار تعمل الآن بمواعيد تقريبية للتعرف العام على التطبيق ومميزاته والتعامل معه، فلا تعتمد عليها رسميًا.</p></div>`:`<div class="card"><h3>مواعيدك وفق النشرة 40/2024</h3>
+  <p class="muted" style="margin:-4px 0 6px">${c.cadre==="sup"?"موجه فني · القرار الوزاري 171/2023":`${(SCHOOLS[c.school]||SCHOOLS.gen).label} · ${(STAGES[c.stage]||STAGES.sec).label} · ${CADRES[c.cadre]||"كادر تعليمي"}`}</p>
   <table class="tt"><tr><th></th><th>من</th><th>إلى</th></tr>
   <tr><td>الدوام الرسمي</td><td>${fmt(c.offStart)}</td><td>${fmt(c.offEnd)}</td></tr>
   <tr><td>السماح للحضور</td><td>${fmt(c.earliest)}</td><td>${fmt(c.graceEnd)}</td></tr>
@@ -1004,15 +1023,15 @@ function renderRules(){
   <p class="muted" style="font-size:13px;margin-top:6px">${c.cadre==="sup"?"دوام الموجه الفني ثابت من 7:00 إلى 2:00، والتأخير يُحتسب بعد 7:30.":"مواعيد النشرة واحدة للكادرين التعليمي والإداري، وتختلف بحسب جهة العمل والمرحلة."} التواجد في الجدول لمن حضر ${fmt(c.earliest)}، ويتأخر بتأخر حضورك.</p></div>
   <div class="card"><h3>المطلوب منك · ${CADRES[c.cadre]||"كادر تعليمي"}</h3>
   ${c.cadre==="sup"?`
-  <p>• دوامك الفعلي من <b>7:00 صباحًا</b> إلى <b>2:00 ظهرًا</b> (القرار الوزاري ١٧١/٢٠٢٣)، وفترة السماح محسوبة ضمن الدوام الرسمي وفق قرار مجلس الخدمة ٤١/٢٠٠٦.</p>
+  <p>• دوامك الفعلي من <b>7:00 صباحًا</b> إلى <b>2:00 ظهرًا</b> (القرار الوزاري 171/2023)، وفترة السماح محسوبة ضمن الدوام الرسمي وفق قرار مجلس الخدمة 41/2006.</p>
   <p>• ثلاث بصمات: <b>الحضور</b> عند بداية الدوام، و<b>التواجد</b> أثناءه، و<b>الانصراف</b> عند نهايته.</p>
   <p>• يُحتسب التأخير بعد <b>7:30</b> صباحًا.</p>
   <p>• تبصم التواجد في <b>مكان عملك أو في أي مقر تزوره</b> أثناء الدوام، خلال الستين دقيقة التي تلي انقضاء ساعتين على بداية دوامك. ولا تتقيد بها إن وقع جزء من استئذانك داخل تلك الستين دقيقة.</p>
-  <p>• من لم يثبت تواجده فيها يُعدّ منصرفًا دون إذن، وتدخل المدة من انقضاء الساعتين حتى بصمته ضمن مدد التأخير الشهرية (المادة ١٨ من قرار ٦/٢٠٢٤).</p>
+  <p>• من لم يثبت تواجده فيها يُعدّ منصرفًا دون إذن، وتدخل المدة من انقضاء الساعتين حتى بصمته ضمن مدد التأخير الشهرية (المادة 18 من قرار 6/2024).</p>
   <p>• خطة زياراتك يعتمدها الموجه الأول شهريًا ويتابع تنفيذها.</p>`:c.cadre==="adm"?`
   <p>• ثلاث بصمات يوميًا: الحضور، والتواجد، والانصراف، بمواعيد مرحلتك نفسها.</p>
   <p>• <b>الإدارة المدرسية</b> (مدير، مدير مساعد): يلزم تواجد أحدكم <b>بالمناوبة</b> طوال تواجد المتعلمين حتى نهاية الدوام الرسمي <b>${fmt(c.offEnd)}</b>، إضافة إلى المكلفين بالمناوبة، ويتابع ذلك مراقب المرحلة التعليمية.</p>
-  <p>• إن لم يتواجد أحد من الإدارة: يرفع مراقب المرحلة مذكرة إلى مدير الشؤون التعليمية، ثم مدير عام المنطقة، فالوكيل المساعد للتحقيق، وتُطبَّق لوائح قرار مجلس الخدمة ٤١/٢٠٠٦.</p>
+  <p>• إن لم يتواجد أحد من الإدارة: يرفع مراقب المرحلة مذكرة إلى مدير الشؤون التعليمية، ثم مدير عام المنطقة، فالوكيل المساعد للتحقيق، وتُطبَّق لوائح قرار مجلس الخدمة 41/2006.</p>
   <p>• الإدارة المدرسية ورئيس القسم يتابعون الدوام وفق النظم واللوائح المتبعة في المدرسة.</p>
   <p>• <b>القسم الإداري</b>: مسؤول عن إدخال الاستئذانات والأعذار الطبية في النظم الآلية لديوان الخدمة المدنية، وسحب إشعارات العاملين وتسليمها للمسؤول المختص.</p>
   <p>• تفعيل البصمة عند النقل أو الندب (كلي أو جزئي) مسؤولية قسم الإجازات والدوام في المنطقة التعليمية، وقسم الإجازات والدوام في ديوان عام الوزارة، كلٌّ حسب مركز العمل.</p>`:`
@@ -1020,24 +1039,25 @@ function renderRules(){
   <p>• ثلاث بصمات يوميًا: الحضور، والتواجد، والانصراف.</p>
   <p>• يتابع دوامك مدير المدرسة والمدير المساعد ورئيس قسم المادة، وفق النظم واللوائح المتبعة في المدرسة.</p>
   <p>• استئذاناتك وأعذارك الطبية يُدخلها القسم الإداري في مدرستك في النظام؛ فتأكد من إدخالها.</p>`}
-  <p>• عند تكليفك بمهمة خارج مقر العمل أثناء الدوام الرسمي تعبّئ <b>نموذج رقم (٤)</b>، ويعتمده مسؤولك المباشر موضحًا نوع المهمة ومكانها.</p>
-  <p>• <b>ساعات التخفيف</b> (كالأم وفق قانون حقوق الطفل ٢١/٢٠١٥): لا يقل الدوام عن ٥ ساعات، ويبدأ من بداية الدوام الفعلي، و<b>لا يجوز الجمع</b> بين التخفيف والدوام المرن وفترات السماح.</p>
-  <p>• ذوو الإعاقة ومن يرعاهم: تُطبَّق ضوابط المادة (٢٢) من اللائحة التنفيذية لقانون حقوق ذوي الإعاقة ٨/٢٠١٠.</p>
-  <p>• الإجازات المرضية وفق قرارات المجلس الطبي العام وتعميم ديوان الخدمة ٣٩/٢٠٠٦ وقرار ٢٩/٢٠٢٣.</p>
-  <p class="src">النشرة ٤٠/٢٠٢٤ — البنود الرابع والخامس والسادس</p></div>`}
+  <p>• عند تكليفك بمهمة خارج مقر العمل أثناء الدوام الرسمي تعبّئ <b>نموذج رقم (4)</b>، ويعتمده مسؤولك المباشر موضحًا نوع المهمة ومكانها.</p>
+  <p>• <b>ساعات التخفيف</b> (كالأم وفق قانون حقوق الطفل 21/2015): لا يقل الدوام عن 5 ساعات، ويبدأ من بداية الدوام الفعلي، و<b>لا يجوز الجمع</b> بين التخفيف والدوام المرن وفترات السماح.</p>
+  <p>• ذوو الإعاقة ومن يرعاهم: تُطبَّق ضوابط المادة (22) من اللائحة التنفيذية لقانون حقوق ذوي الإعاقة 8/2010.</p>
+  <p>• الإجازات المرضية وفق قرارات المجلس الطبي العام وتعميم ديوان الخدمة 39/2006 وقرار 29/2023.</p>
+  <p class="src">النشرة 40/2024 — البنود الرابع والخامس والسادس</p></div>`}
   <div class="card"><h3>ما يعتمده التطبيق</h3>
-  <p>١. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور، ويُحتسب الحضور قبل ${fmt(c.earliest)} كأنه في ${fmt(c.earliest)}. <span class="src">قرار مجلس الخدمة المدنية</span></p>
-  <p>٢. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية ٢٠٢٤</span></p>
-  <p>٣. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة ٢٠٢٥</span></p>
-  <p>٤. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
-  <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف من <b>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}–${fmt(c.latestOut)}</b>. <span class="src">النشرة ٤٠/٢٠٢٤</span></p>
-  <p>٦. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. ومن حضر <b>باستئذان صباحي</b> حتى ${fmt(c.graceEnd+c.presDelay-1)} فتواجده كمن حضر في وقت بداية استئذانه (${fmt(c.earliest)}–${fmt(c.graceEnd)}) وإن احتُسب متأخرًا، ومن حضر به ${fmt(c.graceEnd+c.presDelay)} فما بعدها فلا تواجد عليه. <span class="src mine">قاعدة معتمدة</span></p>
-  <p>٧. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، فإن بصم بعدها دخلت المدة من انقضاء الساعتين حتى بصمته ضمن رصيد التأخير الشهري، وإن لم يبصم أصلًا فلا يعالَج إلا باستئذان بيني رسمي أو بعرضية لليوم كله. <span class="src">النشرة ٤٠/٢٠٢٤ والمادة ١٨ من قرار ٦/٢٠٢٤</span></p>
-  <p>٨. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
+  <p>1. بصمة التواجد خلال <b>الستين دقيقة</b> التالية لانقضاء <b>ساعتين</b> من بصمة الحضور، ويُحتسب الحضور قبل ${fmt(c.earliest)} كأنه في ${fmt(c.earliest)}. <span class="src">قرار مجلس الخدمة المدنية</span></p>
+  <p>2. من حصل على استئذان يقع جزء منه داخل فترة الستين دقيقة يُعفى من بصمة التواجد، وعدم التقيّد بها يُحتسب تأخيرًا. <span class="src">تعميم التربية 2024</span></p>
+  <p>3. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة 2025</span></p>
+  <p>4. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
+  <p>5. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف من <b>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}–${fmt(c.latestOut)}</b>. <span class="src">النشرة 40/2024</span></p>
+  <p>6. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. <span class="src mine">قاعدة معتمدة</span></p>
+  <p>7. من حضر <b>باستئذان صباحي</b> حتى ${fmt(c.graceEnd+c.presDelay-1)} فتواجده كمن حضر في وقت بداية استئذانه (${fmt(c.earliest)}–${fmt(c.graceEnd)}) وإن احتُسب متأخرًا، ومن حضر به ${fmt(c.graceEnd+c.presDelay)} فما بعدها فلا تواجد عليه.  <span class="src mine">قاعدة معتمدة</span></p>
+  <p>8. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، فإن بصم بعدها دخلت المدة من انقضاء الساعتين حتى بصمته ضمن رصيد التأخير الشهري، وإن لم يبصم أصلًا فلا يعالَج إلا باستئذان بيني رسمي أو بعرضية لليوم كله. <span class="src">النشرة 40/2024 والمادة 18 من قرار 6/2024</span></p>
+  <p>9. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، وأيام العرضية ${c.ardiya}، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} أيام متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
   <div class="card"><h3>ملاحظات مهمة</h3>
   <p>• التطبيق مستقل للمساعدة وغير تابع لوزارة التربية، والمرجع النهائي سجلك الرسمي والقسم الإداري في مدرستك.</p>
-  <p>• المواعيد مأخوذة من نشرة وكيل وزارة التربية رقم ٤٠/٢٠٢٤ (٢٦/٩/٢٠٢٤)؛ وإن صدرت نشرة أحدث فعدّلها أدناه.</p>
-  <p>• في مايو ٢٠٢٦ نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي ٢٠٢٥/٢٠٢٦؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
+  <p>• المواعيد مأخوذة من نشرة وكيل وزارة التربية رقم 40/2024 (26/9/2024)؛ وإن صدرت نشرة أحدث فعدّلها أدناه.</p>
+  <p>• في مايو 2026 نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي 2025/2026؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
   <p>• أرصدة الاستئذانات والعرضية والمرضية قابلة للتعديل بحسب ما يقرره القسم الإداري لك.</p></div>
   <div class="card"><h3>ضبط الإعدادات</h3>
   <div class="row"><div class="field"><label for="cName">الاسم</label><input id="cName" value="${esc(c.name)}" placeholder="اكتب اسمك"></div></div>
@@ -1046,17 +1066,17 @@ function renderRules(){
   <div class="row" style="margin-top:8px"><div class="field"><label for="cSchool">جهة العمل</label><select id="cSchool">${schoolOpts(c.school)}</select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label for="cStage">المرحلة</label><select id="cStage">${stageOpts(c.school,c.stage)}</select></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>بداية السماح</label><input type="time" id="cE" value="${toHHMM(c.earliest)}"></div><div class="field"><label>نهاية السماح</label><input type="time" id="cG" value="${toHHMM(c.graceEnd)}"></div></div>
-  <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل</label><input type="number" id="cW" min="4" max="8" step="any" value="${c.workMin/60}"></div></div>
+  <div class="row" style="margin-top:8px"><div class="field"><label>آخر انصراف</label><input type="time" id="cL" value="${toHHMM(c.latestOut)}"></div><div class="field"><label>ساعات العمل (س:د)</label><input type="text" inputmode="numeric" id="cW" dir="ltr" style="text-align:center" value="${hmStr(c.workMin)}"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label>التنبيه قبل (ثانية)</label><input type="number" id="cLead" min="10" max="300" value="${c.lead}"></div><div class="field"><label>رصيد العرضية</label><input type="number" id="cA" min="0" max="30" value="${c.ardiya}"></div></div>
   <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:2" id="cSave">احفظ الإعدادات</button><button class="btn ghost" style="flex:1" id="cReset">الافتراضي</button></div>
   <button class="btn ghost wide" id="cTest" style="margin-top:10px">جرّب التنبيه المميّز</button></div>
-  ${N?"":IOS?(STANDALONE?"":`<div class="card"><h3>ثبّته على الآيفون والآيباد</h3><p>١. افتح هذه الصفحة في متصفح Safari.<br>٢. اضغط زر المشاركة <b>⬆︎</b> أسفل الشاشة (وفي الآيباد أعلاها).<br>٣. اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».<br>بعدها يفتح «بصمتي» من أيقونته بملء الشاشة، ويعمل دون إنترنت، وتستطيع تفعيل إشعاراته من زر الجرس.</p></div>`):`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
-  <p class="muted">المصادر: صحيفة الجريدة (١٥/٢/٢٠٢٤، ٢٢/٢/٢٠٢٤، ١٦/٨/٢٠٢٤، ١٩/٩/٢٠٢٤، ٢٢/٦/٢٠٢٥، ٢٤/٥/٢٠٢٦)، وجريدة الراي (أغسطس ٢٠٢٤).</p>`;
+  ${N?"":IOS?(STANDALONE?"":`<div class="card"><h3>ثبّته على الآيفون والآيباد</h3><p>1. افتح هذه الصفحة في متصفح Safari.<br>2. اضغط زر المشاركة <b>⬆︎</b> أسفل الشاشة (وفي الآيباد أعلاها).<br>3. اختر «إضافة إلى الشاشة الرئيسية» ثم «إضافة».<br>بعدها يفتح «بصمتي» من أيقونته بملء الشاشة، ويعمل دون إنترنت، وتستطيع تفعيل إشعاراته من زر الجرس.</p></div>`):`<div class="card"><h3>نسخة أندرويد</h3><p>فيها الالتقاط التلقائي لوقت الحضور حين تفتح تطبيق الوزارة، وقراءة لقطة الشاشة، والتنبيه والتطبيق مغلق.</p><a class="btn primary wide" style="text-decoration:none" href="https://github.com/taroot80-blip/basma-marna/releases/latest/download/basma.apk">نزّل التطبيق لأندرويد</a></div>`}
+  <p class="muted">المصادر: صحيفة الجريدة (15/2/2024، 22/2/2024، 16/8/2024، 19/9/2024، 22/6/2025، 24/5/2026)، وجريدة الراي (أغسطس 2024).</p>`;
   const $=id=>document.getElementById(id);
   $("cRole").onchange=()=>$("cStage").onchange();
   $("cSchool").onchange=()=>{$("cStage").innerHTML=stageOpts($("cSchool").value,$("cStage").value);$("cStage").onchange()};
-  $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value,$("cRole").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=s.workMin/60;toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
-  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value,$("cRole").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value,$("cRole").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:Math.round(+$("cW").value*60),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
+  $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value,$("cRole").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=hmStr(s.workMin);toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
+  $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value,$("cRole").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value,$("cRole").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:hmParse($("cW").value,S.cfg.workMin),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};
   $("cReset").onclick=()=>{const keep={name:S.cfg.name,role:S.cfg.role,cadre:S.cfg.cadre,school:S.cfg.school,budget:S.cfg.budget};const g=STG(keep.school,S.cfg.stage,keep.cadre);S.cfg=Object.assign({},DEF,keep,{stage:g.key,earliest:g.earliest,graceEnd:g.graceEnd,workMin:g.workMin,latestOut:g.latestOut,offStart:g.offStart,offEnd:g.offEnd});save();nativeSync();pushNative();paintCard();renderRules();toast("أُعيدت القيم الافتراضية.")};
   if(N){const b=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};b("sNotif",()=>N.requestNotif());b("sExact",()=>N.openExact());b("sUsage",()=>N.openUsage());b("sMoe",()=>N.openMoe());b("sBat",()=>N.openBattery())}
   $("cTest").onclick=()=>{audio();fireAlarm("test","تجربة التنبيه المميّز","هكذا ينبّهك التطبيق قبل 30 ثانية من وقت البصمة.",C().lead)};
@@ -1111,7 +1131,7 @@ function renderCal(){
     <div class="legend2"><span><i style="background:#22C55E"></i>على ما يرام: ${ok}</span><span><i style="background:#EF4444"></i>فيه مشكلة: ${bad}</span><span><i style="background:#14B8A6"></i>إجازة: ${lv}</span></div></div>
   <div class="card"><h3 class="num">${niceDate(calSel)}</h3><div class="verdict ${e.st}">${vt}</div>
     ${e.notes&&e.notes.length&&e.st!=="leave"&&e.st!=="off"?`<ul class="notes">${e.notes.map(n=>typeof n==="string"?`<li>${n}</li>`:`<li class="${n.b?"b":n.g?"g":""}">${n.t}</li>`).join("")}</ul>`:""}
-    ${isWorkKey(calSel)&&calSel<=dkey()?`<details style="margin-top:12px"><summary class="muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center">✏️ تعديل أوقات هذا اليوم</summary>
+    ${isWorkKey(calSel)&&calSel<=dkey()?`<details style="margin-top:12px"><summary class="muted" style="cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center">✏️ تعديل أوقات هذا اليوم</summary>
       <div class="row" style="margin-top:8px"><div class="field"><label>الحضور</label><input type="time" step="1" id="eIn" value="${v(d.in)}"></div><div class="field"><label>التواجد</label><input type="time" step="1" id="ePr" value="${v(d.pres)}"></div><div class="field"><label>الانصراف</label><input type="time" step="1" id="eOut" value="${v(d.out)}"></div></div>
       <div class="row" style="margin-top:10px"><button class="btn primary" style="flex:2" id="eSave">احفظ أوقات اليوم</button><button class="btn ghost reset" style="flex:1" id="eDel">🔘 مسح</button></div></details>`:""}
   </div>

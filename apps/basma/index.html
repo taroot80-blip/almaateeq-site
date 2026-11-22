@@ -436,7 +436,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.1</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.2</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -586,7 +586,10 @@ function plan(p,est,cc,date){
   const base=x=>Math.max(x,c.earliest);
   let ps=base(hi)+c.presDelay+PAD, pe=base(lo)+c.presDelay+c.presLen, outEnd=null;
   if(mode==="late"){const a=c.graceEnd;ps=Math.max(c.earliest+c.presDelay+PAD,Math.ceil(hi));pe=c.earliest+c.presDelay+c.presLen;out=lateOut(c)+PAD;outEnd=(c.earliest+c.workMin>=c.latestOut)?null:out+29}
-  else if(mode==="perm"){late=0;out=Math.min(c.earliest+c.workMin,c.latestOut)+PAD}
+  else if(mode==="perm"){late=0;out=Math.min(c.earliest+c.workMin,c.latestOut)+PAD;
+    /* استئذان صباحي: إن انتهى قبل نافذة التواجد فعليه التواجد خلالها، وإن انتهى داخلها فتواجده بعد ساعة من حضوره */
+    const ws=c.earliest+c.presDelay+PAD, we=c.earliest+c.presDelay+c.presLen;
+    if(hi<ws){ps=ws;pe=we}else{ps=Math.ceil(hi)+60+PAD;pe=Math.ceil(hi)+120}}
   const todays=S.perms.filter(x=>x.date===(date||dkey()));
   /* النشرة 40/2024: من حضر بعد (نهاية السماح + ساعتين) بتأخير أو استئذان فلا تواجد عليه */
   const noPres=(mode==="late"||mode==="perm")&&lo>c.graceEnd+c.presDelay;
@@ -1005,7 +1008,7 @@ function renderRules(){
   <p>٣. يجوز للرئيس المباشر أو من يليه اعتماد نموذج بصمة التواجد لمن بصم في غير وقتها. <span class="src">ديوان الخدمة ٢٠٢٥</span></p>
   <p>٤. الانصراف بعد <b>${dur(c.workMin)}</b> من الحضور المعتمد (فمن حضر ${fmt(c.earliest)} ينصرف ${fmt(Math.min(c.earliest+c.workMin,c.latestOut))})، وكل تأخير في الحضور يؤخّر التواجد والانصراف معه، والتأخير يُحتسب بعد انتهاء فترة السماح لكل مرحلة. <span class="src">نشرة الدوام المرن</span></p>
   <p>٥. فترة السماح في المرحلة ${(STAGES[c.stage]||STAGES.sec).label}: الحضور <b>${fmt(c.earliest)}–${fmt(c.graceEnd)}</b>، والانصراف من <b>${fmt(Math.min(c.earliest+c.workMin,c.latestOut))}–${fmt(c.latestOut)}</b>. <span class="src">النشرة ٤٠/٢٠٢٤</span></p>
-  <p>٦. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. <span class="src mine">قاعدة معتمدة</span></p>
+  <p>٦. من حضر متأخرًا بعد ${fmt(c.graceEnd)} حتى ${fmt(c.graceEnd+c.presDelay)} فعليه بصمة التواجد من ${fmt(c.earliest+c.presDelay)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، ومن حضر بعد ${fmt(c.graceEnd+c.presDelay)} بتأخير أو استئذان فلا تواجد عليه وتكفيه بصمة الحضور. وانصراف المتأخر من نهاية الدوام الرسمي ${fmt(lateOut(c)+1)}. ومن حضر <b>باستئذان صباحي</b> انتهى قبل ${fmt(c.earliest+c.presDelay+1)} فعليه التواجد من ${fmt(c.earliest+c.presDelay+1)} حتى ${fmt(c.earliest+c.presDelay+c.presLen)}، وإن انتهى داخل هذه النافذة فتواجده <b>بعد ساعة</b> من حضوره. <span class="src mine">قاعدة معتمدة</span></p>
   <p>٧. من لم يثبت تواجده في الستين دقيقة يُعد منصرفًا دون إذن، فإن بصم بعدها دخلت المدة من انقضاء الساعتين حتى بصمته ضمن رصيد التأخير الشهري، وإن لم يبصم أصلًا فلا يعالَج إلا باستئذان بيني رسمي أو بعرضية لليوم كله. <span class="src">النشرة ٤٠/٢٠٢٤ والمادة ١٨ من قرار ٦/٢٠٢٤</span></p>
   <p>٨. الاستئذانات ${c.permsMax} شهريًا لا تتجاوز ${c.permsHours} ساعة، والعرضية ${c.ardiya} يومان، والمرضية ${c.sick} يومًا لا أكثر من ${c.sickRun} متصلة. <span class="src mine">قابلة للتعديل</span></p></div>
   <div class="card"><h3>ملاحظات مهمة</h3>

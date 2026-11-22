@@ -501,10 +501,10 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
       <h3>كيف تستخدمه</h3>
       <p><strong>إن كان عندك غرض:</strong></p>
       <ol>
-        <li>سجّل برقم جوالك، وأكّده بالرمز الذي يصلك.</li>
-        <li>من «اعرض غرضًا» صوّر الغرض، واكتب مختصره وشرحه ومنطقتك.</li>
+        <li>سجّل دخولك بإيميلك، وأكّده بالرمز الذي يصلك عليه، وأضف رقم جوالك للتواصل الكتابي.</li>
+        <li>من «اعرض غرضًا من المقتنيات» صوّر الغرض إن أمكن، واختر تصنيفه وحالته ومنطقته وحيّه.</li>
         <li>تعطيك المنصة كودًا للغرض، ويدخل أول نافذة تفرغ.</li>
-        <li>يصلك إشعار عند الحجز، فتتواصل مع صاحبه واتساب، وبعد التسليم تضغط «تم التسليم».</li>
+        <li>ترى في «حسابي» من حجز غرضك، فتتواصلان كتابةً عبر واتساب، وبعد التسليم تضغط «تم التسليم».</li>
       </ol>
       <p style="margin-top:10px"><strong>إن كنت تحتاج غرضًا:</strong></p>
       <ol>
@@ -523,9 +523,9 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 
       <h3>القوانين</h3>
       <ol>
-        <li>التسجيل برقم جوال حقيقي يملكه صاحبه، ويُوثَّق برمز في رسالة.</li>
+        <li>التسجيل برقم جوال حقيقي يملكه صاحبه، ويُوثَّق برمز عبر إيميله.</li>
         <li>الحجز بالكود وحده. عبارات مثل «أبيها» أو «احجزها» لا تُعتمد.</li>
-        <li>يُمنع التواصل بالهاتف أو الاتصال الهاتفي، والخدمة محصورة بالتواصل عبر واتساب فقط.</li>
+        <li>يُمنع الاتصال الهاتفي والمكالمات الصوتية بأي شكل، والتواصل كتابةً عبر واتساب فقط.</li>
         <li>مهلة الاستلام 24 ساعة من تأكيد الحجز، ثم ينتقل الغرض لمن بعده.</li>
         <li>يُعرض الغرض سليمًا نظيفًا مطابقًا لصورته، ويُذكر أي عيب فيه بوضوح.</li>
         <li>نقل الغرض على المستفيد أو بموعد يتفقان عليه، دون أي شرط مادي.</li>
@@ -682,7 +682,7 @@ const pull = fresh => fresh && pulling ? pulling.then(() => pull()) : pulling ||
   catch(e) {} finally { pulling = null; }
 })());
 const ERR = {
-  login:'سجّل برقم جوالك أولًا.',
+  login:'سجّل دخولك بإيميلك أولًا.',
   banned:'رقمك موقوف عن الحجز والعرض. تواصل مع إدارة المبادرة.',
   missing:'اختر قبل الإعلان: الصورة والتصنيف والمنطقة.',
   not_found:'لم نجد هذا الغرض.',
@@ -761,7 +761,7 @@ const go = v => {
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
 const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); } if (view === 'me') renderMe(); };
-const needLogin = () => { if (st.me) return false; toast('سجّل برقم جوالك أولًا'); go('me'); return true; };
+const needLogin = () => { if (st.me) return false; toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
@@ -1073,7 +1073,7 @@ const postSrv = async (out, title, area, form, note) => {
 const postDone = (out, it, form) => {
   const code = it.code;
   out.innerHTML = `<div class="result ok"><strong>${it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
-    <span class="code">${code}</span>هذا كود غرضك. يصلك إشعار عند أول حجز، ويظهر رقمك لصاحب الحجز الأول فقط.
+    <span class="code">${code}</span>هذا كود غرضك. ترى في «حسابي» من حجزه، ويظهر رقمك لصاحب الحجز الأول فقط.
     ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div>
     <div class="row"><button class="btn ghost" type="button" data-wapost="${code}">انسخ الإعلان لواتساب</button><button class="btn ghost" type="button" data-washare="${code}">شاركه في واتساب</button></div>
     <div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
@@ -1136,7 +1136,7 @@ $('#bookForm').addEventListener('submit', async e => {
        ${esc(it.title)} · ${esc(it.area)}<br>${it.pickTime ? `وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}.<br>` : ''}تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
        <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>
        <p class="free-note">رقم المتبرع: <span dir="ltr">${showPhone(it.owner)}</span> · لا تدفع أي مقابل.</p></div>`
-    : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، ويصلك إشعار إن أُلغي الحجز قبلك.</div>`;
+    : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، وإن أُلغي الحجز قبلك ظهر لك في «حسابي» رقم صاحبه.</div>`;
 });
 
 /* حسابي */

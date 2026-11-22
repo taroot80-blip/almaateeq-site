@@ -436,7 +436,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.2</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.3</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -461,6 +461,18 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
 </div>
 
 <!-- اختيار نوع التأخير -->
+<div class="modal" id="mPermStart" role="dialog" aria-modal="true" aria-label="بداية احتساب الاستئذان">
+  <div class="sheet" style="text-align:center">
+    <h3>📝 متى تريد احتساب بداية الاستئذان؟</h3>
+    <p class="muted" style="margin:0 0 8px">ينتهي استئذانك <b class="num" id="psEnd"></b>. اختر بدايته في المدة المرنة <span id="psRange"></span>.</p>
+    <div class="num" id="psVal" style="font-size:40px;font-weight:900;color:var(--gold);margin:4px 0"></div>
+    <input type="range" id="psRng" step="1" style="width:100%;accent-color:#F2B632">
+    <div id="psChips" style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0"></div>
+    <p class="muted" id="psInfo" style="margin:0 0 10px;font-size:13px"></p>
+    <button class="btn primary wide" id="psOk">✅ اعتمد بداية الاستئذان</button>
+    <button class="btn ghost wide" data-close style="margin-top:6px">إلغاء</button>
+  </div>
+</div>
 <div class="modal" id="mLate" role="dialog" aria-modal="true" aria-label="نوع التأخير">
   <div class="sheet" style="text-align:center">
     <h3>حضرتَ <span class="num" id="lcTime"></span> بعد نهاية فترة السماح</h3>
@@ -586,7 +598,7 @@ function plan(p,est,cc,date){
   const base=x=>Math.max(x,c.earliest);
   let ps=base(hi)+c.presDelay+PAD, pe=base(lo)+c.presDelay+c.presLen, outEnd=null;
   if(mode==="late"){const a=c.graceEnd;ps=Math.max(c.earliest+c.presDelay+PAD,Math.ceil(hi));pe=c.earliest+c.presDelay+c.presLen;out=lateOut(c)+PAD;outEnd=(c.earliest+c.workMin>=c.latestOut)?null:out+29}
-  else if(mode==="perm"){late=0;out=Math.min(c.earliest+c.workMin,c.latestOut)+PAD;
+  else if(mode==="perm"){late=0;const pf=c.permFrom!=null?c.permFrom:c.earliest;out=Math.min(pf+c.workMin,c.latestOut)+PAD;outEnd=c.latestOut;
     /* استئذان صباحي: إن انتهى قبل نافذة التواجد فعليه التواجد خلالها، وإن انتهى داخلها فتواجده بعد ساعة من حضوره */
     const ws=c.earliest+c.presDelay+PAD, we=c.earliest+c.presDelay+c.presLen;
     if(hi<ws){ps=ws;pe=we}else{ps=Math.ceil(hi)+60+PAD;pe=Math.ceil(hi)+120}}
@@ -656,9 +668,22 @@ const LATE_ALLOW=85;
 /* التأخير: بعد نهاية السماح بدقيقة، حتى 10 دقائق قبل آخر انصراف؛ وانصراف المتأخر عند نهاية الدوام الرسمي */
 const lateFrom=()=>C().graceEnd+1, lateTo=()=>C().latestOut-10, lateOut=c=>(c.offEnd!=null?c.offEnd:c.graceEnd+360);
 let pendingIn=null;
+/* بداية احتساب الاستئذان الصباحي: مرنة من بداية السماح حتى نهايته، ويلزم اختيارها */
+let permFromSel=null;
+function openPermStart(end){const c=C(),$=id=>document.getElementById(id);const lo=c.earliest,hi=Math.max(lo,Math.min(c.graceEnd,Math.floor(end)-1));
+  const r=$("psRng");r.min=lo;r.max=hi;r.value=lo;$("psEnd").textContent=fmt(end);$("psRange").textContent=`${fmt(lo)} – ${fmt(hi)}`;
+  const show=()=>{const v=+r.value;$("psVal").textContent=fmt(v);const out=Math.min(v+c.workMin,c.latestOut)+1;$("psInfo").innerHTML=`مدة الاستئذان <b>${dur(end-v)}</b> · انصرافك من <b>${fmt(out)}</b> إلى <b>${fmt(c.latestOut)}</b>`;
+    $("psChips").querySelectorAll("button").forEach(b=>{const on=+b.dataset.v===v;b.classList.toggle("primary",on);b.classList.toggle("ghost",!on)})};
+  const st=[];for(let t=lo;t<=hi;t+=5)st.push(t);if(st[st.length-1]!==hi)st.push(hi);
+  $("psChips").innerHTML=st.map(t=>`<button class="btn ghost" style="padding:6px 10px;min-height:0;font-size:14px" data-v="${t}">${fmt(t).replace(/ ?[صم]$/,"")}</button>`).join("");
+  $("psChips").querySelectorAll("button").forEach(b=>b.onclick=()=>{r.value=b.dataset.v;show()});r.oninput=show;show();
+  $("psOk").onclick=()=>{const k=dkey(),from=+r.value,len=end-from,pl=permsLeft(k);
+    if(pl.n<1||pl.min<len){closeM();toast(`رصيد الاستئذانات لا يكفي (المتبقي ${Math.max(0,pl.n)} مرات و${dur(Math.max(0,pl.min))}). اختر «تأخير».`);setTimeout(()=>openLateChoice(pendingIn),220);return}
+    closeM();S.perms=S.perms.filter(p=>!(p.date===k&&p.morning));S.perms.push({date:k,from:toHHMM(from),to:toHHMM(end),morning:true});pendingIn=null;permFromSel=from;setPunch(end,"perm")};
+  openM("mPermStart")}
 function setPunch(m,mode){m=Math.round(m*60)/60;
   if(!mode&&m>=lateFrom()&&m<=lateTo()){pendingIn=m;openLateChoice(m);return}
-  const d=today();d.in=m;delete d.est;d.cfg=snap();if(mode)d.cfg.mode=mode;d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(mode==='late'?`سُجّل حضورك ${fmt(d.in)} تأخيرًا ${dur(d.in-C().graceEnd)} من رصيدك`:mode==='perm'?`سُجّل استئذان صباحي حتى ${fmt(d.in)}`:`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
+  const d=today();d.in=m;delete d.est;d.cfg=snap();if(mode)d.cfg.mode=mode;if(mode==="perm"&&permFromSel!=null){d.cfg.permFrom=permFromSel;permFromSel=null}d.pres=null;d.out=null;d.fired={};save();pushNative(true);render();toast(mode==='late'?`سُجّل حضورك ${fmt(d.in)} تأخيرًا ${dur(d.in-C().graceEnd)} من رصيدك`:mode==='perm'?`سُجّل استئذان صباحي من ${fmt(d.cfg.permFrom??C().earliest)} حتى ${fmt(d.in)}`:`اعتُمدت بصمة الحضور ${fmt(d.in)}`);launchFlash()}
 /* ===== الجسر مع نسخة أندرويد ===== */
 function nativeSync(){if(!N)return;try{N.setConfig(JSON.stringify(C()))}catch(e){}
   try{const n=JSON.parse(N.getDay(dkey())||"{}"),d=today();
@@ -674,7 +699,7 @@ function openLateChoice(m){const c=C(),k=dkey(),lm=Math.round(m-c.graceEnd),lu=l
   document.getElementById("lcLate").innerHTML=`يُحسب حضورك ${fmt(c.graceEnd)}، ${m>c.graceEnd+c.presDelay?'ولا تواجد عليك لأنك حضرت بعد '+fmt(c.graceEnd+c.presDelay):'والتواجد من '+fmt(Math.max(c.earliest+c.presDelay+1,Math.ceil(m)))+' حتى '+fmt(c.earliest+c.presDelay+c.presLen)}، والانصراف من ${fmt(lateOut(c)+1)}.<br>يُخصم <b>${dur(lm)}</b> من رصيد التأخير؛ المتبقي بعده <b class="${lu+lm>LATE_ALLOW?"bad":""}">${dur(Math.max(0,LATE_ALLOW-lu-lm))}</b> من ${LATE_ALLOW} دقيقة.`;
   document.getElementById("lcPerm").innerHTML=`تضع بالساعة وقت انتهاء الاستئذان، ويبدأ من ${fmt(c.earliest)}.<br>يُخصم استئذان واحد (نحو <b>${dur(pm)}</b>)؛ المتبقي لك <b class="${pl.n<1||pl.min<pm?"bad":""}">${Math.max(0,pl.n)} مرات و${dur(Math.max(0,pl.min))}</b>.`;
   openM("mLate")}
-function pushNative(reset){if(!N)return;const d=today(),o={reset:!!reset};if(d.cfg&&d.cfg.mode)o.mode=d.cfg.mode;
+function pushNative(reset){if(!N)return;const d=today(),o={reset:!!reset};if(d.cfg&&d.cfg.mode)o.mode=d.cfg.mode;if(d.cfg&&d.cfg.permFrom!=null)o.permFrom=d.cfg.permFrom;
   if(d.in!=null){if(d.est){o.lo=d.est.lo;o.hi=d.est.hi}else o.in=d.in;const P=plan(d.in,d.est,d.cfg);if(P.exempt)o.exempt=true}
   if(d.pres!=null)o.pres=d.pres;if(d.out!=null)o.out=d.out;try{N.setDay(dkey(),JSON.stringify(o))}catch(e){}}
 window.onNativeResume=()=>{nativeSync();const v=document.querySelector(".view.on");if(v&&v.id==="v-today")render();else if(v&&v.id==="v-rules")renderRules()};
@@ -780,7 +805,7 @@ function render(){
     const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="head"><div class="ic" style="background:${col}">${ic}</div><h4>${title}</h4></div>
       <div class="range num">${range}</div>
       <span class="stat ${stTxt[st][0]}">${st==="ex"&&title==="بصمة التواجد"&&P.noPres?"معفاة":stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
-    h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.mode==="late"?`تأخير ${dur(P.late)} · يُحسب حضورك ${fmt(c.graceEnd)} · رصيد التأخير المتبقي ${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}`:P.mode==="perm"?`استئذان صباحي من ${fmt(c.earliest)} إلى ${fmt(P.p)}`:P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
+    h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.mode==="late"?`تأخير ${dur(P.late)} · يُحسب حضورك ${fmt(c.graceEnd)} · رصيد التأخير المتبقي ${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}`:P.mode==="perm"?`استئذان صباحي من ${fmt(d.cfg&&d.cfg.permFrom!=null?d.cfg.permFrom:c.earliest)} إلى ${fmt(P.p)}`:P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",P.noPres&&d.pres==null?"لا تواجد اليوم":`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
       sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`+(presLate(d,dkey())?` · متأخرة: يُخصم ${dur(presLate(d,dkey()))} من رصيد التأخير`:""):sP==="ex"?(P.noPres?"لا تواجد عليك اليوم؛ حضرتَ بعد "+fmt(c.graceEnd+c.presDelay)+" فتكفيك بصمة الحضور":"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها"):"راجع قسم «إذا نسيت» الآن",
       (sP==="open"||sP==="wait"?"<button class='btn ok' id='presDone'>بصمتُ التواجد</button>":sP==="miss"?"<button class='btn ghost' data-go='forgot'>ماذا أفعل؟</button><button class='btn ghost' id='presDone'>بصمتُ متأخرًا</button>":"")+`<button class='btn ghost${sP==="miss"?" full":""}' id='presEdit'>✏️ تعديل</button>`);
@@ -855,8 +880,7 @@ function drawPick(){const svg=document.getElementById("pick");let t="";
   svg.addEventListener("pointerup",()=>{drag=false;lastMin=null});
   document.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{pickM=Math.max(300,Math.min(900,pickM+ +b.dataset.step));drawPick()});
   document.getElementById("pickOk").onclick=()=>{closeM();if(pickMode==="permEnd"){const c=C(),k=dkey(),end=pickM;if(end<=c.earliest){toast(`وقت انتهاء الاستئذان يكون بعد ${fmt(c.earliest)}.`);return}
-    const pl=permsLeft(k),len=end-c.earliest;if(pl.n<1||pl.min<len){toast(`رصيد الاستئذانات لا يكفي (المتبقي ${Math.max(0,pl.n)} مرات و${dur(Math.max(0,pl.min))}). اختر «تأخير».`);openLateChoice(pendingIn);return}
-    S.perms=S.perms.filter(p=>!(p.date===k&&p.morning));S.perms.push({date:k,from:toHHMM(c.earliest),to:toHHMM(end),morning:true});pendingIn=null;setPunch(end,"perm");return}
+    setTimeout(()=>openPermStart(end),220);return}
   if(pickMode==="pres"||pickMode==="out"){const d=today();d[pickMode]=pickM;if(d.fired){if(pickMode==="pres"){delete d.fired.pres;delete d.fired.presLast}else delete d.fired.out}save();pushNative(true);render();launchFlash();toast(`اعتُمد وقت ${pickMode==="pres"?"التواجد":"الانصراف"} ${fmt(pickM)}`)}else setPunch(pickM)};
   document.getElementById("pickClear").onclick=()=>{const d=today();d[pickMode]=null;save();pushNative(true);closeM();render();toast(`مُسح وقت ${pickMode==="pres"?"التواجد":"الانصراف"}.`)};
   document.getElementById("typeOk").onclick=()=>{const v=document.getElementById("typeIn").value;if(!v){toast("اكتب الوقت أولًا.");return}closeM();setPunch(toMin(v))};

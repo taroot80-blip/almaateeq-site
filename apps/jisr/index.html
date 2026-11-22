@@ -344,7 +344,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 </style>
 <!-- الربط بالخادم: إن وُجدت مفاتيح في config.js عمل التطبيق على الخادم المشترك، وإلا عمل نسخة تجريبية على الجهاز -->
 <script src="config.js"></script>
-<script>if (window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"><\/script>');</script>
+<script>window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey && (JISR_CONFIG.live || /[?&]server\b/.test(location.search))); if (JISR_SRV) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');</script>
 </head>
 <body>
 <header id="hdr">
@@ -632,7 +632,7 @@ const seed = () => {
 
 /* الخادم: يعمل إن وُجدت المفاتيح في config.js، وإلا فالنسخة التجريبية على الجهاز */
 const CFG = window.JISR_CONFIG || {};
-const SRV = !!(CFG.url && CFG.anonKey && window.supabase);
+const SRV = !!(window.JISR_SRV && window.supabase);
 const sb = SRV ? window.supabase.createClient(CFG.url, CFG.anonKey) : null;
 let mem = null;
 const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, people:{}, log:[], items:[]}; try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
@@ -672,7 +672,10 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
 const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); };
-const phoneOk = s => { let p = digits(s).replace(/\D/g, ''); if (/^05\d{8}$/.test(p)) p = '966' + p.slice(1); return /^\d{9,13}$/.test(p) ? p : null; };
+/* يقبل: 05xxxxxxxx أو 5xxxxxxxx (السعودية)، وثمانية أرقام (الكويت)، أو الرقم الدولي بمفتاحه مع + أو 00 أو دونهما */
+const phoneOk = s => { let p = digits(s).replace(/\D/g, '').replace(/^00/, '');
+  if (/^05\d{8}$/.test(p)) p = '966' + p.slice(1); else if (/^5\d{8}$/.test(p)) p = '966' + p; else if (/^[4569]\d{7}$/.test(p)) p = '965' + p;
+  return /^\d{10,13}$/.test(p) ? p : null; };
 const showPhone = p => '+' + p;
 const normCode = s => { const c = digits(s).toUpperCase().replace(/[^A-Z0-9]/g, ''); const m = c.match(/^([A-Z]{2,3})(\d{4})$/); return m ? m[1] + '-' + m[2] : null; };
 const wa = (p, msg) => `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
@@ -1087,7 +1090,7 @@ const renderMe = () => {
       <h2>سجّل برقم جوالك</h2>
       <p>نرسل لك رمزًا في رسالة لنتأكد أن الرقم رقمك أنت.</p>
       <label for="ph">رقم الجوال</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${pendingPhone ? '0' + pendingPhone.slice(3) : ''}">
+      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${pendingPhone ? (pendingPhone.startsWith('966') ? '0' + pendingPhone.slice(3) : pendingPhone.startsWith('965') ? pendingPhone.slice(3) : pendingPhone) : ''}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       ${otp ? `<label for="otp">الرمز المرسل إليك</label><input class="field ltr big" id="otp" inputmode="numeric" maxlength="6" placeholder="••••••">
@@ -1102,7 +1105,7 @@ const renderMe = () => {
         try {
           if (!otp) {
             const p = phoneOk($('#ph').value);
-            if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
+            if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.</div>'; return; }
             pendingName = $('#nm').value.trim();
             const {error} = await sb.auth.signInWithOtp({phone:'+' + p});
             if (error) { msg.innerHTML = '<div class="result err">لم نستطع إرسال الرسالة الآن. تأكد من الرقم وحاول بعد دقيقة.</div>'; return; }
@@ -1119,7 +1122,7 @@ const renderMe = () => {
       }
       if (!otp) {
         const p = phoneOk($('#ph').value);
-        if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567.</div>'; return; }
+        if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.</div>'; return; }
         pendingPhone = p; pendingName = $('#nm').value.trim(); otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
       } else if (digits($('#otp').value).trim() === otp) {
         st.me = pendingPhone; (st.people = st.people || {})[st.me] = pendingName || (st.people || {})[st.me] || ''; otp = null; pendingPhone = null; save(); toast('تم التحقق، أهلًا بك'); renderMe();

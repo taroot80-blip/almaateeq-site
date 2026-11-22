@@ -192,6 +192,11 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .aboutprog{background:var(--paper,#fff);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin:10px 0;text-align:center}
 .aboutprog .biglogo{width:130px}
 .aboutprog p{text-align:right}
+.heldbox{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin-top:8px;border:1.5px solid var(--green);border-radius:16px;padding:8px 6px 6px;font-weight:700;color:var(--green);text-align:center}
+.heldbox button{border:0;border-radius:12px;width:100%;background:#fdecea;color:#b3261e;font:inherit;font-size:13px;font-weight:700;padding:7px 12px;cursor:pointer}
+.heldbox button.sure,[data-cancel].sure{background:#b3261e;color:#fff;white-space:normal;line-height:1.4}
+.grab.held{background:var(--mint);color:var(--ink);opacity:.8;cursor:not-allowed;box-shadow:none;animation:none}
+.cnt{margin:6px 0 0;text-align:center;font-size:13px;font-weight:700;color:#b45309}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -739,7 +744,7 @@ const tick = () => {
   while (now() >= st.cycleStart + DAY) { roll(st.cycleStart + DAY); changed = true; }
   for (const it of st.items) {
     if (!['shown', 'reserved'].includes(it.status) || it.given || it.cancelled) continue;
-    while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; logEv('returned', it.code, it.queue.shift()); changed = true; }
+    while (it.queue.length && now() - it.bookedAt > DAY) { it.bookedAt += DAY; logEv('returned', it.code, it.queue.shift()); it.cancels = (it.cancels || 0) + 1; changed = true; }
     if (it.status === 'reserved' && !it.queue.length) { toStore(it, now()); changed = true; }
   }
   if (changed) save();
@@ -777,6 +782,10 @@ const win = (it, i) => {
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
       ${!g && !x && !it.queue.length ? `<button class="grab" data-book="${esc(it.code)}">احجز الآن</button>` : ''}
+      ${!g && !x && it.queue.length ? (it.queue[0] === st.me
+        ? `<div class="heldbox"><span>🔘 محجوز لك</span><button type="button" data-cancel="${esc(it.code)}">إلغاء الحجز</button></div>`
+        : `<button class="grab held" type="button" disabled aria-disabled="true">🔘 محجوز</button>`) : ''}
+      ${!g && !x && it.cancels ? `<p class="cnt">أُلغي الحجز ${it.cancels}</p>` : ''}
       ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : x ? '<p class="thanks">أُلغي العرض، والغرض عند صاحبه.</p>' : ''}
       <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
@@ -785,7 +794,8 @@ const win = (it, i) => {
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
         ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
-          <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
+          ${it.queue.includes(st.me) ? `<p class="free-note">${it.queue[0] === st.me ? 'الغرض باسمك، ولا يتجاوزك أحد إلا إن تنازلت.' : `أنت رقم ${it.queue.indexOf(st.me)} في الطابور.`}</p>`
+            : `<button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'قف في الطابور بالكود' : 'احجز بالكود'}</button>`}`}
       </div></div></div>
     </div></article>`;
 };
@@ -804,6 +814,7 @@ const renderHome = () => {
 $('#chips').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (b) { region = b.dataset.r; renderHome(); } });
 $('#q').addEventListener('input', renderHome);
 $('#grid').addEventListener('click', e => {
+  const cb = e.target.closest('[data-cancel]'); if (cb) return cancelBooking(cb);
   const m = e.target.closest('[data-more]');
   if (m) {
     const c = m.dataset.more, on = !open.has(c);
@@ -1235,20 +1246,37 @@ const renderMe = () => {
 $('#meBox').addEventListener('click', async e => {
   const find = c => st.items.find(i => i.code === c);
   const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]'), xc0 = e.target.closest('[data-xcancel]');
-  if (SRV && (d || s || c || xc0)) {
-    const b = d || s || c || xc0; b.disabled = true;
-    const r = c ? await api('jisr_cancel_booking', {_code:c.dataset.cancel}).catch(() => ({err:'net'}))
-      : await api('jisr_owner_action', {_code:(d || s || xc0).dataset[d ? 'done' : s ? 'skip' : 'xcancel'], _act:d ? 'given' : s ? 'skip' : 'cancel'}).catch(() => ({err:'net'}));
+  if (c) return cancelBooking(c);
+  if (SRV && (d || s || xc0)) {
+    const b = d || s || xc0; b.disabled = true;
+    const r = await api('jisr_owner_action', {_code:(d || s || xc0).dataset[d ? 'done' : s ? 'skip' : 'xcancel'], _act:d ? 'given' : s ? 'skip' : 'cancel'}).catch(() => ({err:'net'}));
     if (r.err) { b.disabled = false; return r.err === 'net' || toast(errMsg(r)); }
     await pull(true);
-    return toast(d ? 'ذهب لمستفيد، الشكر الجزيل لك' : s ? 'انتقل الحجز للتالي، أو أُلغي إن لم يبق أحد' : c ? 'أُلغي حجزك' : 'أُلغي العرض، والغرض عندك');
+    return toast(d ? 'ذهب لمستفيد، الشكر الجزيل لك' : s ? 'انتقل الحجز للتالي، أو أُلغي إن لم يبق أحد' : 'أُلغي العرض، والغرض عندك');
   }
   if (d) { const it = find(d.dataset.done); logEv('given', it.code, it.queue[0]); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
-  if (s) { const it = find(s.dataset.skip); logEv('returned', it.code, it.queue.shift()); it.bookedAt = now(); if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
+  if (s) { const it = find(s.dataset.skip); logEv('returned', it.code, it.queue.shift()); it.bookedAt = now(); it.cancels = (it.cancels || 0) + 1; if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
   const xc = e.target.closest('[data-xcancel]');
   if (xc) { const it = find(xc.dataset.xcancel); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); toast('أُلغي العرض، والغرض عندك'); renderMe(); }
-  if (c) { const it = find(c.dataset.cancel); logEv('returned', it.code, st.me); const was = it.queue[0] === st.me; it.queue = it.queue.filter(p => p !== st.me); if (was) it.bookedAt = now(); save(); toast('أُلغي حجزك'); tick(); renderMe(); }
 });
+/* إلغاء الحجز: بضغطتين، لأن من تنازل يعود آخر الطابور إن أراد الغرض مرة أخرى */
+const cancelBooking = async b => {
+  const code = b.dataset.cancel, it = st.items.find(i => i.code === code); if (!it) return;
+  const first = it.queue[0] === st.me;
+  if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = first ? 'تأكيد التنازل؟' : 'تأكيد الخروج؟'; b.classList.add('sure'); return; }
+  b.disabled = true;
+  if (SRV) {
+    const r = await api('jisr_cancel_booking', {_code:code}).catch(() => ({err:'net'}));
+    if (r.err) { b.disabled = false; return r.err === 'net' || toast(errMsg(r)); }
+    await pull(true);
+  } else {
+    logEv('returned', code, st.me); it.queue = it.queue.filter(p => p !== st.me);
+    if (first) { it.bookedAt = now(); it.cancels = (it.cancels || 0) + 1; }
+    save(); tick(); render();
+  }
+  const after = st.items.find(i => i.code === code);
+  toast(!first ? 'خرجت من الطابور' : (after && after.queue.length ? 'أُلغي حجزك، وانتقلت الأحقية لمن بعدك' : 'أُلغي حجزك، وعاد الغرض متاحًا') + '. وإن أردته تقف آخر الطابور');
+};
 
 /* ساعة توقيت الاستلام: من (ساعة ثم دقيقة) ثم إلى (ساعة ثم دقيقة) */
 const ck = {code:null, step:0, t:[{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]};

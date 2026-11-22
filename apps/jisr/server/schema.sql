@@ -45,6 +45,7 @@ create table if not exists jisr_items (
   created timestamptz not null default now(),
   shown_at timestamptz, booked_at timestamptz, given_at timestamptz, cancelled_at timestamptz
 );
+alter table jisr_items add column if not exists cancels int not null default 0;  -- كم مرة أُلغي الحجز الأول
 create index if not exists jisr_items_status on jisr_items (status);
 create index if not exists jisr_items_owner on jisr_items (owner);
 
@@ -136,9 +137,9 @@ begin
   for r in select * from jisr_items where status in ('shown','reserved') and not given and not cancelled for update loop
     while cardinality(r.queue) > 0 and now() - r.booked_at > interval '1 day' loop
       perform jisr_log('returned', r.code, r.queue[1]);
-      r.queue := r.queue[2:]; r.booked_at := r.booked_at + interval '1 day';
+      r.queue := r.queue[2:]; r.booked_at := r.booked_at + interval '1 day'; r.cancels := r.cancels + 1;
     end loop;
-    update jisr_items set queue = r.queue, booked_at = r.booked_at where code = r.code;
+    update jisr_items set queue = r.queue, booked_at = r.booked_at, cancels = r.cancels where code = r.code;
     if r.status = 'reserved' and cardinality(r.queue) = 0 then perform jisr_to_store(r.code, now()); end if;
   end loop;
   perform jisr_fill(now());
@@ -173,7 +174,7 @@ begin
         'code', i.code, 'title', i.title, 'det', i.det, 'area', i.area, 'cond', i.cond, 'pick', i.pick,
         'cat', i.cat, 'icon', i.icon, 'photos', i.photos,
         'pickTime', case when i.pick_from is null then null else json_build_object('from', i.pick_from, 'to', i.pick_to) end,
-        'status', i.status, 'given', i.given, 'cancelled', i.cancelled, 'shows', i.shows,
+        'status', i.status, 'given', i.given, 'cancelled', i.cancelled, 'shows', i.shows, 'cancels', i.cancels,
         'created', floor(extract(epoch from i.created) * 1000),
         'shownAt', floor(extract(epoch from i.shown_at) * 1000),
         'bookedAt', floor(extract(epoch from i.booked_at) * 1000),
@@ -255,8 +256,10 @@ begin
   select * into it from jisr_items where code = _code for update;
   if not found or not (me = any(it.queue)) then return json_build_object('err', 'not_found'); end if;
   perform jisr_log('returned', it.code, me);
+  -- صاحب الأحقية الأولى تنازل: يُعدّ إلغاءً، ومن أراده بعدها عاد آخر الطابور
   update jisr_items set queue = array_remove(queue, me),
-    booked_at = case when queue[1] = me then now() else booked_at end where code = it.code;
+    booked_at = case when queue[1] = me then now() else booked_at end,
+    cancels = cancels + case when queue[1] = me then 1 else 0 end where code = it.code;
   perform jisr_tick();
   return json_build_object('ok', true);
 end $$;
@@ -277,7 +280,7 @@ begin
   elsif _act = 'skip' then
     if cardinality(it.queue) = 0 then return json_build_object('err', 'no_booker'); end if;
     perform jisr_log('returned', it.code, it.queue[1]);
-    update jisr_items set queue = queue[2:], booked_at = now() where code = it.code;
+    update jisr_items set queue = queue[2:], booked_at = now(), cancels = cancels + 1 where code = it.code;
     if it.status = 'reserved' and cardinality(it.queue) = 1 then perform jisr_to_store(it.code, now()); end if;
   elsif _act = 'cancel' then
     perform jisr_log('cancelled', it.code, it.owner);

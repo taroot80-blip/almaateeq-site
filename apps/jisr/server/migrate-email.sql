@@ -51,5 +51,5 @@ begin
 end $$;
 grant execute on function jisr_board_auth() to anon, authenticated;
 
--- رقم الإدارة مربوط بإيميله، فلا يأخذه غيره (غيّر الإيميل إن كان غير هذا)
-update jisr_profiles set email = 'taroot80@gmail.com' where phone = '96566669594' and email is null;
+-- رقم الإدارة مربوط بإيميل المبادرة، فلا يأخذه غيره
+update jisr_profiles set email = 'jisr.alataa@gmail.com' where phone = '96566669594';

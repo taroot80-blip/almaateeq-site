@@ -742,8 +742,9 @@ const renderWa = () => {
   $('#waMode').innerHTML = Object.entries(WA_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === m}" aria-checked="${k === m}" data-wamode="${k}">${v}</button>`).join('');
   $('#waModeNote').textContent = WA_NOTE[m];
   if (m === 'platform') { $('#waQueue').innerHTML = ''; return; }
-  const q = st.items.filter(i => (i.status === 'shown' || i.status === 'waiting') && !i.given && !i.cancelled && !i.waSent && !i.waSentAt);
-  const sent = st.items.filter(i => (i.waSent || i.waSentAt) && (i.status === 'shown' || i.status === 'waiting')).length;
+  /* يدخل الطابور ما عُرض اليوم فقط، لأن الحجز بالكود لا يُقبل إلا لما في عرض اليوم */
+  const q = st.items.filter(i => i.status === 'shown' && !i.given && !i.cancelled && !i.queue.length && !i.waSent && !i.waSentAt);
+  const sent = st.items.filter(i => (i.waSent || i.waSentAt) && i.status === 'shown').length;
   $('#waQueue').innerHTML = `<p class="hint" style="margin:8px 0 6px">بانتظار النشر: ${q.length} · نُشر: ${sent}</p>` + (q.map(i =>
     `<div class="waq"><div><span class="code">${esc(i.code)}</span> ${esc(i.title)}<br><small>${esc(i.area)}${pics(i).length ? ' · بالصور' : ' · بلا صور'}</small></div>
       <button class="btn small primary" type="button" data-wasend="${esc(i.code)}">انشر في واتساب</button></div>`).join('') || '<p class="sample">لا شيء بانتظار النشر.</p>');

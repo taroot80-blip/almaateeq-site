@@ -1,0 +1,55 @@
+-- =====================================================================
+-- جسر العطاء: التحقق بالإيميل بدل رسائل الجوال
+-- الهوية = الإيميل (يصله رمز التحقق)، ورقم الجوال للتواصل الكتابي عبر واتساب فقط.
+-- يُلصق في SQL Editor ثم Run. يمكن تشغيله أكثر من مرة.
+-- =====================================================================
+
+alter table jisr_profiles add column if not exists email text;
+
+-- رقم المستخدم الحالي: من ملفه المرتبط بحسابه (الإيميل الموثّق)
+create or replace function jisr_me() returns text
+language sql stable security definer set search_path = public as $$
+  select phone from public.jisr_profiles where user_id = auth.uid() limit 1
+$$;
+
+-- إكمال البيانات أول مرة: الاسم ورقم واتساب. الرقم لا يأخذه إلا صاحبه
+drop function if exists jisr_set_profile(text);
+create or replace function jisr_set_profile(_name text, _phone text default null) returns json
+language plpgsql security definer set search_path = public, auth as $$
+declare uid uuid := auth.uid(); em text; p text; cur jisr_profiles;
+begin
+  if uid is null then return json_build_object('err', 'login'); end if;
+  select lower(email) into em from auth.users where id = uid;
+  select * into cur from jisr_profiles where user_id = uid;
+  if found then
+    update jisr_profiles set email = em,
+      name = case when coalesce(trim(_name), '') <> '' then left(trim(_name), 30) else name end
+    where user_id = uid;
+    return json_build_object('ok', true, 'phone', cur.phone);
+  end if;
+  p := regexp_replace(coalesce(_phone, ''), '\D', '', 'g');
+  if p !~ '^\d{10,13}$' then return json_build_object('err', 'bad_phone'); end if;
+  -- رقم مسجّل لحساب آخر، أو حجزته الإدارة لإيميل آخر
+  if exists (select 1 from jisr_profiles where phone = p and
+      ((user_id is not null and user_id <> uid) or (email is not null and email <> em))) then
+    return json_build_object('err', 'phone_taken');
+  end if;
+  insert into jisr_profiles (phone, user_id, email, name) values (p, uid, em, left(coalesce(trim(_name), ''), 30))
+  on conflict (phone) do update set user_id = uid, email = em,
+    name = case when excluded.name <> '' then excluded.name else jisr_profiles.name end;
+  return json_build_object('ok', true, 'phone', p);
+end $$;
+grant execute on function jisr_set_profile(text, text) to authenticated;
+
+-- اللوحة: تخبر الواجهة إن كان المستخدم دخل بإيميله ولم يكمل رقمه بعد
+create or replace function jisr_board_auth() returns json
+language plpgsql security definer set search_path = public as $$
+begin
+  return json_build_object('signedIn', auth.uid() is not null,
+    'needProfile', auth.uid() is not null and not exists (select 1 from jisr_profiles where user_id = auth.uid()),
+    'email', (select email from auth.users where id = auth.uid()));
+end $$;
+grant execute on function jisr_board_auth() to anon, authenticated;
+
+-- رقم الإدارة مربوط بإيميله، فلا يأخذه غيره (غيّر الإيميل إن كان غير هذا)
+update jisr_profiles set email = 'taroot80@gmail.com' where phone = '96566669594' and email is null;

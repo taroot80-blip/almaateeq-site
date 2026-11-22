@@ -454,7 +454,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
         <h3>مهم</h3>
         <ul>
           <li>الحجز بالكود وحده؛ عبارات مثل «أبيها» أو «احجزها» لا تُعتمد.</li>
-          <li>التواصل واتساب فقط، ويمنع الاتصال.</li>
+          <li>التواصل كتابةً عبر واتساب فقط، ويُمنع الاتصال الهاتفي والمكالمات الصوتية.</li>
           <li>يُلغى الحجز إذا لم يتم الاستلام خلال 24 ساعة، وينتقل للتالي.</li>
           <li>يُمنع تداول الأموال مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء.</li>
           <li>يُمنع أخذ الغرض لإعادة بيعه.</li>
@@ -474,8 +474,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
         <p>يُمنع تداول الأموال في هذا التطبيق، مع المقتنيات أو بدونها، ويُمنع الدفع مقابل أي شيء: لا ثمن للغرض، ولا أجرة توصيل، ولا مبلغ رمزي، وإنما يُقدَّم العطاء برجاء الثواب.</p>
       </div>
       <div class="onlywa" role="note">
-        <h3>التواصل واتساب فقط</h3>
-        <p>يُمنع التواصل بالهاتف أو الاتصال الهاتفي، والخدمة محصورة بالتواصل عبر واتساب فقط.</p>
+        <h3>التواصل كتابةً عبر واتساب فقط</h3>
+        <p>التواصل رسائل مكتوبة عبر واتساب، ويُمنع الاتصال الهاتفي والمكالمات الصوتية ومكالمات واتساب. ويدخل كلٌّ برمز يصل إلى إيميله، ويبقى رقم الجوال للتواصل الكتابي.</p>
       </div>
 
       <h3>الفكرة</h3>
@@ -647,8 +647,11 @@ const api = async (fn, args) => {
   return data || {};
 };
 let pulling = null;
-const pull = () => pulling || (pulling = (async () => {
-  try { const d = await api('jisr_board'); st = toSt(d); $('#adminBox').hidden = !isAdmin(); render(); }
+/* fresh: ينتظر أي تحديث جارٍ ثم يجلب من جديد، بعد أي تغيير على الخادم */
+const pull = fresh => fresh && pulling ? pulling.then(() => pull()) : pulling || (pulling = (async () => {
+  try { const d = await api('jisr_board'); st = toSt(d);
+    if (!d.me) { const {data:{session}} = await sb.auth.getSession(); if (session) { const a = await api('jisr_board_auth'); st.needProfile = a.needProfile; st.email = a.email; } }
+    else st.email = (await sb.auth.getSession()).data.session?.user?.email || ''; $('#adminBox').hidden = !isAdmin(); render(); }
   catch(e) {} finally { pulling = null; }
 })());
 const ERR = {
@@ -659,10 +662,12 @@ const ERR = {
   closed:'انتهى هذا العرض.',
   no_booker:'لا يوجد صاحب حجز الآن.',
   locked:'التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة.',
-  not_admin:'هذا الرقم ليس من أرقام الإدارة.'
+  not_admin:'هذا الحساب ليس من حسابات الإدارة.',
+  bad_phone:'اكتب رقم واتساب صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.',
+  phone_taken:'هذا الرقم مسجّل بإيميل آخر. ادخل بإيميلك السابق، أو تواصل كتابةً مع إدارة المبادرة.'
 };
 const errMsg = r => ERR[r.err] || 'لم يتم الطلب، حاول مرة أخرى.';
-let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', photos = [];
+let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', pendingEmail = '', photos = [];
 const open = new Set();
 
 const now = () => Date.now() + st.offset;
@@ -751,7 +756,7 @@ const win = (it, i) => {
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
-        ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل واتساب فقط.</p>
+        ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
           <button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'ادخل الانتظار بالكود' : 'احجز بالكود'}</button>`}
       </div></div></div>
     </div></article>`;
@@ -793,7 +798,7 @@ const clock = () => {
 };
 setInterval(clock, 1000);
 $('#plusDay').addEventListener('click', async () => {
-  if (SRV) { const r = await api('jisr_admin', {_act:'roll'}); if (r.err) return toast(errMsg(r)); await pull(); return toast('تجددت الدفعة الآن'); }
+  if (SRV) { const r = await api('jisr_admin', {_act:'roll'}); if (r.err) return toast(errMsg(r)); await pull(true); return toast('تجددت الدفعة الآن'); }
   st.offset += DAY; save(); clock(); render(); toast('مضى يوم: تجددت النوافذ'); });
 $('#reset').addEventListener('click', () => { const me = st.me; st = seed(); st.me = me; open.clear(); save(); clock(); render(); toast('عادت الأغراض'); });
 
@@ -812,7 +817,7 @@ $('#pinClose').addEventListener('click', () => { $('#pinModal').hidden = true; }
 $('#adminOut').addEventListener('click', () => { if (SRV) { $('#adminBox').hidden = true; return toast('أُخفيت لوحة الإدارة'); } setAdmin(false); toast('خرجت من الإدارة'); });
 $('#wipe').addEventListener('click', () => {
   $('#wipeAsk').innerHTML = '<div class="result err">سيُمسح كل ما في المنصة من معروضات. هل أنت متأكد؟<div class="row"><button class="btn small" id="wipeYes">نعم، امسح الكل</button><button class="btn small ghost" id="wipeNo">تراجع</button></div></div>';
-  $('#wipeYes').addEventListener('click', async () => { if (SRV) { const r = await api('jisr_admin', {_act:'wipe'}); $('#wipeAsk').innerHTML = ''; if (r.err) return toast(errMsg(r)); await pull(); return toast('مُسحت المعروضات الجارية'); } st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
+  $('#wipeYes').addEventListener('click', async () => { if (SRV) { const r = await api('jisr_admin', {_act:'wipe'}); $('#wipeAsk').innerHTML = ''; if (r.err) return toast(errMsg(r)); await pull(true); return toast('مُسحت المعروضات الجارية'); } st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
   $('#wipeNo').addEventListener('click', () => { $('#wipeAsk').innerHTML = ''; });
 });
 /* أدوات الإدارة على الخادم */
@@ -1025,7 +1030,7 @@ const postSrv = async (out, title, area, form) => {
     }
     const r = await api('jisr_post', {_title:title, _det:`${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`, _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cat, _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
     if (r.err) { out.innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
-    await pull();
+    await pull(true);
     postDone(out, st.items.find(i => i.code === r.code) || {code:r.code, status:r.status, pickTime:sel.pickTime}, form);
   } catch(err) { out.innerHTML = '<div class="result err">لم يُنشر الإعلان: تعذّر رفع الصور أو الاتصال. حاول مرة أخرى.</div>'; }
   finally { btn.disabled = false; }
@@ -1061,7 +1066,7 @@ $('#bookForm').addEventListener('submit', async e => {
       not_shown:'<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>',
       limit:`<div class="result err">لديك ${r.max || 3} حجوزات لم تُستلم بعد، وهذا هو الحد. استلمها أو ألغِ أحدها، ثم احجز.</div>`};
     if (r.err) { out.innerHTML = M[r.err] || `<div class="result err">${errMsg(r)}</div>`; return; }
-    await pull();
+    await pull(true);
   }
   const it = st.items.find(i => i.code === code);
   if (!it) { out.innerHTML = `<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`; return; }
@@ -1076,7 +1081,7 @@ $('#bookForm').addEventListener('submit', async e => {
   out.innerHTML = pos === 0
     ? `<div class="result ok"><strong>الغرض لك، فأنت أول من أرسل الكود.</strong><span class="code">${code}</span>
        ${esc(it.title)} · ${esc(it.area)}<br>${it.pickTime ? `وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}.<br>` : ''}تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
-       <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">تواصل واتساب</a></div>
+       <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>
        <p class="free-note">رقم المتبرع: <span dir="ltr">${showPhone(it.owner)}</span> · لا تدفع أي مقابل.</p></div>`
     : `<div class="result"><strong>سبقك غيرك إلى هذا الغرض.</strong><br>أنت رقم ${pos} في الانتظار، ويصلك إشعار إن أُلغي الحجز قبلك.</div>`;
 });
@@ -1086,47 +1091,63 @@ const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد'
 const renderMe = () => {
   const box = $('#meBox');
   if (!st.me) {
+    const emailOk = v => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim()) ? v.trim().toLowerCase() : null;
+    const phoneVal = pendingPhone ? (pendingPhone.startsWith('966') ? '0' + pendingPhone.slice(3) : pendingPhone.startsWith('965') ? pendingPhone.slice(3) : pendingPhone) : '';
+    const needOnly = SRV && st.needProfile;   // دخل بإيميله ولم يكمل رقمه بعد
     box.innerHTML = `<form class="panel" id="login" novalidate>
-      <h2>سجّل برقم جوالك</h2>
-      <p>نرسل لك رمزًا في رسالة لنتأكد أن الرقم رقمك أنت.</p>
-      <label for="ph">رقم الجوال</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${pendingPhone ? (pendingPhone.startsWith('966') ? '0' + pendingPhone.slice(3) : pendingPhone.startsWith('965') ? pendingPhone.slice(3) : pendingPhone) : ''}">
+      <h2>${needOnly ? 'أكمل بياناتك' : 'الدخول بالإيميل'}</h2>
+      <p>${needOnly ? `دخلت بإيميلك <span dir="ltr">${esc(st.email || '')}</span>. بقي رقم واتساب للتواصل الكتابي.` : 'نرسل رمز الدخول إلى إيميلك، فتدخل به من أي جهاز. ورقم الجوال للتواصل الكتابي عبر واتساب فقط، دون اتصالات.'}</p>
+      ${needOnly ? '' : `<label for="em">الإيميل</label>
+      <input class="field ltr" id="em" type="email" inputmode="email" autocomplete="email" placeholder="name@gmail.com" value="${esc(pendingEmail)}" ${otp ? 'readonly' : ''}>`}
+      ${otp && !needOnly ? '' : `<label for="ph">رقم واتساب ${SRV && !needOnly ? '<span class="hint">(أول مرة فقط)</span>' : ''}</label>
+      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${phoneVal}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
-      <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
-      ${otp ? `<label for="otp">الرمز المرسل إليك</label><input class="field ltr big" id="otp" inputmode="numeric" maxlength="6" placeholder="••••••">
-        ${SRV ? '<p class="hint">وصلك الرمز في رسالة نصية على رقمك.</p>' : `<div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل برسالة نصية.</div>`}` : ''}
-      <button class="btn primary wide" type="submit" style="margin-top:14px">${otp ? 'تأكيد الرمز' : 'أرسل الرمز'}</button>
+      <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">`}
+      ${otp && !needOnly ? `<label for="otp">رمز الدخول المرسل إلى إيميلك</label><input class="field ltr big" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
+        ${SRV ? '<p class="hint">افتح بريدك، وابحث عن رسالة «جسر العطاء». إن لم تجدها فانظر في الرسائل غير المرغوبة (Spam).</p><button class="btn text" type="button" id="reEmail">غيّر الإيميل</button>' : `<div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل إلى الإيميل.</div>`}` : ''}
+      <button class="btn primary wide" type="submit" style="margin-top:14px">${needOnly ? 'احفظ وادخل' : otp ? 'تأكيد الرمز' : 'أرسل الرمز إلى إيميلي'}</button>
+      ${needOnly ? '<button class="btn text" type="button" id="logout2">خروج</button>' : ''}
       <div id="loginMsg"></div></form>`;
+    const re = $('#reEmail'); if (re) re.addEventListener('click', () => { otp = null; renderMe(); });
+    const lo = $('#logout2'); if (lo) lo.addEventListener('click', async () => { await sb.auth.signOut(); await pull(true); });
+    const readExtra = () => { const ph = $('#ph'); if (ph) { pendingName = $('#nm').value.trim(); const p = phoneOk(ph.value); pendingPhone = p; return p; } return pendingPhone; };
     $('#login').addEventListener('submit', async ev => {
       ev.preventDefault();
-      const msg = $('#loginMsg');
+      const msg = $('#loginMsg'), bad = t => { msg.innerHTML = `<div class="result err">${t}</div>`; };
       if (SRV) {
         const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
+        const finish = async () => {
+          const r = await api('jisr_set_profile', {_name:pendingName, _phone:pendingPhone});
+          await pull(true);
+          if (r.err) { renderMe(); $('#loginMsg').innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
+          otp = null; toast('أهلًا بك في جسر العطاء'); renderMe();
+        };
         try {
-          if (!otp) {
-            const p = phoneOk($('#ph').value);
-            if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.</div>'; return; }
-            pendingName = $('#nm').value.trim();
-            const {error} = await sb.auth.signInWithOtp({phone:'+' + p});
-            if (error) { msg.innerHTML = '<div class="result err">لم نستطع إرسال الرسالة الآن. تأكد من الرقم وحاول بعد دقيقة.</div>'; return; }
-            pendingPhone = p; otp = 'sent'; renderMe(); $('#otp').focus();
+          if (needOnly) { if (!readExtra()) return bad(ERR.bad_phone); await finish(); }
+          else if (!otp) {
+            const e = emailOk($('#em').value); if (!e) return bad('اكتب إيميلًا صحيحًا، مثل name@gmail.com.');
+            readExtra(); if ($('#ph').value.trim() && !pendingPhone) return bad(ERR.bad_phone);
+            pendingEmail = e;
+            const {error} = await sb.auth.signInWithOtp({email:e, options:{shouldCreateUser:true}});
+            if (error) return bad(/rate|limit|seconds/i.test(error.message || '') ? 'طلبت رمزًا قبل قليل. انتظر دقيقة ثم أعد المحاولة.' : 'لم نستطع إرسال الرمز الآن. تأكد من الإيميل وحاول بعد دقيقة.');
+            otp = 'sent'; renderMe(); $('#otp').focus();
           } else {
-            const {error} = await sb.auth.verifyOtp({phone:'+' + pendingPhone, token:digits($('#otp').value).trim(), type:'sms'});
-            if (error) { msg.innerHTML = '<div class="result err">الرمز غير صحيح أو انتهت مدته. راجع الرسالة واكتبه من جديد.</div>'; return; }
-            await api('jisr_set_profile', {_name:pendingName}); otp = null; pendingPhone = null;
-            await pull(); toast('تم التحقق، أهلًا بك'); renderMe();
+            const {error} = await sb.auth.verifyOtp({email:pendingEmail, token:digits($('#otp').value).replace(/\D/g, ''), type:'email'});
+            if (error) return bad('الرمز غير صحيح أو انتهت مدته. راجع الرسالة واكتبه من جديد.');
+            await finish();
           }
-        } catch(err) { msg.innerHTML = '<div class="result err">تعذّر الاتصال بالخادم. حاول مرة أخرى.</div>'; }
+        } catch(err) { bad('تعذّر الاتصال بالخادم. حاول مرة أخرى.'); }
         finally { btn.disabled = false; }
         return;
       }
       if (!otp) {
-        const p = phoneOk($('#ph').value);
-        if (!p) { msg.innerHTML = '<div class="result err">اكتب رقم جوال صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.</div>'; return; }
-        pendingPhone = p; pendingName = $('#nm').value.trim(); otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
+        const e = emailOk($('#em').value); if (!e) return bad('اكتب إيميلًا صحيحًا، مثل name@gmail.com.');
+        if (!readExtra()) return bad(ERR.bad_phone);
+        pendingEmail = e; otp = String(100000 + Math.floor(Math.random() * 900000)); renderMe(); $('#otp').focus();
       } else if (digits($('#otp').value).trim() === otp) {
-        st.me = pendingPhone; (st.people = st.people || {})[st.me] = pendingName || (st.people || {})[st.me] || ''; otp = null; pendingPhone = null; save(); toast('تم التحقق، أهلًا بك'); renderMe();
-      } else msg.innerHTML = '<div class="result err">الرمز غير صحيح. راجع الرسالة واكتبه من جديد.</div>';
+        st.me = pendingPhone; (st.people = st.people || {})[st.me] = pendingName || st.people[st.me] || ''; (st.emails = st.emails || {})[st.me] = pendingEmail;
+        otp = null; pendingPhone = null; save(); toast('أهلًا بك في جسر العطاء'); renderMe();
+      } else bad('الرمز غير صحيح. راجع الرسالة واكتبه من جديد.');
     });
     return;
   }
@@ -1134,14 +1155,14 @@ const renderMe = () => {
   const booked = st.items.filter(i => i.queue.includes(st.me));
   const active = i => !i.given && !i.cancelled && ['shown', 'reserved'].includes(i.status) && i.queue.length;
   box.innerHTML = `<div class="panel">
-    <h2>حسابي</h2><p>رقمك الموثّق: <span dir="ltr">${showPhone(st.me)}</span></p>
+    <h2>حسابي</h2><p>إيميلك: <span dir="ltr">${esc((SRV ? st.email : (st.emails || {})[st.me]) || '—')}</span><br>رقم واتساب للتواصل الكتابي: <span dir="ltr">${showPhone(st.me)}</span></p>
     <h3 style="font-size:24px">معروضاتي</h3>
     <div class="list">${mine.map(i => `<div class="mini">
       <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${stateName(i)}</span></div>
       <p>${esc(i.title)}</p>
       ${i.given || i.cancelled || ['given', 'cancelled'].includes(i.status) ? '' : i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b><br><span class="hint">محفوظ، ولتغييره تواصل مع إدارة المبادرة.</span></p>` : `<button class="btn ghost wide" data-clock="${esc(i.code)}" style="margin:6px 0">توقيت الاستلام</button>`}
       ${active(i) ? `<p>صاحب الحجز: <span dir="ltr">${showPhone(i.queue[0])}</span>، وبقي على مهلته ${hm(i.bookedAt + DAY - now())}.</p>
-        <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب</a>
+        <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a>
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
         <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
       ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ العرض، لم يعد متاحًا</button>` : ''}
@@ -1152,11 +1173,11 @@ const renderMe = () => {
     <div class="list">${booked.map(i => { const p = i.queue.indexOf(st.me); return `<div class="mini">
       <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag ${p ? 'wait' : 'free'}">${p ? 'رقم ' + p + ' في الانتظار' : 'لك'}</span></div>
       <p>${esc(i.title)} · ${esc(i.area)}</p>
-      ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">تواصل واتساب</a></div>` : ''}
+      ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>` : ''}
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
-    <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج وتبديل الرقم</button>
+    <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج</button>
   </div>`;
-  $('#logout').addEventListener('click', async () => { if (SRV) { await sb.auth.signOut(); await pull(); return; } st.me = null; save(); renderMe(); });
+  $('#logout').addEventListener('click', async () => { if (SRV) { await sb.auth.signOut(); await pull(true); return; } st.me = null; save(); renderMe(); });
 };
 $('#meBox').addEventListener('click', async e => {
   const find = c => st.items.find(i => i.code === c);
@@ -1166,7 +1187,7 @@ $('#meBox').addEventListener('click', async e => {
     const r = c ? await api('jisr_cancel_booking', {_code:c.dataset.cancel}).catch(() => ({err:'net'}))
       : await api('jisr_owner_action', {_code:(d || s || xc0).dataset[d ? 'done' : s ? 'skip' : 'xcancel'], _act:d ? 'given' : s ? 'skip' : 'cancel'}).catch(() => ({err:'net'}));
     if (r.err) { b.disabled = false; return r.err === 'net' || toast(errMsg(r)); }
-    await pull();
+    await pull(true);
     return toast(d ? 'ذهب لمستفيد، الشكر الجزيل لك' : s ? 'انتقل الحجز للتالي، أو أُلغي إن لم يبق أحد' : c ? 'أُلغي حجزك' : 'أُلغي العرض، والغرض عندك');
   }
   if (d) { const it = find(d.dataset.done); logEv('given', it.code, it.queue[0]); it.given = true; it.givenAt = now(); it.queue = []; if (it.status === 'reserved') it.status = 'given'; save(); toast('ذهب لمستفيد، الشكر الجزيل لك'); renderMe(); }
@@ -1233,7 +1254,7 @@ $('#ckSave').addEventListener('click', async () => {
   if (SRV) {
     const r = await api('jisr_set_pick_time', {_code:ck.code, _from:fmtT(a), _to:fmtT(b)}).catch(() => ({err:'net'}));
     if (r.err) { if (r.err !== 'net') $('#ckErr').innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
-    $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${fmtT(a)} إلى ${fmtT(b)}`); return pull();
+    $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${fmtT(a)} إلى ${fmtT(b)}`); return pull(true);
   }
   it.pickTime = {from:fmtT(a), to:fmtT(b)}; save();
   $('#clockModal').hidden = true; toast(`حُفظ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`); render();

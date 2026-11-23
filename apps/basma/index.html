@@ -358,6 +358,8 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
 .ev{border-color:color-mix(in srgb,var(--cc,#F2B632) 60%,transparent);background:linear-gradient(165deg,color-mix(in srgb,var(--cc,#F2B632) 17%,rgba(26,18,11,.72)),rgba(26,18,11,.66) 62%)}
 .ev.live{border-color:var(--cc,var(--gold));box-shadow:0 0 0 1px var(--cc,var(--gold)),0 0 26px color-mix(in srgb,var(--cc,#F2B632) 35%,transparent)}
 .ev .stat.side{position:absolute;left:9px;top:9px;margin:0;z-index:2;white-space:nowrap;font-size:11.5px;padding:2px 8px}
+/* زر البصمة بلون بطاقته متوافقًا مع إطارها */
+.ev .act .btn.ok{background:linear-gradient(180deg,color-mix(in srgb,var(--cc) 78%,#fff),var(--cc))!important;color:#10130f!important;border-color:color-mix(in srgb,var(--cc) 70%,#fff)!important;box-shadow:0 4px 0 color-mix(in srgb,var(--cc) 50%,#000),0 0 16px color-mix(in srgb,var(--cc) 45%,transparent)!important}
 /* الشارة تومض ومضة خفيفة ما دامت البصمة مطلوبة، وتثبت بلون «تمت» حين تُنجز */
 .ev .stat.side.s-wait,.ev .stat.side.s-open,.ev .stat.side.s-miss{animation:sideblink 1.6s ease-in-out infinite}
 .ev .stat.side.s-done{animation:none;background:#16a34a;color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 2px 8px rgba(22,163,74,.45)}
@@ -463,7 +465,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.9</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.10</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>

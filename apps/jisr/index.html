@@ -243,6 +243,10 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .win.expired{animation:enter .5s both,expglow 2.6s ease-in-out infinite}
 @keyframes expglow{0%,100%{box-shadow:0 0 0 0 rgba(242,182,50,0);opacity:1}50%{box-shadow:0 0 0 4px rgba(242,182,50,.35);opacity:.82}}
 .wachoice{display:grid;gap:6px;margin:6px 0 10px}
+.popts{display:grid;gap:8px;background:var(--sand);border-radius:16px;padding:12px;margin-top:8px}
+.pchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px}
+.pchecks label{display:flex;gap:8px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13.5px;cursor:pointer;margin:0}
+.pchecks input{accent-color:var(--green);margin-top:3px;flex:none}
 .subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 /* زر الاختيار المفعّل في «ما انتهى وقته» يومض ببطء */
 #expMode button[aria-pressed=true]{animation:selglow 3.2s ease-in-out infinite}
@@ -460,6 +464,15 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
       <div id="statBox"></div>
       <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
+      <div id="printOpts" class="popts" hidden>
+        <b>الفترة</b>
+        <div class="pick" id="pPer"><button type="button" data-pp="week" aria-pressed="false">أسبوعي</button><button type="button" data-pp="month" aria-pressed="true">شهري</button></div>
+        <b>المؤشرات والرسوم في التقرير</b>
+        <div class="pchecks" id="pSecs"></div>
+        <div class="row"><button class="btn small ghost" type="button" id="pAll">اختر الكل</button><button class="btn small ghost" type="button" id="pNone">لا شيء</button></div>
+        <button class="btn primary wide" type="button" id="pGo">اطبع أو احفظ PDF</button>
+        <p class="sample" style="text-align:right;margin:0">في نافذة الطباعة اختر «حفظ بتنسيق PDF» لتحفظه ملفًا، أو اختر الطابعة.</p>
+      </div>
       <p class="sample demo-only">الإحصاء الحالي فيه بيانات تجريبية لعرض الفكرة.</p>
     </div>
   </section>
@@ -1146,13 +1159,62 @@ const reportHTML = (forPrint) => {
 };
 const renderStats = () => { if (!isAdmin()) return; $('#statBox').innerHTML = per === 'report' ? reportHTML(false) : statHTML(false); document.querySelectorAll('[data-per]').forEach(b => b.setAttribute('aria-pressed', b.dataset.per === per)); };
 document.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => { per = b.dataset.per; renderStats(); }));
-$('#printStats').addEventListener('click', () => {
-  $('#printArea').innerHTML = per === 'report' ? reportHTML(true) : statHTML(true);
-  try { window.print(); } catch(e) { toast('الطباعة لا تعمل في صفحة المعاينة، افتح الرابط almaateeq.com/jisr'); }
+/* الطباعة: يختار المدير الفترة والمؤشرات، ثم يُبنى التقرير ويُطبع أو يُحفظ PDF */
+const PSECS = [
+  ['hero', 'الرقم الكبير وشريط الخلايا'], ['kpis', 'بطاقات الأرقام والنسب'], ['reading', 'القراءة الآلية'],
+  ['fate', 'مصير المعروض (شريط 100٪)'], ['funnel', 'القمع: من العرض إلى الأخذ'], ['weeks', 'سير الأسابيع (أعمدة)'],
+  ['areas', 'بطاقات المناطق وأشرطتها'], ['dumb', 'الدمبل: الأخذ والمصداقية'], ['cats', 'أنواع المقتنيات'],
+  ['heat', 'الخريطة الحرارية: المنطقة × النوع'], ['donors', 'أكثر المتبرعين عطاءً'], ['people', 'الأشخاص: الحجز والأخذ'],
+  ['cred', 'مستويات المصداقية'], ['tables', 'الجداول التفصيلية']
+];
+let pPer = 'month', pSel = new Set(PSECS.map(x => x[0]));
+const drawPOpts = () => {
+  $('#pSecs').innerHTML = PSECS.map(([k, l]) => `<label><input type="checkbox" data-ps="${k}" ${pSel.has(k) ? 'checked' : ''}>${l}</label>`).join('');
+  document.querySelectorAll('[data-pp]').forEach(b => b.setAttribute('aria-pressed', b.dataset.pp === pPer));
+};
+const printHTML = (pp, sel) => {
+  const days = pp === 'week' ? 7 : 30, end = now(), start = end - days * DAY, ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
+  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned')};
+  const pc = (a, b) => b ? Math.round(a / b * 100) : 0, areas = group(ev, 'area'), cats = group(ev, 'cat');
+  const hb = (arr, val, lab) => { const mx = Math.max(1, ...arr.map(val)); return `<div class="bars">${arr.map(o => `<div class="bar"><span class="nm">${esc(o.name)}</span><span class="tr"><span class="ft" style="width:${val(o) / mx * 100}%"></span><span class="lb">${lab(o)}</span></span></div>`).join('')}</div>`; };
+  const tb = arr => `<table class="ptable"><tr><th>البند</th><th>عُرض</th><th>حجز</th><th>أُخذ</th><th>أُلغي</th><th>أُعيد</th><th>نسبة الأخذ</th><th>المصداقية</th></tr>${arr.map(o => `<tr class="${o.cred !== null && o.cred < 60 ? 'flag' : ''}"><td>${esc(o.name)}</td><td class="n">${o.posted}</td><td class="n">${o.booked}</td><td class="n">${o.given}</td><td class="n">${o.cancelled}</td><td class="n">${o.returned}</td><td class="n">${o.take === null ? '—' : o.take + '٪'}</td><td class="n">${o.cred === null ? '—' : o.cred + '٪'}</td></tr>`).join('')}</table>`;
+  const ppl = {}; for (const e of ev) if (e.who && ['booked', 'given', 'returned'].includes(e.type)) { const o = ppl[e.who] = ppl[e.who] || {p:e.who, booked:0, given:0, returned:0}; o[e.type]++; }
+  const list = Object.values(ppl).sort((a, b) => b.given - a.given || b.booked - a.booked), credP = list.filter(o => o.booked >= 2).map(o => ({name:nameOf(o.p), cred:Math.round(o.given / o.booked * 100), o}));
+  const B = {
+    hero: () => heroCells(K, ev),
+    kpis: () => `<div class="kpis"><div class="kpi"><b>${K.posted}</b><span>عُرض</span></div><div class="kpi"><b>${K.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${K.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${pc(K.given, K.booked)}٪</b><span>المصداقية</span></div></div><p class="ratio">نسبة الأخذ ${pc(K.given, K.posted)}٪ · نسبة الإلغاء ${pc(K.cancelled, K.posted)}٪ · الحجوزات ${K.booked} · لم يُستلم ${K.returned}</p>`,
+    reading: () => reading(K, areas, cats, donorsOf(ev)),
+    fate: () => `<section><p class="cap">مصير ما عُرض: ${pc(K.given, K.posted)}٪ ذهب لمستفيدين</p>${stack100([{l:'أُخذ', v:K.given, c:C.g}, {l:'أُلغي', v:K.cancelled, c:C.x}, {l:'معروض أو محجوز', v:Math.max(0, K.posted - K.given - K.cancelled), c:C.b}])}</section>`,
+    funnel: () => `<section><p class="cap">من العرض إلى الأخذ</p>${funnel([{l:'عُرض', v:K.posted}, {l:'حُجز', v:K.booked}, {l:'أُخذ', v:K.given}])}</section>`,
+    weeks: () => `<section><p class="cap">السير أسبوعًا بأسبوع</p>${weekCols(ev, start)}</section>`,
+    areas: () => `<h3>الفروق بين المناطق</h3>${areaCards(areas)}<section><p class="cap">مصير المعروض في كل منطقة</p>${rows100(areas)}</section>`,
+    dumb: () => `<section><p class="cap">لكل منطقة: نسبة الأخذ ومصداقية الاستلام</p>${dumbbell(areas)}</section>`,
+    cats: () => `<h3>أنواع المقتنيات</h3>${hb(cats, o => o.given, o => `${o.given} من ${o.posted}`)}<section><p class="cap">مصير المعروض في كل نوع</p>${rows100(cats)}</section>`,
+    heat: () => `<section><p class="cap">ما أُخذ من كل نوع في كل منطقة</p>${heatmap(ev, 'area', 'cat')}</section>`,
+    donors: () => { const d = donorsOf(ev).slice(0, 10); return `<h3>أكثر المتبرعين عطاءً</h3>${d.length ? hb(d, o => o.posted, o => `${o.posted} عرض · ذهب منها ${o.given}`) : '<p class="sample">لا متبرعين في الفترة.</p>'}`; },
+    people: () => { const mx = Math.max(1, ...list.map(o => o.booked)); return `<h3>الأشخاص: الحجز والأخذ</h3><div class="bars">${list.slice(0, 15).map(o => `<div class="bar"><span class="nm">${esc(nameOf(o.p))}</span><span class="tr"><span class="fb" style="width:${o.booked / mx * 100}%"></span><span class="ft" style="width:${o.given / mx * 100}%"></span><span class="lb">${o.given} من ${o.booked}</span></span></div>`).join('') || '<p class="sample">لا حجوزات.</p>'}</div>`; },
+    cred: () => credP.length ? `<h3>مصداقية الأشخاص</h3><p class="cap">لمن حجز مرتين فأكثر</p>${levels(credP)}${hb([...credP].sort((a, b) => a.cred - b.cred), x => x.cred, x => `${x.cred}٪ · ${x.o.given} من ${x.o.booked}`)}` : '',
+    tables: () => `<h3>الجداول التفصيلية</h3><p class="cap">المناطق</p>${tb(areas)}<p class="cap">الأنواع</p>${tb(cats)}`
+  };
+  return `<h2>${pp === 'week' ? 'الإحصاء الأسبوعي' : 'التقرير الشهري'} لجسر العطاء</h2><p class="sub">من ${fmtD(start)} إلى ${fmtD(end)}</p>` + PSECS.filter(([k]) => sel.has(k)).map(([k]) => B[k]()).join('');
+};
+$('#printStats').addEventListener('click', () => { const o = $('#printOpts'); o.hidden = !o.hidden; if (!o.hidden) { drawPOpts(); o.scrollIntoView({block:'nearest', behavior:'smooth'}); } });
+$('#printOpts').addEventListener('click', e => {
+  const pb = e.target.closest('[data-pp]'); if (pb) { pPer = pb.dataset.pp; return drawPOpts(); }
+  if (e.target.id === 'pAll') { pSel = new Set(PSECS.map(x => x[0])); return drawPOpts(); }
+  if (e.target.id === 'pNone') { pSel.clear(); return drawPOpts(); }
+  if (e.target.id === 'pGo') {
+    if (!pSel.size) return toast('اختر مؤشرًا واحدًا على الأقل');
+    $('#printArea').innerHTML = printHTML(pPer, pSel);
+    if (window.JisrAndroid && JisrAndroid.print) { try { return JisrAndroid.print('جسر العطاء - ' + (pPer === 'week' ? 'الإحصاء الأسبوعي' : 'التقرير الشهري')); } catch(err) {} }
+    if (window.JisrAndroid) return toast('الطباعة تحتاج تحديث التطبيق إلى 1.2، أو افتح المنصة من متصفح كروم');
+    try { window.print(); } catch(err) { toast('تعذّرت الطباعة هنا، افتح المنصة في المتصفح'); }
+  }
 });
+$('#printOpts').addEventListener('change', e => { const c = e.target.closest('[data-ps]'); if (c) c.checked ? pSel.add(c.dataset.ps) : pSel.delete(c.dataset.ps); });
 
 let taps = 0, tapT = 0;
-document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; askPin(); } });
+document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; if (isAdmin() && !$('#adminBox').hidden) { $('#adminBox').hidden = true; SND.play('del'); return toast('أُخفيت لوحة الإدارة، واضغط الشعار 5 مرات لإظهارها'); } askPin(); } });
 const hashAdmin = () => {
   if (location.hash === '#admin') return askPin();
   const c = normCode(decodeURIComponent(location.hash.slice(1)));

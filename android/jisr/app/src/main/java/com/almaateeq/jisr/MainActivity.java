@@ -120,6 +120,16 @@ public class MainActivity extends Activity {
   // جسر طابور النشر: يرسل نص الإعلان وصوره إلى واتساب مباشرة (الصفحة داخل التطبيق لا تستطيع مشاركة الصور وحدها)
   private class Bridge {
     @JavascriptInterface public boolean canShareFiles() { return true; }
+    /* طباعة الإحصاء أو حفظه PDF عبر نظام الطباعة في أندرويد (يطبع منطقة التقرير بقواعد @media print) */
+    @JavascriptInterface public void print(final String title) {
+      runOnUiThread(() -> {
+        try {
+          android.print.PrintManager pm = (android.print.PrintManager) getSystemService(Context.PRINT_SERVICE);
+          android.print.PrintAttributes at = new android.print.PrintAttributes.Builder().setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4).build();
+          pm.print(title, web.createPrintDocumentAdapter(title), at);
+        } catch (Exception e) {}
+      });
+    }
     @JavascriptInterface public void share(final String text, final String urlsJson) {
       new Thread(() -> {
         final ArrayList<Uri> uris = new ArrayList<>();

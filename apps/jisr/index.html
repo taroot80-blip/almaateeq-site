@@ -1200,14 +1200,15 @@ const drawSub = () => {
   sumSub();
 };
 const sumSub = () => { $('#pSubSum').textContent = sel.subs.length > 1 ? `اخترت ${sel.subs.length}: ${sel.subs.join('، ')}` : ''; };
-const titleOf = () => { const t = (sel.subs.length ? sel.subs : sel.cats).join('، '); return t.length > 78 ? t.slice(0, 76) + '…' : t; };
+/* لكل تصنيف ما اختير من أغراضه، فإن لم يُختر منه شيء كُتب اسمه */
+const titleOf = () => { const t = sel.cats.flatMap(c => { const s = TAX[c].filter(x => sel.subs.includes(x)); return s.length ? s : TAX[c].length === 1 ? TAX[c] : [c]; }).join('، '); return t.length > 78 ? t.slice(0, 76) + '…' : t; };
 drawPicks();
 $('#formClock').addEventListener('click', () => openClock(null));
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   if (needLogin()) return;
   const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = titleOf(), note = $('#gNote').value.trim();
-  const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cats.length && 'التصنيف', sel.cats.some(c => TAX[c].length > 1 && !TAX[c].some(s => sel.subs.includes(s))) && 'الغرض من كل تصنيف اخترته', !area && 'المنطقة'].filter(Boolean);
+  const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cats.length && 'التصنيف', sel.cats.length && !sel.subs.length && sel.cats.some(c => TAX[c].length > 1) && 'غرضًا واحدًا على الأقل من الأغراض تحت التصنيف', !area && 'المنطقة'].filter(Boolean);
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   if (SRV) { postSrv(out, title, area, e.target, note); return; }

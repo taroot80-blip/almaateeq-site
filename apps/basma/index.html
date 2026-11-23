@@ -452,7 +452,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.6</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.7</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -830,7 +830,9 @@ function render(){
     h+=ev(2,"٣","#F2B632","بصمة الانصراف",P.outEnd?`${fmt(P.out)} <span>إلى</span> ${fmt(P.outEnd)}`:`من ${fmt(P.out)}`,sO,
       sO==="wait"?`تصح بعد <b data-cd="${P.out}"></b> · الانصراف قبلها نقص في ساعات العمل`:sO==="done"?`بصمتَ ${fmt(d.out)}`:`صحيحة الآن · يوم عملك ${dur(P.out-P.eff)}`+(c.cadre==="adm"?`<br><small>إن كانت مناوبتك اليوم من الإدارة المدرسية فابقَ حتى ${fmt(c.offEnd)}</small>`:""),
       (sO!=="done"?"<button class='btn ok' id='outDone'>بصمتُ الانصراف</button>":"")+"<button class='btn ghost' id='outEdit'>✏️ تعديل</button>");
-    h+=`<p class="muted" style="text-align:center;margin-top:10px">ينبّهك التطبيق قبل ${c.lead} ثانية من فتح التواجد ومن وقت الانصراف، وقبل ${c.lastCall} دقائق من إغلاق التواجد.</p>`;
+    /* ملخص اليوم في الصفحة الأولى: الأمور على ما يرام أو هناك مشكلة */
+    {const e=evalDay(dkey());const vt={ok:"✅ الأمور على ما يرام",bad:"⚠️ هناك مشكلة ما !",leave:"🌿 "+((e.notes&&e.notes[0])||"إجازة"),live:"⏳ اليوم جارٍ",off:"عطلة",none:(e.notes&&e.notes[0])||"لا بيانات لهذا اليوم"}[e.st];
+    h+=`<div class="card daysum" style="margin-top:8px;text-align:center"><h3 class="num">${niceDate(dkey())}</h3><div class="verdict ${e.st}">${vt}</div>${e.notes&&e.notes.length&&e.st!=="leave"&&e.st!=="off"?`<ul class="notes">${e.notes.map(n=>typeof n==="string"?`<li>${n}</li>`:`<li class="${n.b?"b":n.g?"g":""}">${n.t}</li>`).join("")}</ul>`:""}</div>`}
   }
   if(!inHours())h=`<div class="banner warn" style="justify-content:center;text-align:center">⏸️ أنت خارج نطاق الدوام<br><small style="font-weight:500">تعمل أزرار البصمة من 6:00 صباحًا إلى 3:00 عصرًا</small></div>`+h;
   document.body.classList.toggle("offhours",!inHours());

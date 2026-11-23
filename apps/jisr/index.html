@@ -838,7 +838,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
+const render = () => { setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
 const needLogin = () => { if (st.me) return false; toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
@@ -878,7 +878,7 @@ const win = (it, i) => {
       </div></div></div>
     </div></article>`;
 };
-const renderHome = () => {
+const renderHome = () => { setTimeout(() => typeof reSure === 'function' && reSure(), 0);
   const list = shown().filter(i => waMode() !== 'whatsapp' || isAdmin() || i.owner === st.me || i.queue.includes(st.me) || linked.has(i.code)).sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
   const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
   const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
@@ -1281,7 +1281,19 @@ const shareItem = async it => {
 const cancelText = it => [`${it.code}⛔ أُلغي هذا العرض`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'لم يعد متاحًا للحجز، فلا تُرسلوا كوده.', '', GROUP.name, GROUP.link].join('\n');
 const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid.share(t, '[]'); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); };
 /* تأكيد بضغطتين، ويعود الزر إلى حاله إن لم يُؤكَّد خلال 8 ثوانٍ */
-const sure = (b, label) => { if (b.dataset.sure) return true; const old = b.textContent; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure'); setTimeout(() => { if (b.isConnected && b.dataset.sure && !b.disabled) { delete b.dataset.sure; b.textContent = old; b.classList.remove('sure'); } }, 8000); return false; };
+/* التأكيد بضغطتين: يُحفظ خارج الزر، فلا يضيع إن أُعيد بناء النافذة بالتحديث التلقائي بين الضغطتين */
+let sureKey = '', sureUntil = 0;
+const sureId = b => [...b.attributes].filter(a => a.name.startsWith('data-') && a.name !== 'data-sure').map(a => a.name + '=' + a.value).join('&') || b.id;
+const sure = (b, label) => {
+  const k = sureId(b);
+  if (b.dataset.sure || (k === sureKey && Date.now() < sureUntil)) { sureKey = ''; sureUntil = 0; return true; }
+  sureKey = k; sureUntil = Date.now() + 8000;
+  const old = b.textContent; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure');
+  setTimeout(() => { if (b.isConnected && b.dataset.sure && !b.disabled) { delete b.dataset.sure; b.textContent = old; b.classList.remove('sure'); } }, 8000);
+  return false;
+};
+/* بعد التحديث التلقائي يعود الزر المنتظِر تأكيدًا إلى عبارة التأكيد */
+const reSure = () => { if (!sureKey || Date.now() > sureUntil) return; document.querySelectorAll('button').forEach(b => { if (!b.dataset.sure && sureId(b) === sureKey) { b.dataset.sure = '1'; b.classList.add('sure'); b.textContent = b.matches('[data-iremove]') ? 'تأكيد: أزله نهائيًا؟' : b.matches('[data-icancel]') ? 'تأكيد: ألغِ العرض؟' : 'اضغط مرة أخرى للتأكيد'; } }); };
 document.addEventListener('click', async e => {
   const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
   if (wc) {

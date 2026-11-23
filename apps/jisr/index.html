@@ -240,6 +240,7 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 /* ما انتهى يومه ولم يُحجز: يومض ومضًا خفيفًا حتى يقرر صاحبه */
 .win.expired{animation:enter .5s both,expglow 2.6s ease-in-out infinite}
 @keyframes expglow{0%,100%{box-shadow:0 0 0 0 rgba(242,182,50,0);opacity:1}50%{box-shadow:0 0 0 4px rgba(242,182,50,.35);opacity:.82}}
+.subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 .tag.exp{background:#FFF4D6;color:#8A5A00;animation:expglow 2.6s ease-in-out infinite}
 #wipe.warn{background:#9E3B2F;color:#fff}
 @keyframes beckon{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(34,211,238,0)}}
@@ -456,9 +457,9 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       </label>
       <div class="thumbs" id="thumbs"></div>
       <p class="sample" style="text-align:right;margin:6px 0 0">الصورة هي الشرح: صوّر الغرض كاملًا وبوضوح، وأظهر أي عيب فيه. وإن لم تكن عندك صورة فاكتب تفصيلًا قصيرًا تحت التصنيف، ويُكتب على الإعلان «لا توجد صور».</p>
-      <label>التصنيف</label>
+      <label>التصنيف <span class="hint">(اختر واحدًا أو أكثر)</span></label>
       <div class="pick tiles" id="pCat"></div>
-      <div id="pSubWrap" hidden><label>الغرض</label><div class="pick" id="pSub"></div></div>
+      <div id="pSubWrap" hidden><label>الأغراض <span class="hint">(اختر كل ما في الصورة: دولاب، سرير، كمدينة…)</span></label><div id="pSub"></div><p class="sample" id="pSubSum" style="text-align:right;margin:6px 0 0"></p></div>
       <label for="gNote">تفصيل قصير <span class="hint">(اختياري، مثل المقاس أو العدد)</span></label>
       <input class="field" id="gNote" maxlength="60" placeholder="مثلًا: مقاس M (10-12 UK)">
       <label>الحالة</label>
@@ -1117,13 +1118,18 @@ const newCode = area => {
   let c; do { c = pre + '-' + (1000 + Math.floor(Math.random() * 9000)); } while (st.items.some(i => i.code === c));
   return c;
 };
-const sel = {cat:'', sub:'', cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null};
+const sel = {cats:[], subs:[], cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null};
 const chips = (box, list, key, after) => {
   $(box).innerHTML = list.map(v => `<button type="button" aria-pressed="${sel[key] === v}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
   $(box).onclick = e => { const b = e.target.closest('button'); if (!b) return; sel[key] = b.dataset.v; if ($('#giveResult .err')) $('#giveResult').innerHTML = ''; chips(box, list, key, after); if (after) after(); };
 };
+/* اختيار متعدد: صورة واحدة قد تجمع أشياء كثيرة، مثل غرفة نوم كاملة */
+const multi = (box, list, key, after) => {
+  $(box).innerHTML = list.map(v => `<button type="button" aria-pressed="${sel[key].includes(v)}" data-v="${esc(v)}">${esc(v)}</button>`).join('');
+  $(box).onclick = e => { const b = e.target.closest('button'); if (!b) return; const v = b.dataset.v, a = sel[key]; a.includes(v) ? a.splice(a.indexOf(v), 1) : a.push(v); if ($('#giveResult .err')) $('#giveResult').innerHTML = ''; multi(box, list, key, after); if (after) after(); };
+};
 const drawPicks = () => {
-  chips('#pCat', CATS, 'cat', () => { sel.sub = ''; drawSub(); });
+  multi('#pCat', CATS, 'cats', () => { sel.subs = sel.subs.filter(s => sel.cats.some(c => TAX[c].includes(s))); drawSub(); });
   drawSub();
   chips('#pCond', CONDS, 'cond');
   chips('#pArea', AREAS, 'area', () => { sel.nb = ''; drawNb(); });
@@ -1131,24 +1137,31 @@ const drawPicks = () => {
   chips('#pPick', PICKS, 'pick');
 };
 const drawNb = () => { const l = NBH[sel.area] ? Object.keys(NBH[sel.area]) : []; $('#pNbWrap').hidden = !l.length; if (l.length) chips('#pNb', l, 'nb'); };
-const drawSub = () => { $('#pSubWrap').hidden = !sel.cat; if (sel.cat) chips('#pSub', TAX[sel.cat], 'sub'); };
+const drawSub = () => {
+  $('#pSubWrap').hidden = !sel.cats.length; if (!sel.cats.length) return;
+  $('#pSub').innerHTML = sel.cats.map((c, k) => `${sel.cats.length > 1 ? `<p class="subgrp">${esc(c)}</p>` : ''}<div class="pick" id="pSub${k}"></div>`).join('');
+  sel.cats.forEach((c, k) => multi('#pSub' + k, TAX[c], 'subs', sumSub));
+  sumSub();
+};
+const sumSub = () => { $('#pSubSum').textContent = sel.subs.length > 1 ? `اخترت ${sel.subs.length}: ${sel.subs.join('، ')}` : ''; };
+const titleOf = () => { const t = (sel.subs.length ? sel.subs : sel.cats).join('، '); return t.length > 78 ? t.slice(0, 76) + '…' : t; };
 drawPicks();
 $('#formClock').addEventListener('click', () => openClock(null));
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   if (needLogin()) return;
-  const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = sel.sub || sel.cat, note = $('#gNote').value.trim();
-  const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cat && 'التصنيف', sel.cat && TAX[sel.cat].length > 1 && !sel.sub && 'الغرض', !area && 'المنطقة'].filter(Boolean);
+  const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = titleOf(), note = $('#gNote').value.trim();
+  const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cats.length && 'التصنيف', sel.cats.some(c => TAX[c].length > 1 && !TAX[c].some(s => sel.subs.includes(s))) && 'الغرض من كل تصنيف اخترته', !area && 'المنطقة'].filter(Boolean);
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   if (SRV) { postSrv(out, title, area, e.target, note); return; }
   const code = newCode(area);
-  st.items.push({code, title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cat, pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
+  st.items.push({code, title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cats[0], cats:sel.cats.slice(), pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], status:'waiting', shows:0, created:now()});
   logEv('posted', code, st.me);
   fill(now()); save();
   postDone(out, st.items.find(i => i.code === code), e.target);
 });
-const detOf = (title, note) => note ? `${title}، ${note}.` : `${title} من تصنيف «${sel.cat}». التفاصيل في الصورة.`;
+const detOf = (title, note) => note ? `${title}، ${note}.` : `${title} من تصنيف «${sel.cats.join('، ')}». التفاصيل في الصورة.`;
 const dataBlob = u => fetch(u).then(r => r.blob());
 const postSrv = async (out, title, area, form, note) => {
   const btn = form.querySelector('[type=submit]'); btn.disabled = true; out.innerHTML = `<div class="result">${photos.length ? 'جارٍ رفع الصور ونشر الإعلان…' : 'جارٍ نشر الإعلان…'}</div>`;
@@ -1161,7 +1174,7 @@ const postSrv = async (out, title, area, form, note) => {
       if (up.error) throw up.error;
       urls.push(sb.storage.from('jisr').getPublicUrl(path).data.publicUrl);
     }
-    const r = await api('jisr_post', {_prefix:prefixOf(area), _title:title, _det:detOf(title, note), _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cat, _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
+    const r = await api('jisr_post', {_prefix:prefixOf(area), _title:title, _det:detOf(title, note), _area:area, _cond:sel.cond, _pick:sel.pick, _cat:sel.cats[0], _photos:urls, _pick_from:sel.pickTime ? sel.pickTime.from : null, _pick_to:sel.pickTime ? sel.pickTime.to : null});
     if (r.err) { out.innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
     await pull(true);
     postDone(out, st.items.find(i => i.code === r.code) || {code:r.code, status:r.status, pickTime:sel.pickTime}, form);
@@ -1175,7 +1188,7 @@ const postDone = (out, it, form) => {
     ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div>
     <div class="row"><button class="btn ghost" type="button" data-wapost="${code}">انسخ الإعلان لواتساب</button><button class="btn ghost" type="button" data-washare="${code}">شاركه في واتساب</button></div>
     <div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
-  form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cat:'', sub:'', cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
+  form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cats:[], subs:[], cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
 };
 /* نص الإعلان بصيغة مجموعة واتساب */
 const waPost = it => [

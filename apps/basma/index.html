@@ -452,7 +452,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.5</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.6</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -1059,6 +1059,10 @@ function renderRules(){
   <p>• المواعيد مأخوذة من نشرة وكيل وزارة التربية رقم 40/2024 (26/9/2024)؛ وإن صدرت نشرة أحدث فعدّلها أدناه.</p>
   <p>• في مايو 2026 نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي 2025/2026؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
   <p>• أرصدة الاستئذانات والعرضية والمرضية قابلة للتعديل بحسب ما يقرره القسم الإداري لك.</p></div>
+  <div class="card bellcard"><h3>🔔 جرس الهاتف القوي</h3>
+  <p class="muted" style="text-align:center">${N?"عند كل تنبيه بصمة يرن الهاتف بنغمة المنبّه وبأعلى صوت مع اهتزاز قوي مدة 15 ثانية، أقوى من صوت الإشعارات المنخفض عادة. يتوقف حين تفتح التطبيق أو تضغط زر الإشعار.":"في نسخة أندرويد يرن الهاتف بنغمة المنبّه وبأعلى صوت عند كل تنبيه. أما هنا فيرن التطبيق بصوت قوي ما دام مفتوحًا."}</p>
+  <div class="row" style="margin-top:8px"><button class="btn ${c.loudBell!==false?"primary":"ghost"}" style="flex:1" id="bellLoud">${c.loudBell!==false?"🔔 الجرس القوي: مُفعَّل":"🔕 الجرس القوي: مُطفأ"}</button></div>
+  <div class="row" style="margin-top:8px"><button class="btn ghost" style="flex:1" id="bellTest">▶️ جرّب الجرس</button><button class="btn ghost" style="flex:1" id="bellStop">⏹️ أوقفه</button></div></div>
   <div class="card"><h3>ضبط الإعدادات</h3>
   <div class="row"><div class="field"><label for="cName">الاسم</label><input id="cName" value="${esc(c.name)}" placeholder="اكتب اسمك"></div></div>
   <div class="row" style="margin-top:8px"><div class="field"><label for="cRole">الكادر</label><select id="cRole">${cadreOpts(c.cadre)}</select></div>
@@ -1074,6 +1078,9 @@ function renderRules(){
   <p class="muted">المصادر: صحيفة الجريدة (15/2/2024، 22/2/2024، 16/8/2024، 19/9/2024، 22/6/2025، 24/5/2026)، وجريدة الراي (أغسطس 2024).</p>`;
   const $=id=>document.getElementById(id);
   $("cRole").onchange=()=>$("cStage").onchange();
+  $("bellLoud").onclick=()=>{S.cfg.loudBell=S.cfg.loudBell===false;save();try{nativeSync()}catch(e){}toast(S.cfg.loudBell?"🔔 فُعّل الجرس القوي لتنبيهات البصمة.":"🔕 أُطفئ الجرس القوي، ويبقى صوت الإشعار العادي.");const bl=$("bellLoud");bl.textContent=S.cfg.loudBell?"🔔 الجرس القوي: مُفعَّل":"🔕 الجرس القوي: مُطفأ";bl.classList.toggle("primary",S.cfg.loudBell);bl.classList.toggle("ghost",!S.cfg.loudBell)};
+  $("bellTest").onclick=()=>{if(N&&window.Native&&Native.testBell){Native.testBell();toast("🔔 هذا صوت الجرس القوي، ويتوقف وحده بعد 15 ثانية.")}else{audio();let k=0;const t=setInterval(()=>{chime();if(++k>=6)clearInterval(t)},900);toast("🔔 هذا صوت الجرس داخل التطبيق.")}};
+  $("bellStop").onclick=()=>{if(N&&window.Native&&Native.stopBell)Native.stopBell();toast("⏹️ أُوقف الجرس.")};
   $("cSchool").onchange=()=>{$("cStage").innerHTML=stageOpts($("cSchool").value,$("cStage").value);$("cStage").onchange()};
   $("cStage").onchange=()=>{const s=STG($("cSchool").value,$("cStage").value,$("cRole").value);$("cE").value=toHHMM(s.earliest);$("cG").value=toHHMM(s.graceEnd);$("cL").value=toHHMM(s.latestOut);$("cW").value=hmStr(s.workMin);toast(`ضُبطت أوقات المرحلة ${s.label}. اضغط «احفظ الإعدادات».`)};
   $("cSave").onclick=()=>{Object.assign(S.cfg,{name:$("cName").value.trim(),cadre:$("cRole").value,role:CADRES[$("cRole").value],school:$("cSchool").value,offStart:STG($("cSchool").value,$("cStage").value,$("cRole").value).offStart,offEnd:STG($("cSchool").value,$("cStage").value,$("cRole").value).offEnd,budget:+$("cBud").value,stage:$("cStage").value,earliest:toMin($("cE").value),graceEnd:toMin($("cG").value),latestOut:toMin($("cL").value),workMin:hmParse($("cW").value,S.cfg.workMin),lead:+$("cLead").value||30,ardiya:+$("cA").value});save();nativeSync();pushNative();paintCard();renderRules();toast("حُفظت الإعدادات.")};

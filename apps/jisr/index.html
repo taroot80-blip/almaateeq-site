@@ -714,7 +714,7 @@ const ERR = {
   phone_taken:'هذا الرقم مسجّل بإيميل آخر. ادخل بإيميلك السابق، أو تواصل كتابةً مع إدارة المبادرة.'
 };
 const errMsg = r => ERR[r.err] || 'لم يتم الطلب، حاول مرة أخرى.';
-let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', pendingEmail = '', photos = [];
+let region = 'الكل', otp = null, pendingPhone = null, pendingName = '', pendingEmail = '', pendingPhoneRaw = '', pendingOtp = '', photos = [];
 const open = new Set();
 let wantCode = null; const linked = new Set();   // رابط غرض قادم من إعلان واتساب
 
@@ -802,7 +802,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe(); };
+const render = () => { tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
 const needLogin = () => { if (st.me) return false; toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 
 /* عرض اليوم */
@@ -1238,11 +1238,20 @@ $('#bookForm').addEventListener('submit', async e => {
 
 /* حسابي */
 const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد' : i.cancelled || i.status === 'cancelled' ? 'أُلغي، وهو عندك' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', reserved:'محجوز بعد العرض'})[i.status];
-const renderMe = () => {
-  const box = $('#meBox');
+const renderMe = src => {
+  const box = $('#meBox'), lf = $('#login');
+  /* لا يُعاد بناء نموذج الدخول بالتحديث التلقائي والعضو يكتب فيه، وما كُتب يُحفظ إن أُعيد البناء */
+  if (lf && src === 'auto' && !st.me && lf.contains(document.activeElement) && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+  if (lf) {
+    const val = id => { const el = lf.querySelector('#' + id); return el ? el.value : null; };
+    if (val('em') !== null && !otp) pendingEmail = val('em');
+    if (val('ph') !== null) pendingPhoneRaw = val('ph');
+    if (val('nm') !== null) pendingName = val('nm');
+    if (val('otp') !== null) pendingOtp = val('otp');
+  }
   if (!st.me) {
     const emailOk = v => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim()) ? v.trim().toLowerCase() : null;
-    const phoneVal = pendingPhone ? (pendingPhone.startsWith('966') ? '0' + pendingPhone.slice(3) : pendingPhone.startsWith('965') ? pendingPhone.slice(3) : pendingPhone) : '';
+    const phoneVal = pendingPhoneRaw ? esc(pendingPhoneRaw) : pendingPhone ? (pendingPhone.startsWith('966') ? '0' + pendingPhone.slice(3) : pendingPhone.startsWith('965') ? pendingPhone.slice(3) : pendingPhone) : '';
     const needOnly = SRV && st.needProfile;   // دخل بإيميله ولم يكمل رقمه بعد
     box.innerHTML = `<form class="panel" id="login" novalidate>
       <h2>${needOnly ? 'أكمل بياناتك' : 'الدخول بالإيميل'}</h2>
@@ -1253,7 +1262,7 @@ const renderMe = () => {
       <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${phoneVal}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">`}
-      ${otp && !needOnly ? `<label for="otp">رمز الدخول المرسل إلى إيميلك</label><input class="field ltr big" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
+      ${otp && !needOnly ? `<label for="otp">رمز الدخول المرسل إلى إيميلك</label><input class="field ltr big" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••" value="${esc(pendingOtp)}">
         ${SRV ? '<p class="hint">افتح بريدك، وابحث عن رسالة «جسر العطاء». إن لم تجدها فانظر في الرسائل غير المرغوبة (Spam).</p><button class="btn text" type="button" id="reEmail">غيّر الإيميل</button>' : `<div class="otp-demo">نسخة تجريبية: الرمز هو <strong dir="ltr">${otp}</strong>. في التطبيق الحقيقي يصل إلى الإيميل.</div>`}` : ''}
       <button class="btn primary wide" type="submit" style="margin-top:14px">${needOnly ? 'احفظ وادخل' : otp ? 'تأكيد الرمز' : 'أرسل الرمز إلى إيميلي'}</button>
       ${needOnly ? '<button class="btn text" type="button" id="logout2">خروج</button>' : ''}
@@ -1270,7 +1279,7 @@ const renderMe = () => {
           const r = await api('jisr_set_profile', {_name:pendingName, _phone:pendingPhone});
           await pull(true);
           if (r.err) { renderMe(); $('#loginMsg').innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
-          otp = null; toast('أهلًا بك في جسر العطاء'); renderMe();
+          otp = null; pendingPhoneRaw = pendingOtp = ''; toast('أهلًا بك في جسر العطاء'); renderMe();
         };
         try {
           if (needOnly) { if (!readExtra()) return bad(ERR.bad_phone); await finish(); }
@@ -1280,7 +1289,7 @@ const renderMe = () => {
             pendingEmail = e;
             const {error} = await sb.auth.signInWithOtp({email:e, options:{shouldCreateUser:true}});
             if (error) return bad(/rate|limit|seconds/i.test(error.message || '') ? 'طلبت رمزًا قبل قليل. انتظر دقيقة ثم أعد المحاولة.' : 'لم نستطع إرسال الرمز الآن. تأكد من الإيميل وحاول بعد دقيقة.');
-            otp = 'sent'; renderMe(); $('#otp').focus();
+            otp = 'sent'; pendingOtp = ''; renderMe(); $('#otp').focus();
           } else {
             const {error} = await sb.auth.verifyOtp({email:pendingEmail, token:digits($('#otp').value).replace(/\D/g, ''), type:'email'});
             if (error) return bad('الرمز غير صحيح أو انتهت مدته. راجع الرسالة واكتبه من جديد.');

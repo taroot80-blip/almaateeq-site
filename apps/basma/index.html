@@ -351,8 +351,14 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
 .ev .btn.moe{min-height:32px;margin-top:5px;font-size:13px;padding:2px 10px;gap:6px}
 .ev .btn.moe img{width:20px;height:20px}
 /* تنسيق عربي وتوسيط */
-.notes{list-style:none!important;padding:0!important;text-align:center}
+.notes{list-style:none!important;padding:0!important;display:table!important;margin:10px auto 0!important;text-align:right!important}
+.notes li{text-align:right!important;padding-inline-start:1.1em;text-indent:-1.1em}
 .notes li::before{content:"• ";color:var(--gold)}
+/* شارة الحالة يسار العنوان، ولون كل بطاقة بلون عمليتها */
+.ev{border-color:color-mix(in srgb,var(--cc,#F2B632) 60%,transparent);background:linear-gradient(165deg,color-mix(in srgb,var(--cc,#F2B632) 17%,rgba(26,18,11,.72)),rgba(26,18,11,.66) 62%)}
+.ev.live{border-color:var(--cc,var(--gold));box-shadow:0 0 0 1px var(--cc,var(--gold)),0 0 26px color-mix(in srgb,var(--cc,#F2B632) 35%,transparent)}
+.ev .stat.side{position:absolute;left:9px;top:9px;margin:0;z-index:2;white-space:nowrap;font-size:11.5px;padding:2px 8px}
+@media (max-width:370px){.ev .stat.side{font-size:10.5px;padding:2px 6px;left:6px}}
 </style>
 </head>
 <body>
@@ -452,7 +458,7 @@ body.testmode #testRibbon{display:block;animation:teston 1.6s ease-in-out infini
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.7</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.8</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -820,9 +826,11 @@ function render(){
     if(P.est)h+=`<div class="banner info" style="flex-direction:column;align-items:stretch">وقت تقديري من فتحك تطبيق الوزارة: بين ${fmt(P.lo)} و${fmt(P.hi)}. حُسبت النوافذ بالأحوط. ولاعتماد الوقت الدقيق اقرأ لقطة شاشة «الحضور والانصراف».${N?`<button class="btn ghost" id="shotBtn2" style="margin-top:8px">قراءة لقطة الشاشة</button>`:""}</div>`;
     if(P.late)h+=`<div class="banner warn">حضورك بعد نهاية فترة السماح بـ ${dur(P.late)}؛ تُحتسب هذه المدة تأخيرًا. ويمكن تغطيتها باستئذان إن بقي رصيد.</div>`;
     const stTxt={wait:["s-wait","لم يحن بعد"],open:["s-open","مفتوحة الآن"],done:["s-done","تمت"],miss:["s-miss","فاتت"],ex:["s-ex","معفاة باستئذان"]};
-    const ev=(cls,ic,col,title,range,st,cd,act)=>`<div class="ev ${st==="open"?"live":""}" style="--i:${cls}"><div class="head"><div class="ic" style="background:${col}">${ic}</div><h4>${title}</h4></div>
-      <div class="range num">${range}</div>
-      <span class="stat ${stTxt[st][0]}">${st==="ex"&&title==="بصمة التواجد"&&P.noPres?"معفاة":stTxt[st][1]}</span>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`;
+    /* الحالة ووقت البصمة في شارة يسار العنوان لتقليل ارتفاع البطاقة، ولكل بطاقة لون عمليتها */
+    const ev=(cls,ic,col,title,range,st,cd,act)=>{let tm="";if(st==="done"&&cd&&cd.startsWith("بصمتَ ")){const k=cd.indexOf(" · ");tm=(k<0?cd:cd.slice(0,k)).replace("بصمتَ ","");cd=k<0?"":cd.slice(k+3)}
+      return `<div class="ev ${st==="open"?"live":""}" style="--i:${cls};--cc:${col}"><div class="head"><div class="ic" style="background:${col}">${ic}</div><h4>${title}</h4></div>
+      <span class="stat side num ${stTxt[st][0]}">${st==="ex"&&title==="بصمة التواجد"&&P.noPres?"معفاة":stTxt[st][1]}${tm?` · ${tm}`:""}</span>
+      <div class="range num">${range}</div>${cd?`<div class="cd num">${cd}</div>`:""}${act?`<div class="act">${act}</div>`:""}${MOE_BTN}</div>`};
     h+=ev(0,"١","#22C55E","بصمة الحضور",`${fmt(P.p)}`,"done",P.mode==="late"?`تأخير ${dur(P.late)} · يُحسب حضورك ${fmt(c.graceEnd)} · رصيد التأخير المتبقي ${dur(Math.max(0,LATE_ALLOW-lateUsed(dkey())))}`:P.mode==="perm"?`استئذان صباحي من ${fmt(d.cfg&&d.cfg.permFrom!=null?d.cfg.permFrom:c.earliest)} إلى ${fmt(P.p)}`:P.p<c.earliest?`يُحتسب دوامك من ${fmt(c.earliest)} (بداية فترة السماح)`:"","<button class='btn ghost' id='editIn'>✏️ تعديل</button><button class='btn ghost reset' id='resetDay'>🔘 تصفير ومسح</button>");
     h+=ev(1,"٢","#14B8A6","بصمة التواجد",P.noPres&&d.pres==null?"لا تواجد اليوم":`${fmt(P.ps)} <span>إلى</span> ${fmt(P.pe)}`,sP,
       sP==="wait"?`تُفتح بعد <b data-cd="${P.ps}"></b>`:sP==="open"?`تُغلق بعد <b data-cd="${P.pe}"></b>`:sP==="done"?`بصمتَ ${fmt(d.pres)}`+(presLate(d,dkey())?` · متأخرة: يُخصم ${dur(presLate(d,dkey()))} من رصيد التأخير`:""):sP==="ex"?(P.noPres?"لا تواجد عليك اليوم؛ حضرتَ بعد "+fmt(c.graceEnd+c.presDelay)+" فتكفيك بصمة الحضور":"استئذانك يقع جزء منه داخل النافذة، فأنت معفى منها"):"راجع قسم «إذا نسيت» الآن",

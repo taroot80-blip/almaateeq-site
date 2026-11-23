@@ -214,6 +214,8 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 
 /* حول التطبيق */
 .aboutbtn{min-height:44px;border-radius:999px;border:1px solid var(--line);background:var(--paper);padding:4px 12px;display:inline-flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;color:var(--ink)}
+.sndbtn{width:44px;height:44px;flex:none;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;cursor:pointer;color:var(--green);transition:transform .15s}
+.sndbtn:active{transform:scale(.9)}.sndbtn svg{width:20px;height:20px}.sndbtn[aria-pressed=false]{color:#9AA394}
 .aboutbtn svg{width:18px;height:18px;color:var(--green)}
 .nomoney{position:relative;isolation:isolate;overflow:hidden;border-radius:18px;padding:16px 18px;margin:6px 0 18px;background:light-dark(#FDECEA,#3A1E1B);color:light-dark(#7A2A21,#F6C3BB)}
 .nomoney::before{content:"";position:absolute;inset:-60%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 74%,currentColor 84%,transparent 94%);opacity:.5;animation:spin calc(var(--live) * 1.6) linear infinite}
@@ -377,7 +379,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 .toast.on{opacity:1;transform:none}
 @media (max-width:600px){.clock{justify-self:stretch}}
 .brand h1{white-space:nowrap}
-@media (max-width:430px){.brand p,#statusText{display:none}.status{gap:0}.top{gap:10px}}
+@media (max-width:430px){.brand p,#statusText{display:none}.status{gap:0}.top{gap:7px}.brand h1{font-size:25px}.aboutbtn{padding:4px 10px}.sndbtn{width:40px;height:40px}}
 @media (hover:hover) and (pointer:fine){.win{transition:transform .2s var(--ease)}.win:hover{transform:translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -394,6 +396,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
     </div>
     <div class="brand"><h1>جسر العطاء</h1><p>تدوير المقتنيات لمن ينتفع بها</p></div>
     <div class="status" role="status"><span class="dot"></span><span id="statusText">المنصة تعمل</span></div>
+    <button class="sndbtn" id="sndBtn" type="button" aria-pressed="true" aria-label="الأصوات: تعمل" title="الأصوات"></button>
     <button class="aboutbtn" data-go="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>التعليمات</button>
   </div>
   <div class="liveline" aria-hidden="true"></div>
@@ -752,7 +755,32 @@ const logEv = (type, code, who) => { const it = st.items.find(i => i.code === co
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
-const toast = t => { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); };
+/* الأصوات: نغمات خفيفة تُولَّد في الجهاز بلا ملفات، ولها زر تشغيل وإطفاء يُحفظ اختياره */
+const SND = (() => {
+  let ctx = null, on = true;
+  try { on = localStorage.getItem('jisr-sound') !== 'off'; } catch(e) {}
+  const tone = (f, t0, d, v = .05, type = 'sine') => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, ctx.currentTime + t0); g.gain.setValueAtTime(0, ctx.currentTime + t0); g.gain.linearRampToValueAtTime(v, ctx.currentTime + t0 + .012); g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + t0 + d); o.connect(g).connect(ctx.destination); o.start(ctx.currentTime + t0); o.stop(ctx.currentTime + t0 + d + .02); };
+  const P = {
+    tap:  () => tone(880, 0, .05, .025, 'triangle'),
+    ok:   () => { tone(660, 0, .12); tone(990, .09, .18); },
+    book: () => { tone(523, 0, .1); tone(659, .08, .1); tone(784, .16, .22); },
+    warn: () => { tone(440, 0, .14, .045, 'triangle'); tone(370, .12, .2, .04, 'triangle'); },
+    del:  () => { tone(392, 0, .1, .045, 'triangle'); tone(262, .09, .26, .045, 'triangle'); },
+    on:   () => { tone(740, 0, .08); tone(1110, .07, .12); }
+  };
+  const play = k => { if (!on || !P[k]) return; try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') ctx.resume(); P[k](); } catch(e) {} };
+  const ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  const ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6M22 9l-6 6"/></svg>';
+  const draw = () => { const b = document.getElementById('sndBtn'); if (!b) return; b.innerHTML = on ? ICON_ON : ICON_OFF; b.setAttribute('aria-pressed', on); b.setAttribute('aria-label', on ? 'الأصوات: تعمل، اضغط لإطفائها' : 'الأصوات: مطفأة، اضغط لتشغيلها'); };
+  const set = v => { on = v; try { localStorage.setItem('jisr-sound', v ? 'on' : 'off'); } catch(e) {} draw(); };
+  return {play, set, draw, get on() { return on; }};
+})();
+const toastSound = t => /تعذّر|لم يُ|لم ي|غير صحيح|اختر قبل|انتبه|أولًا/.test(t) ? 'warn' : /أُزيل|مُسحت|حُذفت/.test(t) ? 'del' : /أُلغي|ألغيت|تنازلت/.test(t) ? 'warn' : /حجز|محجوز لك|الطابور/.test(t) ? 'book' : 'ok';
+const toast = t => { SND.play(toastSound(t)); const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); };
+SND.draw();
+$('#sndBtn').addEventListener('click', () => { SND.set(!SND.on); if (SND.on) SND.play('on'); });
+/* نقرة خفيفة مع كل زر، ونغمة تنبيه مع ضغطات التأكيد والمسح */
+document.addEventListener('click', e => { const b = e.target.closest('button, .grab, [data-go], [data-book]'); if (!b || b.id === 'sndBtn') return; SND.play(b.id === 'wipe' || b.classList.contains('sure') ? 'warn' : 'tap'); }, true);
 /* يقبل: 05xxxxxxxx أو 5xxxxxxxx (السعودية)، وثمانية أرقام (الكويت)، أو الرقم الدولي بمفتاحه مع + أو 00 أو دونهما */
 const phoneOk = s => { let p = digits(s).replace(/\D/g, '').replace(/^00/, '');
   if (/^05\d{8}$/.test(p)) p = '966' + p.slice(1); else if (/^5\d{8}$/.test(p)) p = '966' + p; else if (/^[4569]\d{7}$/.test(p)) p = '965' + p;

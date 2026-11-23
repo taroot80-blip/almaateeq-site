@@ -414,6 +414,13 @@ nav.tabs button svg{width:19px!important;height:19px!important}
 .daysum .dsHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .daysum .dsHead h3{margin:0;font-size:17px}
 .daysum .dsHead .verdict{margin:0;padding:6px 12px;font-size:15px;flex:1;max-width:62%}
+/* بطاقة الموظف: الاسم كاملًا، والكادر بعرض أوسع، والميزانية فوق التاريخ */
+.id .who h2{white-space:normal!important;overflow:visible!important;font-size:15px!important;line-height:1.3}
+.id .who .role{max-width:100%!important;overflow:visible!important;text-overflow:clip!important}
+.id .idside{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.id .idside .bud{display:inline-block;margin:0!important;font-size:12px!important;padding:1px 10px!important;border-radius:999px;border:1px solid rgba(20,184,166,.6);background:rgba(20,184,166,.16);color:#99f6e4;font-weight:800;cursor:pointer;white-space:nowrap}
+.id .idside .bud.need{border-color:#EF4444;background:rgba(239,68,68,.18);color:#fecaca;animation:badpulse 1.8s ease-in-out infinite}
+.id .idside .date{display:block!important;margin:0!important;font-size:12px;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -442,9 +449,9 @@ nav.tabs button svg{width:19px!important;height:19px!important}
     <button class="avatar" id="avBtn" aria-label="اختر صورتك"><span id="avIn"></span></button><input type="file" id="avFile" accept="image/*" hidden>
     <div class="who">
       <h2 id="empName" tabindex="0" role="button"></h2>
-      <span class="role" id="empRole"></span><span class="bud" id="empBud" role="button" tabindex="0"></span>
-      <div class="date num" id="today"></div>
+      <span class="role" id="empRole"></span>
     </div>
+    <div class="idside"><span class="bud" id="empBud" role="button" tabindex="0"></span><div class="date num" id="today"></div></div>
     
   </header>
 
@@ -513,7 +520,7 @@ nav.tabs button svg{width:19px!important;height:19px!important}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.16</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.17</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -824,11 +831,11 @@ function dialSVG(P){
   <radialGradient id="face"><stop offset="0" stop-color="#2a1d12"/><stop offset="1" stop-color="#120c07"/></radialGradient></defs>
   <circle cx="150" cy="150" r="146" fill="url(#face)" stroke="rgba(242,182,50,.35)"/>
   ${ticks}${nums}${arcs}
-  <g id="hands"><line id="hh" x1="150" y1="150" x2="150" y2="90" stroke="#FFC933" stroke-width="8.5" stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(255,201,51,.75))"/>
+  <g id="hands"><line id="hh" x1="150" y1="150" x2="150" y2="90" stroke="#FFFFFF" stroke-width="8.5" stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(255,255,255,.6))"/>
   <line id="mh" x1="150" y1="150" x2="150" y2="58" stroke="#FFF6D8" stroke-width="5.5" stroke-linecap="round" style="filter:drop-shadow(0 0 3px rgba(255,246,216,.7))"/>
   <line id="sh" x1="150" y1="164" x2="150" y2="42" stroke="#FF3B5C" stroke-width="2.4" stroke-linecap="round"/></g>
   <g transform="translate(126 120) scale(.75)">${FP}</g>
-  <circle cx="150" cy="150" r="6" fill="#FFC933" stroke="#120c07" stroke-width="1.5"/>
+  <circle cx="150" cy="150" r="6" fill="#FFFFFF" stroke="#120c07" stroke-width="1.5"/>
   <text class="dial-center num" id="dialCd" x="150" y="202" text-anchor="middle" font-size="25" font-weight="800" fill="#FFD43B" stroke="#120c07" stroke-width="5" paint-order="stroke" filter="url(#gl)"></text>
   <text id="dialLb" x="150" y="223" text-anchor="middle" font-size="13.5" font-weight="800" fill="#FFE9A3" stroke="#120c07" stroke-width="4" paint-order="stroke" font-family="Tajawal"></text></svg>`}
 function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.getSeconds();

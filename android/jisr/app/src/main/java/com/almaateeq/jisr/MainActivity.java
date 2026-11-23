@@ -120,6 +120,17 @@ public class MainActivity extends Activity {
   // جسر طابور النشر: يرسل نص الإعلان وصوره إلى واتساب مباشرة (الصفحة داخل التطبيق لا تستطيع مشاركة الصور وحدها)
   private class Bridge {
     @JavascriptInterface public boolean canShareFiles() { return true; }
+    /* أي واتساب تُرسل إليه الإعلانات: business (واتساب الأعمال) أو normal (العادي) أو ask (يسأل كل مرة) */
+    @JavascriptInterface public void setWaApp(String which) { getSharedPreferences("jisr", MODE_PRIVATE).edit().putString("wa", which).apply(); }
+    @JavascriptInterface public String getWaApp() { return waApp(); }
+    /* فتح رابط واتساب (المجموعة أو محادثة) في الواتساب المختار */
+    @JavascriptInterface public void openUrl(final String url) {
+      runOnUiThread(() -> {
+        Intent it = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        for (String pkg : order()) { try { Intent t = new Intent(it); t.setPackage(pkg); startActivity(t); return; } catch (Exception e) {} }
+        try { startActivity(Intent.createChooser(it, "افتح في واتساب")); } catch (Exception e) {}
+      });
+    }
     /* طباعة الإحصاء أو حفظه PDF عبر نظام الطباعة في أندرويد (يطبع منطقة التقرير بقواعد @media print) */
     @JavascriptInterface public void print(final String title) {
       runOnUiThread(() -> {
@@ -179,11 +190,18 @@ public class MainActivity extends Activity {
       it.setClipData(clip);
       it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }
-    // واتساب أولًا، ثم واتساب للأعمال، وإلا قائمة المشاركة
-    for (String pkg : new String[]{"com.whatsapp", "com.whatsapp.w4b"}) {
+    // الواتساب المختار أولًا، ثم الآخر، وإلا قائمة المشاركة
+    for (String pkg : order()) {
       try { Intent t = new Intent(it); t.setPackage(pkg); startActivity(t); return; } catch (Exception e) {}
     }
     try { startActivity(Intent.createChooser(it, "انشر في واتساب")); } catch (Exception e) {}
+  }
+
+  private String waApp() { return getSharedPreferences("jisr", MODE_PRIVATE).getString("wa", "business"); }
+  private String[] order() {
+    String w = waApp();
+    if ("ask".equals(w)) return new String[0];
+    return "normal".equals(w) ? new String[]{"com.whatsapp", "com.whatsapp.w4b"} : new String[]{"com.whatsapp.w4b", "com.whatsapp"};
   }
 
   @Override public void onBackPressed() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }

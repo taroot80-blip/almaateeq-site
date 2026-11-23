@@ -1393,6 +1393,12 @@ const shareItem = async it => {
 };
 /* إلغاء العرض وإزالته من نافذة الغرض، وإبلاغ المجموعة بالإلغاء */
 const cancelText = it => [`${it.code}⛔ أُلغي هذا العرض`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'لم يعد متاحًا للحجز، فلا تُرسلوا كوده.', '', GROUP.name, GROUP.link].join('\n');
+/* في تطبيق أندرويد: روابط واتساب تُفتح في الواتساب الذي اختاره العضو (الأعمال أو العادي) */
+const waOpen = u => { if (window.JisrAndroid && JisrAndroid.openUrl) { JisrAndroid.openUrl(u); return true; } return false; };
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href^="https://wa.me"], a[href*="chat.whatsapp.com"]'); if (a && waOpen(a.href)) { e.preventDefault(); return; }
+  const w = e.target.closest('[data-waapp]'); if (w && window.JisrAndroid && JisrAndroid.setWaApp) { JisrAndroid.setWaApp(w.dataset.waapp); document.querySelectorAll('[data-waapp]').forEach(b => b.setAttribute('aria-pressed', b === w)); toast('تُرسل الإعلانات الآن إلى ' + w.textContent); }
+});
 const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid.share(t, '[]'); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); };
 /* تأكيد بضغطتين، ويعود الزر إلى حاله إن لم يُؤكَّد خلال 8 ثوانٍ */
 /* التأكيد بضغطتين: يُحفظ خارج الزر، فلا يضيع إن أُعيد بناء النافذة بالتحديث التلقائي بين الضغطتين */
@@ -1423,7 +1429,7 @@ document.addEventListener('click', async e => {
   const wg = e.target.closest('[data-wagroup]'), wa2 = e.target.closest('[data-waadmin]'), wp = e.target.closest('[data-wapick]');
   if (wg || wa2 || wp) {
     const it = st.items.find(i => i.code === (wg || wa2 || wp).dataset[wg ? 'wagroup' : wa2 ? 'waadmin' : 'wapick']); if (!it) return;
-    const t = cancelText(it), go2 = u => { if (window.JisrAndroid) location.href = u; else window.open(u, '_blank', 'noopener'); };
+    const t = cancelText(it), go2 = u => { if (waOpen(u)) return; if (window.JisrAndroid) location.href = u; else window.open(u, '_blank', 'noopener'); };
     if (wp) return sendText(t);
     if (wa2) return go2(wa((JISR_CONFIG.groupAdmin || '').replace(/\D/g, ''), t));
     try { await navigator.clipboard.writeText(t); toast('نُسخ البلاغ: الصقه في المجموعة وأرسله'); } catch(err) { toast('لم يُنسخ تلقائيًا، فاختر «اختر المحادثة بنفسك»'); }
@@ -1631,6 +1637,8 @@ const renderMe = src => {
       <p>${esc(i.title)} · ${esc(i.area)}</p>
       ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>` : ''}
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
+    ${window.JisrAndroid && JisrAndroid.setWaApp ? `<h3 style="margin-top:18px">أي واتساب تُرسل إليه؟</h3><p class="hint" style="margin:0 0 6px">مجموعة جسر العطاء في واتساب الأعمال، فاختره إن كانت المجموعة عندك فيه.</p>
+      <div class="pick" id="waApp">${[['business', 'واتساب الأعمال'], ['normal', 'واتساب العادي'], ['ask', 'اسألني كل مرة']].map(([k, l]) => `<button type="button" data-waapp="${k}" aria-pressed="${(JisrAndroid.getWaApp() || 'business') === k}">${l}</button>`).join('')}</div>` : ''}
     <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج</button>
   </div>`;
   $('#logout').addEventListener('click', async ev => { if (!sure(ev.currentTarget, 'متأكد من الخروج؟ ستحتاج رمزًا جديدًا على إيميلك لتدخل مرة أخرى')) return; if (SRV) { await sb.auth.signOut(); await pull(true); return; } st.me = null; save(); renderMe(); });

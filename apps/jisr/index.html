@@ -779,7 +779,7 @@ const renderWa = () => {
   const em = st.expMode || 'flash', nx = st.items.filter(i => i.expired && i.status === 'shown' && !i.given && !i.cancelled && !i.queue.length).length;
   $('#expMode').innerHTML = Object.entries(EXP_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === em}" aria-checked="${k === em}" data-expmode="${k}">${v}</button>`).join('');
   $('#expNote').textContent = EXP_NOTE[em] + (nx ? ` المنتهية الآن: ${nx}.` : '');
-  $('#clearExp').hidden = !nx;
+  $('#clearExp').parentElement.style.display = nx ? '' : 'none';
   const m = waMode();
   $('#waMode').innerHTML = Object.entries(WA_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === m}" aria-checked="${k === m}" data-wamode="${k}">${v}</button>`).join('');
   $('#waModeNote').textContent = WA_NOTE[m];

@@ -471,6 +471,13 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <div class="pick" id="expMode" role="radiogroup" aria-label="ما انتهى وقته"></div>
       <p class="sample" id="expNote" style="text-align:right"></p>
       <div class="row"><button class="btn small ghost" id="clearExp">احذف كل المنتهية الآن</button></div>
+      <h3 style="margin-top:16px">مجموعة واتساب</h3>
+      <p class="hint" style="margin:0 0 6px">رابط الانضمام يظهر للأعضاء في زر «انضم إلى المجموعة»، ويُكتب في آخر كل إعلان. خذه من المجموعة: معلومات المجموعة ← دعوة عبر رابط ← نسخ الرابط.</p>
+      <label for="grpName">اسم المجموعة</label>
+      <input class="field" id="grpName" maxlength="60">
+      <label for="grpLink">رابط الانضمام</label>
+      <input class="field ltr" id="grpLink" inputmode="url" placeholder="https://chat.whatsapp.com/…">
+      <div class="row"><button class="btn small primary" type="button" id="grpSave">احفظ المجموعة</button><button class="btn small ghost" type="button" id="grpTest">جرّب الرابط</button></div>
       <h3 style="margin-top:16px">النشر في مجموعة واتساب</h3>
       <p class="hint" style="margin:0 0 6px">أين تظهر المعروضات الجديدة:</p>
       <div class="pick" id="waMode" role="radiogroup" aria-label="مكان النشر"></div>
@@ -559,6 +566,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
         <h3>هدف جسر العطاء</h3>
         <p>فكرة تسهم في حل معضلات كثيرة اقتصاديًا واجتماعيًا، وتخفف من مرض الاكتناز القهري، وتسهم في مد جسور المحبة والتعاون.</p>
       </div>
+      <button class="btn primary wide join" type="button" data-join style="margin-bottom:10px">انضم إلى مجموعة واتساب</button>
       <button class="btn ghost wide" type="button" id="aboutProgBtn" aria-expanded="false" aria-controls="aboutProg">حول البرنامج</button>
       <div class="aboutprog" id="aboutProg" hidden>
         <img class="biglogo" src="logo.webp" alt="شعار جسر العطاء" width="150" height="152">
@@ -749,7 +757,7 @@ const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, 
 const save = () => { if (SRV) return; mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
 /* تحويل ما يرسله الخادم إلى صيغة الواجهة: قائمة الحجز لا تحمل إلا ما يحق لك رؤيته */
-const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', expMode:d.expMode || 'flash', profile:d.profile || null, people:d.people || {}, log:d.log || [],
+const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', groupName:d.groupName, groupLink:d.groupLink, expMode:d.expMode || 'flash', profile:d.profile || null, people:d.people || {}, log:d.log || [],
   items:(d.items || []).map(x => { const q = x.queue || Array(x.queueLen).fill('~'); if (!x.queue) { if (x.first) q[0] = x.first; if (x.myPos >= 0) q[x.myPos] = d.me; } return Object.assign({}, x, {owner:x.owner || '~', queue:q}); })});
 const api = async (fn, args) => {
   const {data, error} = await sb.rpc(fn, args || {});
@@ -759,7 +767,7 @@ const api = async (fn, args) => {
 let pulling = null;
 /* fresh: ينتظر أي تحديث جارٍ ثم يجلب من جديد، بعد أي تغيير على الخادم */
 const pull = fresh => fresh && pulling ? pulling.then(() => pull()) : pulling || (pulling = (async () => {
-  try { const d = await api('jisr_board'); st = toSt(d);
+  try { const d = await api('jisr_board'); st = toSt(d); if (st.groupLink) GROUP.link = st.groupLink; if (st.groupName) GROUP.name = st.groupName;
     if (!d.me) { const {data:{session}} = await sb.auth.getSession(); if (session) { const a = await api('jisr_board_auth'); st.needProfile = a.needProfile; st.email = a.email; } }
     else st.email = (await sb.auth.getSession()).data.session?.user?.email || ''; $('#adminBox').hidden = !isAdmin(); render(); }
   catch(e) {} finally { pulling = null; }
@@ -769,6 +777,7 @@ const ERR = {
   banned:'رقمك موقوف عن الحجز والعرض. تواصل مع إدارة المبادرة.',
   missing:'اختر قبل الإعلان: الصورة والتصنيف والمنطقة.',
   not_found:'لم نجد هذا الغرض.',
+  bad_link:'رابط المجموعة غير صحيح، أو لم يُشغَّل تحديث الخادم 7 بعد.',
   closed:'انتهى هذا العرض.',
   no_booker:'لا يوجد صاحب حجز الآن.',
   locked:'التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة.',
@@ -836,6 +845,8 @@ const EXP_NOTE = {flash:'بعد 24 ساعة يبقى الغرض في المنص�
   auto:'بعد 24 ساعة يُكتب على ما لم يُحجز «أُلغي» ويعود إلى صاحبه تلقائيًا.'};
 const renderWa = () => {
   if (!isAdmin()) return;
+  if (document.activeElement !== $('#grpName')) $('#grpName').value = GROUP.name;
+  if (document.activeElement !== $('#grpLink')) $('#grpLink').value = GROUP.link;
   const em = st.expMode || 'flash', nx = st.items.filter(i => i.expired && i.status === 'shown' && !i.given && !i.cancelled && !i.queue.length).length;
   $('#expMode').innerHTML = Object.entries(EXP_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === em}" aria-checked="${k === em}" data-expmode="${k}">${v}</button>`).join('');
   $('#expNote').textContent = EXP_NOTE[em] + (nx ? ` المنتهية الآن: ${nx}.` : '');
@@ -1399,6 +1410,20 @@ document.addEventListener('click', e => {
   const a = e.target.closest('a[href^="https://wa.me"], a[href*="chat.whatsapp.com"]'); if (a && waOpen(a.href)) { e.preventDefault(); return; }
   const w = e.target.closest('[data-waapp]'); if (w && window.JisrAndroid && JisrAndroid.setWaApp) { JisrAndroid.setWaApp(w.dataset.waapp); document.querySelectorAll('[data-waapp]').forEach(b => b.setAttribute('aria-pressed', b === w)); toast('تُرسل الإعلانات الآن إلى ' + w.textContent); }
 });
+/* زر «انضم إلى المجموعة» لكل الأعضاء، وحفظ رابطها من لوحة الإدارة */
+document.addEventListener('click', async e => {
+  if (e.target.closest('[data-join]')) { if (!waOpen(GROUP.link)) window.open(GROUP.link, '_blank', 'noopener'); return; }
+  if (e.target.id === 'grpTest') { const u = $('#grpLink').value.trim(); if (!waOpen(u)) window.open(u, '_blank', 'noopener'); return; }
+  if (e.target.id !== 'grpSave') return;
+  const name = $('#grpName').value.trim(), link = $('#grpLink').value.trim().replace(/[?#].*$/, '');
+  if (!/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{10,40}$/.test(link)) return toast('الرابط غير صحيح: يبدأ بـ https://chat.whatsapp.com/');
+  if (name.length < 2) return toast('اكتب اسم المجموعة');
+  if (SRV) {
+    for (const [act, arg] of [['group_link', link], ['group_name', name]]) { const r = await api('jisr_admin', {_act:act, _arg:arg}).catch(() => ({err:'net'})); if (r.err) return r.err === 'net' || toast(errMsg(r)); }
+    await pull(true);
+  } else { st.groupLink = link; st.groupName = name; save(); }
+  GROUP.link = link; GROUP.name = name; toast('حُفظت المجموعة، وصار زر الانضمام يفتحها');
+});
 const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid.share(t, '[]'); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); };
 /* تأكيد بضغطتين، ويعود الزر إلى حاله إن لم يُؤكَّد خلال 8 ثوانٍ */
 /* التأكيد بضغطتين: يُحفظ خارج الزر، فلا يضيع إن أُعيد بناء النافذة بالتحديث التلقائي بين الضغطتين */
@@ -1637,6 +1662,7 @@ const renderMe = src => {
       <p>${esc(i.title)} · ${esc(i.area)}</p>
       ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>` : ''}
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
+    <button class="btn ghost wide join" type="button" data-join style="margin-top:18px">انضم إلى مجموعة واتساب</button>
     ${window.JisrAndroid && !JisrAndroid.setWaApp ? '<div class="result err" style="margin-top:14px">نسخة التطبيق عندك قديمة، فتفتح واتساب العادي. ثبّت النسخة 1.3 لتختار واتساب الأعمال.</div>' : ''}
     ${window.JisrAndroid && JisrAndroid.setWaApp ? `<h3 style="margin-top:18px">أي واتساب تُرسل إليه؟</h3><p class="hint" style="margin:0 0 6px">مجموعة جسر العطاء في واتساب الأعمال، فاختره إن كانت المجموعة عندك فيه.</p>
       <div class="pick" id="waApp">${[['business', 'واتساب الأعمال'], ['normal', 'واتساب العادي'], ['ask', 'اسألني كل مرة']].map(([k, l]) => `<button type="button" data-waapp="${k}" aria-pressed="${(JisrAndroid.getWaApp() || 'business') === k}">${l}</button>`).join('')}</div>` : ''}

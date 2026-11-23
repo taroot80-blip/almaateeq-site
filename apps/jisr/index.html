@@ -202,6 +202,7 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .goal{background:var(--mint);border:1px solid var(--line);border-radius:16px;padding:10px 16px;margin:8px 0 14px;text-align:center}
 .goal h3{margin:0 0 4px}
 .goal p{margin:0;text-align:center;font-weight:500}
+#logout.sure,#logout2.sure{background:#b3261e;color:#fff;border-color:#b3261e;white-space:normal;line-height:1.5}
 .btn.danger{color:#b3261e;border-color:#f0c4c0}
 .btn.danger.sure{background:#b3261e;color:#fff}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
@@ -1181,7 +1182,8 @@ const shareItem = async it => {
 /* إلغاء العرض وإزالته من نافذة الغرض، وإبلاغ المجموعة بالإلغاء */
 const cancelText = it => [`${it.code}⛔ أُلغي هذا العرض`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'لم يعد متاحًا للحجز، فلا تُرسلوا كوده.', '', GROUP.name, GROUP.link].join('\n');
 const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid.share(t, '[]'); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); };
-const sure = (b, label) => { if (b.dataset.sure) return true; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure'); return false; };
+/* تأكيد بضغطتين، ويعود الزر إلى حاله إن لم يُؤكَّد خلال 8 ثوانٍ */
+const sure = (b, label) => { if (b.dataset.sure) return true; const old = b.textContent; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure'); setTimeout(() => { if (b.isConnected && b.dataset.sure && !b.disabled) { delete b.dataset.sure; b.textContent = old; b.classList.remove('sure'); } }, 8000); return false; };
 document.addEventListener('click', async e => {
   const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
   if (wc) { const it = st.items.find(i => i.code === wc.dataset.wacancel); if (it) sendText(cancelText(it)); return; }
@@ -1298,7 +1300,7 @@ const renderMe = src => {
       ${needOnly ? '<button class="btn text" type="button" id="logout2">خروج</button>' : ''}
       <div id="loginMsg"></div></form>`;
     const re = $('#reEmail'); if (re) re.addEventListener('click', () => { otp = null; renderMe(); });
-    const lo = $('#logout2'); if (lo) lo.addEventListener('click', async () => { await sb.auth.signOut(); await pull(true); });
+    const lo = $('#logout2'); if (lo) lo.addEventListener('click', async ev => { if (!sure(ev.currentTarget, 'متأكد من الخروج؟ ستحتاج رمزًا جديدًا على إيميلك لتدخل مرة أخرى')) return; await sb.auth.signOut(); await pull(true); });
     const readExtra = () => { const ph = $('#ph'); if (ph) { pendingName = $('#nm').value.trim(); const p = phoneOk(ph.value); pendingPhone = p; return p; } return pendingPhone; };
     $('#login').addEventListener('submit', async ev => {
       ev.preventDefault();
@@ -1366,7 +1368,7 @@ const renderMe = src => {
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
     <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج</button>
   </div>`;
-  $('#logout').addEventListener('click', async () => { if (SRV) { await sb.auth.signOut(); await pull(true); return; } st.me = null; save(); renderMe(); });
+  $('#logout').addEventListener('click', async ev => { if (!sure(ev.currentTarget, 'متأكد من الخروج؟ ستحتاج رمزًا جديدًا على إيميلك لتدخل مرة أخرى')) return; if (SRV) { await sb.auth.signOut(); await pull(true); return; } st.me = null; save(); renderMe(); });
 };
 $('#meBox').addEventListener('click', async e => {
   const find = c => st.items.find(i => i.code === c);

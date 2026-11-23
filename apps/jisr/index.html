@@ -1357,7 +1357,7 @@ const renderMe = src => {
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
         <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
       ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ العرض، لم يعد متاحًا</button>` : ''}
-      ${i.cancelled || i.status === 'cancelled' ? '<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p>' : ''}
+      ${(i.cancelled || i.status === 'cancelled') && !i.given && i.status !== 'given' ? `<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p><button class="btn ghost wide" data-relist="${esc(i.code)}">أعِد عرضه من جديد</button>` : ''}
       ${i.given || i.status === 'given' ? '<p>الشكر الجزيل لك على ما قدّمت.</p>' : ''}
     </div>`).join('') || '<p class="sample">لم تعرض شيئًا بعد.</p><button class="btn ghost" data-go="give">اعرض غرضًا</button>'}</div>
     <h3 style="font-size:24px;margin-top:18px">حجوزاتي</h3>
@@ -1374,6 +1374,13 @@ $('#meBox').addEventListener('click', async e => {
   const find = c => st.items.find(i => i.code === c);
   const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]'), xc0 = e.target.closest('[data-xcancel]');
   if (c) return cancelBooking(c);
+  const rl = e.target.closest('[data-relist]');
+  if (rl) {
+    rl.disabled = true;
+    if (SRV) { const r = await api('jisr_owner_action', {_code:rl.dataset.relist, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { rl.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { const it = find(rl.dataset.relist); logEv('posted', it.code, it.owner); Object.assign(it, {cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); save(); tick(); renderMe(); }
+    return toast('عاد إلى العرض، ويظهر في أول نافذة تفرغ');
+  }
   if (SRV && (d || s || xc0)) {
     const b = d || s || xc0; b.disabled = true;
     const r = await api('jisr_owner_action', {_code:(d || s || xc0).dataset[d ? 'done' : s ? 'skip' : 'xcancel'], _act:d ? 'given' : s ? 'skip' : 'cancel'}).catch(() => ({err:'net'}));

@@ -202,6 +202,8 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .goal{background:var(--mint);border:1px solid var(--line);border-radius:16px;padding:10px 16px;margin:8px 0 14px;text-align:center}
 .goal h3{margin:0 0 4px}
 .goal p{margin:0;text-align:center;font-weight:500}
+.btn.danger{color:#b3261e;border-color:#f0c4c0}
+.btn.danger.sure{background:#b3261e;color:#fff}
 .otp-demo{background:var(--sand);border-radius:12px;padding:8px 12px;font-size:15px;margin-top:10px}
 .list{display:grid;gap:12px;margin-top:10px}
 .mini{border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg)}
@@ -831,6 +833,10 @@ const win = (it, i) => {
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
         ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
+        ${it.owner === st.me || isAdmin() ? `<div class="row" style="margin-bottom:8px">
+          ${!g && !x ? `<button class="btn ghost danger" type="button" data-icancel="${esc(it.code)}">ألغِ العرض</button>` : ''}
+          ${x ? `<button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
+          ${isAdmin() ? `<button class="btn ghost danger" type="button" data-iremove="${esc(it.code)}">أزل الإعلان نهائيًا</button>` : ''}</div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
           ${it.queue.includes(st.me) ? `<p class="free-note">${it.queue[0] === st.me ? 'الغرض باسمك، ولا يتجاوزك أحد إلا إن تنازلت.' : `أنت رقم ${it.queue.indexOf(st.me)} في الطابور.`}</p>`
             : `<button class="btn ${it.queue.length ? 'ghost' : 'primary'} wide" data-book="${esc(it.code)}">${it.queue.length ? 'قف في الطابور بالكود' : 'احجز بالكود'}</button>`}`}
@@ -1172,6 +1178,29 @@ const shareItem = async it => {
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   return true;
 };
+/* إلغاء العرض وإزالته من نافذة الغرض، وإبلاغ المجموعة بالإلغاء */
+const cancelText = it => [`${it.code}⛔ أُلغي هذا العرض`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'لم يعد متاحًا للحجز، فلا تُرسلوا كوده.', '', GROUP.name, GROUP.link].join('\n');
+const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid.share(t, '[]'); else window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank', 'noopener'); };
+const sure = (b, label) => { if (b.dataset.sure) return true; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure'); return false; };
+document.addEventListener('click', async e => {
+  const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
+  if (wc) { const it = st.items.find(i => i.code === wc.dataset.wacancel); if (it) sendText(cancelText(it)); return; }
+  if (ic) {
+    if (!sure(ic, 'تأكيد: ألغِ العرض؟')) return;
+    const code = ic.dataset.icancel; ic.disabled = true;
+    if (SRV) { const r = await api('jisr_owner_action', {_code:code, _act:'cancel'}).catch(() => ({err:'net'})); if (r.err) { ic.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { const it = st.items.find(i => i.code === code); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); render(); }
+    open.add(code); render();
+    return toast('أُلغي العرض. وإن كان منشورًا في المجموعة فاضغط «أبلغ المجموعة بالإلغاء»');
+  }
+  if (ir) {
+    if (!sure(ir, 'تأكيد: أزله نهائيًا؟')) return;
+    const code = ir.dataset.iremove; ir.disabled = true;
+    if (SRV) { const r = await api('jisr_admin', {_act:'remove', _arg:code}).catch(() => ({err:'net'})); if (r.err) { ir.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { logEv('removed', code, st.me); st.items = st.items.filter(i => i.code !== code); fill(now()); save(); render(); }
+    return toast(`أُزيل ${code} من المنصة. وإن كان منشورًا في المجموعة فاحذفه منها أو أبلغها`);
+  }
+});
 document.addEventListener('click', async e => {
   const mb = e.target.closest('[data-wamode]');
   if (mb) {

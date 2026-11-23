@@ -327,6 +327,10 @@ begin
     if _arg not in ('platform','whatsapp','both') then return json_build_object('err', 'bad_action'); end if;
     update jisr_settings set wa_mode = _arg where id = 1;
   elsif _act = 'wa_sent' then update jisr_items set wa_sent_at = coalesce(wa_sent_at, now()) where code = _arg;
+  elsif _act = 'remove' then  -- إزالة إعلان خاطئ أو مشتبه به نهائيًا
+    perform jisr_log('removed', _arg, me);
+    delete from jisr_items where code = _arg;
+    perform jisr_fill(now());
   else return json_build_object('err', 'bad_action');
   end if;
   return json_build_object('ok', true);

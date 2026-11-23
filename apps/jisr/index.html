@@ -256,6 +256,15 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .pchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px}
 .pchecks label{display:flex;gap:8px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13.5px;cursor:pointer;margin:0}
 .pchecks input{accent-color:var(--green);margin-top:3px;flex:none}
+.laser{height:2px;margin:12px 0;border-radius:2px;background:hsla(var(--h,140),30%,45%,.15);position:relative;overflow:hidden}
+.laser::after{content:"";position:absolute;inset-block:0;width:28%;border-radius:2px;background:linear-gradient(90deg,transparent,var(--gold),#3FE3EC,transparent);box-shadow:0 0 8px rgba(242,182,50,.7);animation:laserGo 3.2s ease-in-out infinite alternate}
+@keyframes laserGo{from{inset-inline-start:0}to{inset-inline-start:72%}}
+/* صفوف وأعمدة منتظمة في نموذج العرض */
+#giveForm .pick:not(.tiles){display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,92px),1fr));gap:8px}
+#giveForm .pick:not(.tiles) button{text-align:center;line-height:1.35}
+#giveForm #pPick{grid-template-columns:1fr}
+#giveForm .pick.tiles{gap:8px}
+#giveForm label{display:block;margin-top:14px}
 .subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 /* زر الاختيار المفعّل في «ما انتهى وقته» يومض ببطء */
 #expMode button[aria-pressed=true]{animation:selglow 3.2s ease-in-out infinite}
@@ -515,7 +524,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <p class="sample" style="text-align:right;margin:6px 0 0">الصورة هي الشرح: صوّر الغرض كاملًا وبوضوح، وأظهر أي عيب فيه. وإن لم تكن عندك صورة فاكتب تفصيلًا قصيرًا تحت التصنيف، ويُكتب على الإعلان «لا توجد صور».</p>
       <label>التصنيف <span class="hint">(اختر واحدًا أو أكثر)</span></label>
       <div class="pick tiles" id="pCat"></div>
-      <div id="pSubWrap" hidden><label>الأغراض <span class="hint">(اختر كل ما في الصورة: دولاب، سرير، كمدينة…)</span></label><div id="pSub"></div><p class="sample" id="pSubSum" style="text-align:right;margin:6px 0 0"></p></div>
+      <div id="pSubWrap" hidden><div class="laser"></div><label>الأغراض <span class="hint">(اختر كل ما في الصورة: دولاب، سرير، كمدينة…)</span></label><div id="pSub"></div><p class="sample" id="pSubSum" style="text-align:right;margin:6px 0 0"></p></div>
       <label for="gNote">تفصيل قصير <span class="hint">(اختياري، مثل المقاس أو العدد)</span></label>
       <input class="field" id="gNote" maxlength="60" placeholder="مثلًا: مقاس M (10-12 UK)">
       <label>الحالة</label>
@@ -1320,7 +1329,7 @@ const drawPicks = () => {
 const drawNb = () => { const l = NBH[sel.area] ? Object.keys(NBH[sel.area]) : []; $('#pNbWrap').hidden = !l.length; if (l.length) chips('#pNb', l, 'nb'); };
 const drawSub = () => {
   $('#pSubWrap').hidden = !sel.cats.length; if (!sel.cats.length) return;
-  $('#pSub').innerHTML = sel.cats.map((c, k) => `<p class="subgrp hued" style="--h:${hueOf(c)}">${esc(c)}</p><div class="pick" id="pSub${k}" style="--h:${hueOf(c)}"></div>`).join('');
+  $('#pSub').innerHTML = sel.cats.map((c, k) => `${k ? `<div class="laser" style="--h:${hueOf(c)}"></div>` : ''}<p class="subgrp hued" style="--h:${hueOf(c)}">${esc(c)}</p><div class="pick" id="pSub${k}" style="--h:${hueOf(c)}"></div>`).join('');
   sel.cats.forEach((c, k) => multi('#pSub' + k, TAX[c], 'subs', sumSub, true));
   sumSub();
 };

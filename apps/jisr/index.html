@@ -237,6 +237,11 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .empty-win::after{content:"";position:absolute;inset:2px;border-radius:14px;background:var(--bg);border:1px dashed var(--line);z-index:-1}
 .win.live::before{animation-duration:3.6s}.win.held::before{animation-duration:7s}.empty-win::before{animation-duration:11s}
 .grab{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:6px;padding:2px 14px;border:0;border-radius:999px;background:var(--green);color:#fff;font:700 13px/1 "Noto Naskh Arabic",serif;cursor:pointer;animation:beckon 1.6s ease-in-out infinite}
+/* ما انتهى يومه ولم يُحجز: يومض ومضًا خفيفًا حتى يقرر صاحبه */
+.win.expired{animation:enter .5s both,expglow 2.6s ease-in-out infinite}
+@keyframes expglow{0%,100%{box-shadow:0 0 0 0 rgba(242,182,50,0);opacity:1}50%{box-shadow:0 0 0 4px rgba(242,182,50,.35);opacity:.82}}
+.tag.exp{background:#FFF4D6;color:#8A5A00;animation:expglow 2.6s ease-in-out infinite}
+#wipe.warn{background:#9E3B2F;color:#fff}
 @keyframes beckon{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(34,211,238,0)}}
 .win.open .grab{display:none}
 
@@ -421,6 +426,10 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
         <div class="row"><button class="btn small ghost" data-adm="unlock_time">افتح تعديل وقت الاستلام</button></div>
         <div class="row"><button class="btn small ghost" id="cleanPhotos">احذف صور ما انتهى منذ أسبوع</button></div>
       </div>
+      <h3 style="margin-top:16px">ما انتهى وقته ولم يُحجز</h3>
+      <div class="pick" id="expMode" role="radiogroup" aria-label="ما انتهى وقته"></div>
+      <p class="sample" id="expNote" style="text-align:right"></p>
+      <div class="row"><button class="btn small ghost" id="clearExp">احذف كل المنتهية الآن</button></div>
       <h3 style="margin-top:16px">النشر في مجموعة واتساب</h3>
       <p class="hint" style="margin:0 0 6px">أين تظهر المعروضات الجديدة:</p>
       <div class="pick" id="waMode" role="radiogroup" aria-label="مكان النشر"></div>
@@ -690,7 +699,7 @@ const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, 
 const save = () => { if (SRV) return; mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
 /* تحويل ما يرسله الخادم إلى صيغة الواجهة: قائمة الحجز لا تحمل إلا ما يحق لك رؤيته */
-const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', profile:d.profile || null, people:d.people || {}, log:d.log || [],
+const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', expMode:d.expMode || 'flash', profile:d.profile || null, people:d.people || {}, log:d.log || [],
   items:(d.items || []).map(x => { const q = x.queue || Array(x.queueLen).fill('~'); if (!x.queue) { if (x.first) q[0] = x.first; if (x.myPos >= 0) q[x.myPos] = d.me; } return Object.assign({}, x, {owner:x.owner || '~', queue:q}); })});
 const api = async (fn, args) => {
   const {data, error} = await sb.rpc(fn, args || {});
@@ -747,8 +756,15 @@ const WA_NOTE = {
   both:'تظهر المعروضات في المنصة، وتدخل طابور واتساب لتُنشر في المجموعة مرة واحدة.'
 };
 const waMode = () => st.waMode || 'both';
+const EXP_MODES = {flash:'يومض حتى يُقرَّر', auto:'يُحذف تلقائيًا'};
+const EXP_NOTE = {flash:'بعد 24 ساعة يبقى الغرض في المنصة يومض ومضًا خفيفًا، ولصاحبه وللإدارة «جدّده» أو «احذفه». ولا يشغل نافذة، فتعرض النوافذ الجديد.',
+  auto:'بعد 24 ساعة يُكتب على ما لم يُحجز «أُلغي» ويعود إلى صاحبه تلقائيًا.'};
 const renderWa = () => {
   if (!isAdmin()) return;
+  const em = st.expMode || 'flash', nx = st.items.filter(i => i.expired && i.status === 'shown' && !i.given && !i.cancelled && !i.queue.length).length;
+  $('#expMode').innerHTML = Object.entries(EXP_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === em}" aria-checked="${k === em}" data-expmode="${k}">${v}</button>`).join('');
+  $('#expNote').textContent = EXP_NOTE[em] + (nx ? ` المنتهية الآن: ${nx}.` : '');
+  $('#clearExp').hidden = !nx;
   const m = waMode();
   $('#waMode').innerHTML = Object.entries(WA_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === m}" aria-checked="${k === m}" data-wamode="${k}">${v}</button>`).join('');
   $('#waModeNote').textContent = WA_NOTE[m];
@@ -763,7 +779,7 @@ const renderWa = () => {
 
 /* محرّك الدورة: عرض وأخذ فقط. تتجدد النوافذ كل 24 ساعة، وما لم يُستلم يُكتب عليه «أُلغي» ويبقى عند صاحبه */
 const fill = t => {
-  let free = SLOTS - shown().length;
+  let free = SLOTS - shown().filter(i => !i.expired && !i.cancelled).length;
   const fresh = st.items.filter(i => i.status === 'waiting').sort((a, b) => a.created - b.created);
   const back = [];
   for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }
@@ -773,7 +789,8 @@ const roll = t => {
   for (const it of shown()) {
     if (it.given) it.status = 'given';
     else if (it.cancelled) toStore(it, t);
-    else if (it.queue.length) it.status = 'reserved';
+    else if (it.queue.length) { it.status = 'reserved'; it.expired = false; }
+    else if ((st.expMode || 'flash') === 'flash') it.expired = true;
     else toStore(it, t);
   }
   st.cycleStart = t;
@@ -813,9 +830,9 @@ const needLogin = () => { if (st.me) return false; toast('سجّل دخولك ب
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
 const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : (ICONS[it.icon] || ICONS.box) + '<span class="nopic">لا توجد صور</span>';
 const win = (it, i) => {
-  const g = it.given, x = it.cancelled, isOpen = open.has(it.code);
-  const tag = g || x ? '' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
-  return `<article class="win${g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${isOpen ? ' open' : ''}" style="--i:${i}">
+  const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length;
+  const tag = g || x ? '' : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
+  return `<article class="win${g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${ex ? ' expired' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
     <div class="pic">${picOf(it)}${g ? '<span class="stamp">ذهب لمستفيد</span>' : x ? '<span class="stamp">أُلغي</span>' : ''}</div>
     <div class="sum">
       <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
@@ -834,8 +851,10 @@ const win = (it, i) => {
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
         ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
+        ${ex && (it.owner === st.me || isAdmin()) ? '<p class="free-note">انتهى يوم عرضه ولم يُحجز. جدّده يومًا آخر، أو احذفه من العرض فيعود عندك.</p>' : ''}
         ${it.owner === st.me || isAdmin() ? `<div class="row" style="margin-bottom:8px">
-          ${!g && !x ? `<button class="btn ghost danger" type="button" data-icancel="${esc(it.code)}">ألغِ العرض</button>` : ''}
+          ${ex ? `<button class="btn primary" type="button" data-renew="${esc(it.code)}">جدّده يومًا آخر</button>` : ''}
+          ${!g && !x ? `<button class="btn ghost danger" type="button" data-icancel="${esc(it.code)}">${ex ? 'احذفه من العرض' : 'ألغِ العرض'}</button>` : ''}
           ${x ? `<button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
           ${isAdmin() ? `<button class="btn ghost danger" type="button" data-iremove="${esc(it.code)}">أزل الإعلان نهائيًا</button>` : ''}</div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
@@ -901,10 +920,19 @@ $('#pinForm').addEventListener('submit', e => {
 });
 $('#pinClose').addEventListener('click', () => { $('#pinModal').hidden = true; });
 $('#adminOut').addEventListener('click', () => { if (SRV) { $('#adminBox').hidden = true; return toast('أُخفيت لوحة الإدارة'); } setAdmin(false); toast('خرجت من الإدارة'); });
-$('#wipe').addEventListener('click', () => {
-  $('#wipeAsk').innerHTML = '<div class="result err">سيُمسح كل ما في المنصة من معروضات. هل أنت متأكد؟<div class="row"><button class="btn small" id="wipeYes">نعم، امسح الكل</button><button class="btn small ghost" id="wipeNo">تراجع</button></div></div>';
-  $('#wipeYes').addEventListener('click', async () => { if (SRV) { const r = await api('jisr_admin', {_act:'wipe'}); $('#wipeAsk').innerHTML = ''; if (r.err) return toast(errMsg(r)); await pull(true); return toast('مُسحت المعروضات الجارية'); } st.items = []; open.clear(); save(); $('#wipeAsk').innerHTML = ''; render(); toast('مُسحت كل المعروضات'); });
-  $('#wipeNo').addEventListener('click', () => { $('#wipeAsk').innerHTML = ''; });
+/* مسح الكل يحتاج خمس ضغطات متتالية، وكل ضغطة قبلها تنبّه */
+let wipeN = 0, wipeT = 0;
+$('#wipe').addEventListener('click', async () => {
+  const b = $('#wipe'); clearTimeout(wipeT); wipeN++;
+  const reset = () => { wipeN = 0; b.textContent = 'مسح كل المعروضات'; b.classList.remove('warn'); $('#wipeAsk').innerHTML = ''; };
+  if (wipeN < 5) {
+    b.classList.add('warn'); b.textContent = 'انتبه! ' + ({4:'بقيت 4 ضغطات', 3:'بقيت 3 ضغطات', 2:'بقيت ضغطتان', 1:'بقيت ضغطة واحدة'})[5 - wipeN];
+    $('#wipeAsk').innerHTML = `<div class="result err">انتبه، أنت تمسح الجميع! كل المعروضات في المنصة ستُمسح بعد ${5 - wipeN === 1 ? 'ضغطة واحدة' : 5 - wipeN === 2 ? 'ضغطتين' : (5 - wipeN) + ' ضغطات'}. اترك الزر 6 ثوانٍ ليتراجع.</div>`;
+    wipeT = setTimeout(reset, 6000); return;
+  }
+  reset();
+  if (SRV) { const r = await api('jisr_admin', {_act:'wipe'}).catch(() => ({err:'net'})); if (r.err) return r.err === 'net' || toast(errMsg(r)); await pull(true); return toast('مُسحت المعروضات الجارية'); }
+  st.items = []; open.clear(); save(); render(); toast('مُسحت كل المعروضات');
 });
 /* أدوات الإدارة على الخادم */
 document.querySelectorAll('[data-adm]').forEach(b => b.addEventListener('click', async () => {
@@ -1187,11 +1215,18 @@ const sure = (b, label) => { if (b.dataset.sure) return true; const old = b.text
 document.addEventListener('click', async e => {
   const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
   if (wc) { const it = st.items.find(i => i.code === wc.dataset.wacancel); if (it) sendText(cancelText(it)); return; }
+  const rn = e.target.closest('[data-renew]');
+  if (rn) {
+    const code = rn.dataset.renew; rn.disabled = true;
+    if (SRV) { const r = await api('jisr_owner_action', {_code:code, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { rn.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { const it = st.items.find(i => i.code === code); it.expired = false; it.shownAt = now(); save(); render(); }
+    return toast('جُدّد عرضه يومًا آخر');
+  }
   if (ic) {
     if (!sure(ic, 'تأكيد: ألغِ العرض؟')) return;
     const code = ic.dataset.icancel; ic.disabled = true;
     if (SRV) { const r = await api('jisr_owner_action', {_code:code, _act:'cancel'}).catch(() => ({err:'net'})); if (r.err) { ic.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
-    else { const it = st.items.find(i => i.code === code); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); render(); }
+    else { const it = st.items.find(i => i.code === code); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown' || it.expired) { it.status = 'cancelled'; it.expired = false; } fill(now()); save(); render(); }
     open.add(code); render();
     return toast('أُلغي العرض. وإن كان منشورًا في المجموعة فاضغط «أبلغ المجموعة بالإلغاء»');
   }
@@ -1204,6 +1239,14 @@ document.addEventListener('click', async e => {
   }
 });
 document.addEventListener('click', async e => {
+  const xm = e.target.closest('[data-expmode]'), ce = e.target.closest('#clearExp');
+  if (xm || ce) {
+    if (ce && !sure(ce, 'تأكيد: احذف كل المنتهية؟')) return;
+    const m = xm && xm.dataset.expmode;
+    if (SRV) { const r = await api('jisr_admin', m ? {_act:'exp_mode', _arg:m} : {_act:'clear_expired'}); if (r.err) return toast(errMsg(r)); await pull(true); }
+    else { if (m) st.expMode = m; if (!m || m === 'auto') for (const it of st.items) if (it.expired && it.status === 'shown' && !it.given && !it.cancelled && !it.queue.length) { toStore(it, now()); it.expired = false; } save(); render(); }
+    return toast(m ? 'ما انتهى وقته: ' + EXP_MODES[m] : 'حُذفت المنتهية وعادت إلى أصحابها');
+  }
   const mb = e.target.closest('[data-wamode]');
   if (mb) {
     const m = mb.dataset.wamode;
@@ -1269,7 +1312,7 @@ $('#bookForm').addEventListener('submit', async e => {
 });
 
 /* حسابي */
-const stateName = i => i.given || i.status === 'given' ? 'ذهب لمستفيد' : i.cancelled || i.status === 'cancelled' ? 'أُلغي، وهو عندك' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', reserved:'محجوز بعد العرض'})[i.status];
+const stateName = i => i.expired && !i.given && !i.cancelled && i.status === 'shown' && !i.queue.length ? 'انتهى وقته، ينتظر قرارك' : i.given || i.status === 'given' ? 'ذهب لمستفيد' : i.cancelled || i.status === 'cancelled' ? 'أُلغي، وهو عندك' : ({shown:i.queue.length ? 'معروض ومحجوز' : 'معروض الآن', waiting:'ينتظر نافذة', reserved:'محجوز بعد العرض'})[i.status];
 const renderMe = src => {
   const box = $('#meBox'), lf = $('#login');
   /* لا يُعاد بناء نموذج الدخول بالتحديث التلقائي والعضو يكتب فيه، وما كُتب يُحفظ إن أُعيد البناء */
@@ -1356,6 +1399,7 @@ const renderMe = src => {
         <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a>
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
         <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
+      ${i.expired && !i.given && !i.cancelled && i.status === 'shown' && !i.queue.length ? `<p>انتهى يوم عرضه ولم يُحجز، وهو يومض في المنصة.</p><button class="btn primary wide" data-renew="${esc(i.code)}">جدّده يومًا آخر</button>` : ''}
       ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ العرض، لم يعد متاحًا</button>` : ''}
       ${(i.cancelled || i.status === 'cancelled') && !i.given && i.status !== 'given' ? `<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p><button class="btn ghost wide" data-relist="${esc(i.code)}">أعِد عرضه من جديد</button>` : ''}
       ${i.given || i.status === 'given' ? '<p>الشكر الجزيل لك على ما قدّمت.</p>' : ''}
@@ -1378,7 +1422,7 @@ $('#meBox').addEventListener('click', async e => {
   if (rl) {
     rl.disabled = true;
     if (SRV) { const r = await api('jisr_owner_action', {_code:rl.dataset.relist, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { rl.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
-    else { const it = find(rl.dataset.relist); logEv('posted', it.code, it.owner); Object.assign(it, {cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); save(); tick(); renderMe(); }
+    else { const it = find(rl.dataset.relist); logEv('posted', it.code, it.owner); Object.assign(it, {expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); save(); tick(); renderMe(); }
     return toast('عاد إلى العرض، ويظهر في أول نافذة تفرغ');
   }
   if (SRV && (d || s || xc0)) {

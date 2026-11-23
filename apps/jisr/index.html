@@ -292,7 +292,7 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .bar.flag .nm{color:var(--warn);font-weight:700}
 .legend{display:flex;justify-content:center;gap:14px;font-size:12.5px;color:var(--muted);margin-top:6px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-inline-end:4px}
-.ptable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+.ptable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px;display:block;overflow-x:auto}
 .ptable th{background:var(--green);color:#fff;padding:5px 6px;text-align:right;font-weight:700}
 .ptable td{border-bottom:1px solid var(--line);padding:5px 6px}
 .ptable td.n{text-align:center;font-variant-numeric:tabular-nums}
@@ -313,6 +313,19 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:12.5px;table-layout:fixed}
 .heat th{font-weight:700;padding:3px;font-size:12px}
 .heat td{text-align:center;border-radius:5px;padding:6px 2px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.shero{display:flex;align-items:baseline;gap:10px;justify-content:space-between;flex-wrap:wrap;margin:6px 0 4px}
+.shero b{font:700 46px/1 "Markazi Text",serif;color:var(--green)}.shero small{color:#5B6857;font-size:13px}
+.cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(14px,1fr));gap:3px;margin:6px 0 2px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cells i{height:22px;border-radius:4px;animation:pop .4s both;animation-delay:calc(var(--k)*18ms)}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:#5B6857}
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:8px;margin:8px 0}
+.acard{background:var(--sand);border-radius:14px;padding:10px 12px;border-inline-start:4px solid var(--c,#2D5530)}
+.acard h4{margin:0;font-size:15px}.acard b{display:block;font:700 26px/1.2 "Markazi Text",serif;color:var(--c,#2D5530)}.acard small{display:block;font-size:12px;color:#5B6857}
+.rows100{display:grid;gap:6px;margin:8px 0}.rows100 .r{display:grid;grid-template-columns:minmax(70px,110px) minmax(0,1fr);gap:8px;align-items:center;font-size:13px}
+.rows100 .stack{height:24px}
+.reading{background:#F3F7EE;border-radius:14px;padding:10px 14px;margin:10px 0}.reading h4{margin:0 0 4px}.reading li{margin:3px 0;font-size:14px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cmp select{width:100%}
+.cmpt{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}.cmpt td,.cmpt th{padding:5px;border-bottom:1px solid #E3E9DC;text-align:center}.cmpt .win1{color:#2D5530;font-weight:700}
 .lvls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .lvls div{border-radius:12px;padding:8px;text-align:center;font-size:12.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .lvls b{display:block;font-size:22px}
@@ -977,6 +990,7 @@ const statHTML = (forPrint) => {
   const flagged = list.filter(o => o.flag);
   return `${forPrint ? `<h2>إحصاء جسر العطاء ${per === 'week' ? 'الأسبوعي' : 'الشهري'}</h2><p class="sub">من ${fmtD(start)} إلى ${fmtD(end)}</p>` : `<p class="ratio">من ${fmtD(start)} إلى ${fmtD(end)}</p>`}
     ${forPrint ? '<h3>أولًا: حركة المقتنيات</h3>' : ''}
+    ${(() => { const ev = (st.log || []).filter(e => e.t >= start && e.t <= end); return heroCells(k, ev) + reading(k, group(ev, 'area'), group(ev, 'cat'), donorsOf(ev)); })()}
     <div class="kpis"><div class="kpi"><b>${k.posted}</b><span>عُرض</span></div><div class="kpi"><b>${k.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${k.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${k.returned}</b><span>أُعيد</span></div></div>
     <p class="ratio">نسبة ما أُخذ مما عُرض: <b>${pct(k.given, k.posted)}</b> · نسبة ما أُلغي: <b>${pct(k.cancelled, k.posted)}</b> · عدد الحجوزات: <b>${k.booked}</b></p>
     <p class="sample" style="margin:0">«أُعيد»: حجز لم يُستلم أو ألغاه صاحبه، فعاد الغرض أو انتقل لمن بعده.</p>
@@ -989,7 +1003,7 @@ const statHTML = (forPrint) => {
     ${rows ? `<table class="ptable"><tr><th>الاسم</th><th>الرقم</th><th>حجز</th><th>أُخذ</th><th>أُعيد</th><th>أخذ من حجزه</th><th>من كل ما أُخذ</th></tr>${rows}</table>` : ''}`;
 };
 const C = {g:'#2D5530', x:'#B5483B', r:'#0E7490', w:'#C9A227', b:'#9ADCE6'};
-const stack100 = parts => { const tot = parts.reduce((a, p) => a + p.v, 0) || 1; return `<div class="stack">${parts.filter(p => p.v).map(p => `<span style="width:${p.v / tot * 100}%;background:${p.c}" title="${p.l}">${Math.round(p.v / tot * 100) >= 9 ? p.l + ' ' + Math.round(p.v / tot * 100) + '٪' : ''}</span>`).join('')}</div><div class="legend">${parts.map(p => `<span><i style="background:${p.c}"></i>${p.l} ${p.v}</span>`).join('')}</div>`; };
+const stack100 = (parts, bare) => { const tot = parts.reduce((a, p) => a + p.v, 0) || 1; return `<div class="stack">${parts.filter(p => p.v).map(p => `<span style="width:${p.v / tot * 100}%;background:${p.c}" title="${p.l}">${Math.round(p.v / tot * 100) >= 9 ? p.l + ' ' + Math.round(p.v / tot * 100) + '٪' : ''}</span>`).join('')}</div>${bare ? '' : `<div class="legend">${parts.map(p => `<span><i style="background:${p.c}"></i>${p.l} ${p.v}</span>`).join('')}</div>`}`; };
 const funnel = steps => { const mx = Math.max(1, steps[0].v); return `<div class="funnel">${steps.map((s, i) => `<div style="width:${Math.max(28, s.v / mx * 100)}%;opacity:${1 - i * .18}">${s.l}: ${s.v}${i ? ' (' + Math.round(s.v / (steps[i - 1].v || 1) * 100) + '٪)' : ''}</div>`).join('')}</div>`; };
 const weekCols = (ev, start) => {
   const wk = [0, 1, 2, 3].map(i => ({l:'الأسبوع ' + ['الأول', 'الثاني', 'الثالث', 'الرابع'][i], g:0, x:0}));
@@ -1017,6 +1031,39 @@ const group = (ev, key) => {
   for (const e of ev) { const o = g[e[key] || 'غير محدد'] = g[e[key] || 'غير محدد'] || {name:e[key] || 'غير محدد', posted:0, booked:0, given:0, cancelled:0, returned:0}; if (o[e.type] !== undefined) o[e.type]++; }
   return Object.values(g).map(o => ({...o, cred:o.booked ? Math.round(o.given / o.booked * 100) : null, take:o.posted ? Math.round(o.given / o.posted * 100) : null})).sort((a, b) => b.given - a.given || b.posted - a.posted);
 };
+/* أنماط من تقارير النتائج: رقم كبير بشريط خلايا، وبطاقات المناطق، وأشرطة 100٪ لكل منطقة، وقراءة آلية، والمقارنة بين اثنين */
+const heroCells = (K, ev) => {
+  const posted = ev.filter(e => e.type === 'posted').map(e => e.code), fate = c => ev.some(e => e.code === c && e.type === 'given') ? C.g : ev.some(e => e.code === c && e.type === 'cancelled') ? C.x : ev.some(e => e.code === c && e.type === 'booked') ? C.w : C.b;
+  const take = K.posted ? Math.round(K.given / K.posted * 100) : 0;
+  return `<div class="shero"><div><b>${take}٪</b> <small>نسبة ما أُخذ مما عُرض</small></div><small>${K.given} من ${K.posted} غرضًا</small></div>
+    <div class="cells">${posted.slice(0, 240).map((c, k) => `<i style="background:${fate(c)};--k:${k}" title="${esc(c)}"></i>`).join('') || '<small>لا معروضات في الفترة.</small>'}</div>
+    <div class="legend"><span><i style="background:${C.g}"></i>أُخذ</span><span><i style="background:${C.w}"></i>حُجز</span><span><i style="background:${C.x}"></i>أُلغي</span><span><i style="background:${C.b}"></i>معروض</span></div>`;
+};
+const areaCards = arr => `<div class="acards">${arr.map(o => { const c = o.take === null ? '#5B6857' : o.take >= 60 ? C.g : o.take >= 35 ? '#B07D00' : C.x; return `<div class="acard" style="--c:${c}"><h4>${esc(o.name)}</h4><b>${o.take === null ? '—' : o.take + '٪'}</b><small>أُخذ ${o.given} من ${o.posted}</small><small>أُلغي ${o.cancelled} · أُعيد ${o.returned}</small><small>مصداقية الاستلام ${o.cred === null ? '—' : o.cred + '٪'}</small></div>`; }).join('')}</div>`;
+const rows100 = arr => `<div class="rows100">${arr.map(o => `<div class="r"><b>${esc(o.name)}</b>${stack100([{l:'أُخذ', v:o.given, c:C.g}, {l:'أُعيد', v:o.returned, c:C.w}, {l:'أُلغي', v:o.cancelled, c:C.x}, {l:'باقٍ', v:Math.max(0, o.posted - o.given - o.cancelled), c:C.b}], true)}</div>`).join('')}</div>
+  <div class="legend"><span><i style="background:${C.g}"></i>أُخذ</span><span><i style="background:${C.w}"></i>حجز لم يُستلم</span><span><i style="background:${C.x}"></i>أُلغي</span><span><i style="background:${C.b}"></i>باقٍ</span></div>`;
+const reading = (K, areas, cats, donors) => {
+  const a = areas.filter(o => o.posted >= 2 && o.take !== null).sort((x, y) => y.take - x.take), L = [];
+  if (a.length > 1) { const t = a[0], b = a[a.length - 1], gap = t.take - b.take;
+    L.push(`أعلى المناطق في نسبة الأخذ <b>${esc(t.name)}</b> (${t.take}٪)، وأدناها <b>${esc(b.name)}</b> (${b.take}٪).`);
+    L.push(gap >= 30 ? `الفرق بينهما ${gap} نقطة، وهو فرق كبير يستحق النظر في سببه: نوع المعروض، أو بُعد المكان، أو قلة المستفيدين هناك.` : `الفرق بين المناطق ${gap} نقطة فقط، فالأداء متقارب، والقوة أو الضعف سمة للمبادرة كلها.`); }
+  if (K.booked) L.push(`${Math.round(K.returned / K.booked * 100)}٪ من الحجوزات لم تُستلم أو أُلغيت${K.returned / K.booked > .3 ? '، وهي نسبة مرتفعة: ذكّروا بمهلة الـ24 ساعة.' : '.'}`);
+  if (cats[0]) L.push(`أكثر الأنواع رواجًا <b>${esc(cats[0].name)}</b>${cats[0].take !== null ? ` (${cats[0].take}٪ منه أُخذ)` : ''}.`);
+  const slow = cats.filter(o => o.posted >= 3 && (o.take ?? 0) < 25); if (slow.length) L.push(`أنواع قلّ أخذها: ${slow.map(o => esc(o.name)).join('، ')}؛ يُقترح تصويرها أوضح أو نشرها في وقت آخر.`);
+  if (donors[0]) L.push(`أكثر المتبرعين عطاءً: <b>${esc(donors[0].name)}</b> (${donors[0].posted} غرضًا).`);
+  return L.length ? `<div class="reading"><h4>قراءة</h4><ul style="margin:0">${L.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '';
+};
+const donorsOf = ev => { const d = {}; for (const e of ev) if (e.type === 'posted' && e.who) { const o = d[e.who] = d[e.who] || {p:e.who, name:nameOf(e.who), posted:0, given:0}; o.posted++; } for (const e of ev) if (e.type === 'given') { const p = ev.find(x => x.type === 'posted' && x.code === e.code); if (p && d[p.who]) d[p.who].given++; } return Object.values(d).sort((a, b) => b.posted - a.posted); };
+let cmpA = '', cmpB = '';
+const compareBox = areas => {
+  if (areas.length < 2) return '';
+  const A = areas.find(o => o.name === cmpA) || areas[0], B = areas.find(o => o.name === cmpB && o.name !== A.name) || areas.find(o => o.name !== A.name);
+  const opt = v => areas.map(o => `<option ${o.name === v ? 'selected' : ''}>${esc(o.name)}</option>`).join('');
+  const row = (l, a, b, hi = true) => { const w = a === b || a === null || b === null ? 0 : (a > b) === hi ? 1 : 2; return `<tr><th>${l}</th><td class="${w === 1 ? 'win1' : ''}">${a ?? '—'}</td><td class="${w === 2 ? 'win1' : ''}">${b ?? '—'}</td></tr>`; };
+  return `<div class="cmp"><select class="field" id="cmpA">${opt(A.name)}</select><select class="field" id="cmpB">${opt(B.name)}</select></div>
+    <table class="cmpt"><tr><th></th><th>${esc(A.name)}</th><th>${esc(B.name)}</th></tr>${row('عُرض', A.posted, B.posted)}${row('أُخذ', A.given, B.given)}${row('نسبة الأخذ ٪', A.take, B.take)}${row('مصداقية الاستلام ٪', A.cred, B.cred)}${row('أُلغي', A.cancelled, B.cancelled, false)}${row('حجز لم يُستلم', A.returned, B.returned, false)}</table>`;
+};
+document.addEventListener('change', e => { if (e.target.id === 'cmpA' || e.target.id === 'cmpB') { cmpA = $('#cmpA').value; cmpB = $('#cmpB').value; renderStats(); } });
 const reportHTML = (forPrint) => {
   const end = now(), start = end - 30 * DAY, ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
   const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned')};
@@ -1030,6 +1077,7 @@ const reportHTML = (forPrint) => {
   const lowP = credP.filter(x => x.cred < 60);
   return `${forPrint ? `<h2>التقرير الشهري العام لجسر العطاء</h2><p class="sub">من ${fmtD(start)} إلى ${fmtD(end)}</p>` : `<p class="ratio">آخر 30 يومًا: من ${fmtD(start)} إلى ${fmtD(end)}</p>`}
     <h3>المختصر</h3>
+    ${heroCells(K, ev)}
     <div class="kpis"><div class="kpi"><b>${K.posted}</b><span>عُرض</span></div><div class="kpi"><b>${K.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${K.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${pc(K.given, K.booked)}٪</b><span>المصداقية</span></div></div>
     <ul style="margin:10px 0 0;font-size:14.5px">
       <li>ذهب لمستفيدين ${K.given} غرضًا من ${K.posted}، أي ${pc(K.given, K.posted)}٪ مما عُرض، وأُلغي ${pc(K.cancelled, K.posted)}٪.</li>
@@ -1044,14 +1092,21 @@ const reportHTML = (forPrint) => {
     <section><p class="cap">من العرض إلى الأخذ: كل مرحلة ونسبتها مما قبلها</p>
     ${funnel([{l:'عُرض', v:K.posted}, {l:'حُجز', v:K.booked}, {l:'أُخذ', v:K.given}])}</section>
     <section><p class="cap">سير الشهر أسبوعًا بأسبوع</p>${weekCols(ev, start)}</section>
+    ${reading(K, areas, cats, donorsOf(ev))}
     <h3>الفروق بين المناطق</h3>
+    ${areaCards(areas)}
+    <section><p class="cap">مصير المعروض في كل منطقة</p>${rows100(areas)}</section>
     ${hbars(areas, o => o.given, o => `${o.given} أُخذ · مصداقية ${o.cred === null ? '—' : o.cred + '٪'}`)}
     <section><p class="cap">لكل منطقة: نسبة الأخذ مما عُرض، ومصداقية الاستلام</p>${dumbbell(areas)}</section>
     ${tbl(areas)}
     <h3>الفروق بين أنواع المقتنيات</h3>
     ${hbars(cats, o => o.given, o => `${o.given} من ${o.posted}`)}
+    <section><p class="cap">مصير المعروض في كل نوع</p>${rows100(cats)}</section>
     ${tbl(cats)}
     <section><p class="cap">ما أُخذ من كل نوع في كل منطقة (كلما اشتد اللون زاد العدد)</p>${heatmap(ev, 'area', 'cat')}</section>
+    ${forPrint ? '' : `<h3>قارن بين منطقتين</h3>${compareBox(areas)}`}
+    <h3>أكثر المتبرعين عطاءً</h3>
+    ${(() => { const d = donorsOf(ev).slice(0, 10); return d.length ? hbars(d, o => o.posted, o => `${o.posted} عرض · ذهب منها ${o.given}`) : '<p class="sample">لا متبرعين في الفترة.</p>'; })()}
     <h3>مصداقية الأشخاص</h3>
     ${credP.length ? `<p class="cap">مستويات الأشخاص في الاستلام (لمن حجز مرتين فأكثر)</p>${levels(credP)}` : ''}
     ${credP.length ? hbars(credP.sort((a, b) => a.cred - b.cred), x => x.cred, x => `${x.cred}٪ · ${x.o.given} من ${x.o.booked}`) : '<p class="sample">لا بيانات كافية.</p>'}

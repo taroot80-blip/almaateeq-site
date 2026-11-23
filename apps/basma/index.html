@@ -376,6 +376,18 @@ details.tip ol li::marker{color:var(--gold);font-weight:800}
 .tt{table-layout:fixed}
 .tt th:first-child,.tt td:first-child{width:42%}
 .tt th:not(:first-child),.tt td:not(:first-child){width:29%;text-align:right!important;padding-inline-start:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#dialCd{fill:#FFD43B!important}
+/* شارتا الكادر والميزانية في مستوى واحد */
+.id .who .role,.id .who .bud{vertical-align:middle!important;margin-top:4px!important;line-height:1.55!important;font-size:12px!important;padding:1px 10px!important}
+/* شريط الأيقونات السفلي أقل ارتفاعًا */
+nav.tabs{padding:3px 10px calc(env(safe-area-inset-bottom) + 3px)!important}
+nav.tabs .in{padding:3px!important;border-radius:18px!important}
+nav.tabs button{min-height:36px!important;gap:1px!important;font-size:11px!important;white-space:nowrap;line-height:1.2}
+nav.tabs button svg{width:19px!important;height:19px!important}
+/* العنوان لا يختفي تحت الأزرار */
+.hero{grid-template-columns:auto minmax(0,1fr) auto!important}
+.hero h1{font-size:clamp(16px,5vw,24px)!important;overflow:visible}
+.hero .tools .iconbtn.testBtn{width:34px}
 </style>
 </head>
 <body>
@@ -475,7 +487,7 @@ details.tip ol li::marker{color:var(--gold);font-weight:800}
     <p class="muted" style="text-align:center;margin:0">لملاحظاتكم واقتراحاتكم، راسلوني على البريد:</p>
     <a class="mail" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">taroot80@gmail.com</a>
     <div class="row"><a class="btn primary" style="flex:2;text-decoration:none" href="mailto:taroot80@gmail.com?subject=%D9%85%D9%84%D8%A7%D8%AD%D8%B8%D8%A7%D8%AA%20%D8%B9%D9%84%D9%89%20%D8%A8%D8%B5%D9%85%D8%AA%D9%8A%20%D8%A7%D9%84%D9%85%D8%B1%D9%86%D8%A9">✉️ أرسل ملاحظة</a><button class="btn ghost" style="flex:1" id="copyMail">انسخ البريد</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.12</p>
+    <p class="muted" style="text-align:center;margin:12px 0 4px;font-size:13px">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية · لا يجمع أي بيانات<br>almaateeq.com/basma · الإصدار 2.9.13</p>
     <button class="btn ghost wide" data-close style="margin-top:8px">إغلاق</button>
   </div>
 </div>
@@ -785,13 +797,13 @@ function dialSVG(P){
   <radialGradient id="face"><stop offset="0" stop-color="#2a1d12"/><stop offset="1" stop-color="#120c07"/></radialGradient></defs>
   <circle cx="150" cy="150" r="146" fill="url(#face)" stroke="rgba(242,182,50,.35)"/>
   ${ticks}${nums}${arcs}
-  <g id="hands"><line id="hh" x1="150" y1="150" x2="150" y2="92" stroke="#f6ead2" stroke-width="5" stroke-linecap="round"/>
-  <line id="mh" x1="150" y1="150" x2="150" y2="62" stroke="#f6ead2" stroke-width="3" stroke-linecap="round"/>
-  <line id="sh" x1="150" y1="162" x2="150" y2="44" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"/></g>
+  <g id="hands"><line id="hh" x1="150" y1="150" x2="150" y2="90" stroke="#FFC933" stroke-width="8.5" stroke-linecap="round" style="filter:drop-shadow(0 0 4px rgba(255,201,51,.75))"/>
+  <line id="mh" x1="150" y1="150" x2="150" y2="58" stroke="#FFF6D8" stroke-width="5.5" stroke-linecap="round" style="filter:drop-shadow(0 0 3px rgba(255,246,216,.7))"/>
+  <line id="sh" x1="150" y1="164" x2="150" y2="42" stroke="#FF3B5C" stroke-width="2.4" stroke-linecap="round"/></g>
   <g transform="translate(126 120) scale(.75)">${FP}</g>
-  <circle cx="150" cy="150" r="4" fill="#F2B632"/>
-  <text class="dial-center num" id="dialCd" x="150" y="200" text-anchor="middle" font-size="22" font-weight="700" fill="#ffd66b"></text>
-  <text id="dialLb" x="150" y="220" text-anchor="middle" font-size="12" fill="#cdb994" font-family="Tajawal"></text></svg>`}
+  <circle cx="150" cy="150" r="6" fill="#FFC933" stroke="#120c07" stroke-width="1.5"/>
+  <text class="dial-center num" id="dialCd" x="150" y="202" text-anchor="middle" font-size="25" font-weight="800" fill="#FFD43B" stroke="#120c07" stroke-width="5" paint-order="stroke" filter="url(#gl)"></text>
+  <text id="dialLb" x="150" y="223" text-anchor="middle" font-size="13.5" font-weight="800" fill="#FFE9A3" stroke="#120c07" stroke-width="4" paint-order="stroke" font-family="Tajawal"></text></svg>`}
 function moveHands(){const d=new Date(),h=d.getHours()%12,m=d.getMinutes(),s=d.getSeconds();
   const set=(id,deg)=>{const el=document.getElementById(id);if(el)el.setAttribute("transform",`rotate(${deg} 150 150)`)};
   set("hh",(h+m/60)*30);set("mh",(m+s/60)*6);set("sh",s*6)}

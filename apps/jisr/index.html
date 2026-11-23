@@ -360,7 +360,8 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 </style>
 <!-- الربط بالخادم: إن وُجدت مفاتيح في config.js عمل التطبيق على الخادم المشترك، وإلا عمل نسخة تجريبية على الجهاز -->
 <script src="config.js"></script>
-<script>window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey && (JISR_CONFIG.live || /[?&]server\b/.test(location.search))); if (JISR_SRV) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');</script>
+<script>var jsrv = /[?&]server\b/.test(location.search); try { if (jsrv) localStorage.setItem('jisr-srv', '1'); jsrv = jsrv || localStorage.getItem('jisr-srv') === '1'; } catch(e) {} /* وضع الخادم يبقى بعد التنقل بين الصفحات */
+window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey && (JISR_CONFIG.live || jsrv)); if (JISR_SRV) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');</script>
 </head>
 <body>
 <header id="hdr">

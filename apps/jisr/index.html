@@ -1637,6 +1637,7 @@ const renderMe = src => {
       <p>${esc(i.title)} · ${esc(i.area)}</p>
       ${p === 0 ? `<p>استلمه خلال ${hm(i.bookedAt + DAY - now())}.</p><div class="row"><a class="btn primary" href="${wa(i.owner, i.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">راسله كتابةً على واتساب</a></div>` : ''}
       <button class="btn text" data-cancel="${esc(i.code)}">ألغِ حجزي</button></div>`; }).join('') || '<p class="sample">لا حجوزات لديك.</p>'}</div>
+    ${window.JisrAndroid && !JisrAndroid.setWaApp ? '<div class="result err" style="margin-top:14px">نسخة التطبيق عندك قديمة، فتفتح واتساب العادي. ثبّت النسخة 1.3 لتختار واتساب الأعمال.</div>' : ''}
     ${window.JisrAndroid && JisrAndroid.setWaApp ? `<h3 style="margin-top:18px">أي واتساب تُرسل إليه؟</h3><p class="hint" style="margin:0 0 6px">مجموعة جسر العطاء في واتساب الأعمال، فاختره إن كانت المجموعة عندك فيه.</p>
       <div class="pick" id="waApp">${[['business', 'واتساب الأعمال'], ['normal', 'واتساب العادي'], ['ask', 'اسألني كل مرة']].map(([k, l]) => `<button type="button" data-waapp="${k}" aria-pressed="${(JisrAndroid.getWaApp() || 'business') === k}">${l}</button>`).join('')}</div>` : ''}
     <button class="btn ghost wide" id="logout" style="margin-top:18px">خروج</button>

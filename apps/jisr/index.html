@@ -869,7 +869,7 @@ const win = (it, i) => {
         ${it.owner === st.me || isAdmin() ? `<div class="row" style="margin-bottom:8px">
           ${ex ? `<button class="btn primary" type="button" data-renew="${esc(it.code)}">جدّده يومًا آخر</button>` : ''}
           ${!g && !x ? `<button class="btn ghost danger" type="button" data-icancel="${esc(it.code)}">${ex ? 'احذفه من العرض' : 'ألغِ العرض'}</button>` : ''}
-          ${x ? `<button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
+          ${x ? `<button class="btn primary" type="button" data-relist2="${esc(it.code)}">أعِد عرضه من جديد</button><button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
           ${isAdmin() ? `<button class="btn ghost danger" type="button" data-iremove="${esc(it.code)}">أزل الإعلان نهائيًا</button>` : ''}</div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
           ${it.queue.includes(st.me) ? `<p class="free-note">${it.queue[0] === st.me ? 'الغرض باسمك، ولا يتجاوزك أحد إلا إن تنازلت.' : `أنت رقم ${it.queue.indexOf(st.me)} في الطابور.`}</p>`
@@ -1283,6 +1283,13 @@ const sure = (b, label) => { if (b.dataset.sure) return true; const old = b.text
 document.addEventListener('click', async e => {
   const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
   if (wc) { const it = st.items.find(i => i.code === wc.dataset.wacancel); if (it) sendText(cancelText(it)); return; }
+  const r2 = e.target.closest('[data-relist2]');
+  if (r2) {
+    const code = r2.dataset.relist2; r2.disabled = true;
+    if (SRV) { const r = await api('jisr_owner_action', {_code:code, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { r2.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { const it = st.items.find(i => i.code === code); logEv('posted', it.code, it.owner); Object.assign(it, {expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); fill(now()); save(); render(); }
+    return toast('عاد إلى العرض، وأُضيف إلى طابور النشر في واتساب');
+  }
   const rn = e.target.closest('[data-renew]');
   if (rn) {
     const code = rn.dataset.renew; rn.disabled = true;

@@ -240,6 +240,7 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 /* ما انتهى يومه ولم يُحجز: يومض ومضًا خفيفًا حتى يقرر صاحبه */
 .win.expired{animation:enter .5s both,expglow 2.6s ease-in-out infinite}
 @keyframes expglow{0%,100%{box-shadow:0 0 0 0 rgba(242,182,50,0);opacity:1}50%{box-shadow:0 0 0 4px rgba(242,182,50,.35);opacity:.82}}
+.wachoice{display:grid;gap:6px;margin:6px 0 10px}
 .subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 .tag.exp{background:#FFF4D6;color:#8A5A00;animation:expglow 2.6s ease-in-out infinite}
 #wipe.warn{background:#9E3B2F;color:#fff}
@@ -1282,7 +1283,25 @@ const sendText = t => { if (window.JisrAndroid && JisrAndroid.share) JisrAndroid
 const sure = (b, label) => { if (b.dataset.sure) return true; const old = b.textContent; b.dataset.sure = '1'; b.textContent = label; b.classList.add('sure'); setTimeout(() => { if (b.isConnected && b.dataset.sure && !b.disabled) { delete b.dataset.sure; b.textContent = old; b.classList.remove('sure'); } }, 8000); return false; };
 document.addEventListener('click', async e => {
   const ic = e.target.closest('[data-icancel]'), ir = e.target.closest('[data-iremove]'), wc = e.target.closest('[data-wacancel]');
-  if (wc) { const it = st.items.find(i => i.code === wc.dataset.wacancel); if (it) sendText(cancelText(it)); return; }
+  if (wc) {
+    const box = wc.parentElement.nextElementSibling && wc.parentElement.nextElementSibling.classList.contains('wachoice') ? wc.parentElement.nextElementSibling : null;
+    if (box) { box.remove(); return; }
+    const c = wc.dataset.wacancel, adm = (JISR_CONFIG.groupAdmin || '').replace(/\D/g, '');
+    wc.parentElement.insertAdjacentHTML('afterend', `<div class="wachoice result"><b>أين يذهب بلاغ الإلغاء؟</b>
+      <button class="btn primary wide" type="button" data-wagroup="${esc(c)}">انسخه وافتح المجموعة، ثم الصقه فيها</button>
+      ${adm ? `<button class="btn ghost wide" type="button" data-waadmin="${esc(c)}">أرسله إلى مشرف المجموعة</button>` : ''}
+      <button class="btn text wide" type="button" data-wapick="${esc(c)}">اختر المحادثة بنفسك</button></div>`);
+    return;
+  }
+  const wg = e.target.closest('[data-wagroup]'), wa2 = e.target.closest('[data-waadmin]'), wp = e.target.closest('[data-wapick]');
+  if (wg || wa2 || wp) {
+    const it = st.items.find(i => i.code === (wg || wa2 || wp).dataset[wg ? 'wagroup' : wa2 ? 'waadmin' : 'wapick']); if (!it) return;
+    const t = cancelText(it), go2 = u => { if (window.JisrAndroid) location.href = u; else window.open(u, '_blank', 'noopener'); };
+    if (wp) return sendText(t);
+    if (wa2) return go2(wa((JISR_CONFIG.groupAdmin || '').replace(/\D/g, ''), t));
+    try { await navigator.clipboard.writeText(t); toast('نُسخ البلاغ: الصقه في المجموعة وأرسله'); } catch(err) { toast('لم يُنسخ تلقائيًا، فاختر «اختر المحادثة بنفسك»'); }
+    return setTimeout(() => go2(GROUP.link), 700);
+  }
   const r2 = e.target.closest('[data-relist2]');
   if (r2) {
     const code = r2.dataset.relist2; r2.disabled = true;

@@ -1587,6 +1587,7 @@ const renderMe = src => {
       <input class="field ltr" id="em" type="email" inputmode="email" autocomplete="email" placeholder="name@gmail.com" value="${esc(pendingEmail)}" ${otp ? 'readonly' : ''}>`}
       ${otp && !needOnly ? '' : `<label for="ph">رقم واتساب ${SRV && !needOnly ? '<span class="hint">(أول مرة فقط)</span>' : ''}</label>
       <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${phoneVal}">
+      <p class="sample" style="text-align:right;margin:4px 0 0">اكتب الرقم الذي عليه واتساب فعلًا، فعليه يراسلك من يحجز غرضك أو تحجز غرضه.</p>
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">`}
       ${otp && !needOnly ? `<label for="otp">رمز الدخول المرسل إلى إيميلك</label><input class="field ltr big" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••" value="${esc(pendingOtp)}">

@@ -771,6 +771,7 @@ const seed = () => {
 const CFG = window.JISR_CONFIG || {};
 const SRV = !!(window.JISR_SRV && window.supabase);
 const OPEN = !!window.JISR_OPEN;
+let REVEAL = false; try { REVEAL = localStorage.getItem('jisr-reveal') === '1'; } catch(e) {}  /* خمس ضغطات على الشعار تُظهر «حسابي» لدخول الإدارة بالإيميل */
 const sb = SRV ? window.supabase.createClient(CFG.url, CFG.anonKey, OPEN ? {auth:{storageKey:'jisr-open-auth'}} : {}) : null;
 let mem = null;
 const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, people:{}, log:[], items:[]}; try { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {} return mem || seed(); };
@@ -930,7 +931,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { if (OPEN) { document.body.classList.add('open-mode'); document.body.classList.toggle('is-admin', !!(st.me && isAdmin())); if (view === 'me' && !(st.me && isAdmin())) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } } const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
+const render = () => { if (OPEN) { document.body.classList.add('open-mode'); document.body.classList.toggle('is-admin', !!(st.me && isAdmin()) || REVEAL); if (view === 'me' && !(st.me && isAdmin()) && !REVEAL) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } } const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
 const needLogin = (after, why) => { if (st.me) return false; if (OPEN) { openReg(after, why); return true; } toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 /* النسخة المفتوحة: تسجيل مباشر برقم الواتساب عند أول عرض أو حجز، بلا صفحة «حسابي» */
 const openReg = (after, why) => {
@@ -1316,7 +1317,7 @@ $('#printOpts').addEventListener('click', e => {
 $('#printOpts').addEventListener('change', e => { const c = e.target.closest('[data-ps]'); if (c) c.checked ? pSel.add(c.dataset.ps) : pSel.delete(c.dataset.ps); });
 
 let taps = 0, tapT = 0;
-document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; if (isAdmin() && !$('#adminBox').hidden) { $('#adminBox').hidden = true; SND.play('del'); return toast('أُخفيت لوحة الإدارة، واضغط الشعار 5 مرات لإظهارها'); } askPin(); } });
+document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; if (OPEN && !(st.me && isAdmin())) { REVEAL = !REVEAL; try { localStorage.setItem('jisr-reveal', REVEAL ? '1' : ''); } catch(e) {} SND.play(REVEAL ? 'ok' : 'del'); render(); if (REVEAL) go('me'); return toast(REVEAL ? 'ظهر «حسابي» لدخول الإدارة' : 'أُخفي «حسابي»'); } if (isAdmin() && !$('#adminBox').hidden) { $('#adminBox').hidden = true; SND.play('del'); return toast('أُخفيت لوحة الإدارة، واضغط الشعار 5 مرات لإظهارها'); } askPin(); } });
 const hashAdmin = () => {
   if (location.hash === '#admin') return askPin();
   const c = normCode(decodeURIComponent(location.hash.slice(1)));
@@ -1659,7 +1660,7 @@ const renderMe = src => {
     if (val('nm') !== null) pendingName = val('nm');
     if (val('otp') !== null) pendingOtp = val('otp');
   }
-  if (!st.me && OPEN) {
+  if (!st.me && OPEN && !REVEAL) {
     /* النسخة المفتوحة: رقم الواتساب والاسم فقط، بلا إيميل ولا رمز */
     box.innerHTML = `<form class="panel" id="login" novalidate>
       <h2>ادخل برقم واتسابك</h2>

@@ -34,7 +34,7 @@ import org.json.JSONObject;
 
 // جسر العطاء: تطبيق هاتف عمودي، يفتح نسخة الموقع مع الإنترنت (آخر تحديث دائمًا)، والنسخة المدمجة بلا إنترنت
 public class MainActivity extends Activity {
-  private static final String LIVE = "https://www.almaateeq.com/apps/jisr/?server";  // المنصة الحقيقية على الخادم
+  private static final String LIVE = "https://www.almaateeq.com/apps/jisr/?open";  // المنصة الحقيقية على الخادم
   private static final String LOCAL = "file:///android_asset/offline.html";  // شاشة «لا يوجد اتصال» بدل نسخة تجريبية
   private static final int PICK = 7;
   private WebView web;

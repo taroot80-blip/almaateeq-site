@@ -3,5 +3,5 @@ window.JISR_CONFIG = {
   url: 'https://iutbfvxvuitrrshalwmd.supabase.co',
   anonKey: 'sb_publishable_ccJ6NryTi8z13MxR1A33vw_KX_XNT7j',
   groupAdmin: '96566669594',   // رقم مشرف المجموعة الذي يستقبل بلاغات الإلغاء
-  live: false   // false: الخادم يعمل فقط برابط التجربة ?server ، و true: للجميع بعد تفعيل رسائل التحقق
+  live: true    // true: المنصة الحقيقية للجميع على الدومين؛ والتجريبية عبر ?demo
 };

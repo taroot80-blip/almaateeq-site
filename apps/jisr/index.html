@@ -247,6 +247,7 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .empty-win::before{--ring:11s;background:conic-gradient(from 0deg,transparent 0 78%,color-mix(in srgb,#22D3EE 55%,transparent) 88%,transparent 96%)}
 .empty-win::after{content:"";position:absolute;inset:2px;border-radius:14px;background:var(--bg);border:1px dashed var(--line);z-index:-1}
 .win.live::before{animation-duration:3.6s}.win.held::before{animation-duration:7s}.empty-win::before{animation-duration:11s}
+.grabrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}.byname{font-size:12.5px;color:#5B6857;margin:6px 0 0;font-weight:700}
 .grab{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:6px;padding:2px 14px;border:0;border-radius:999px;background:var(--green);color:#fff;font:700 13px/1 "Noto Naskh Arabic",serif;cursor:pointer;animation:beckon 1.6s ease-in-out infinite}
 /* ما انتهى يومه ولم يُحجز: يومض ومضًا خفيفًا حتى يقرر صاحبه */
 .win.expired{animation:enter .5s both,expglow 2.6s ease-in-out infinite}
@@ -937,6 +938,8 @@ const relistBtn = (it, attr, cls) => (it.relists || 0) >= RELIST_MAX
   ? `<p class="relisted done">أُعيد عرضه ${RELIST_MAX} مرات، وهذا آخرها. صوّره من جديد واعرضه إعلانًا جديدًا.</p><button class="${cls}" type="button" data-go="give">اعرض غرضًا جديدًا</button>`
   : `<button class="${cls}" type="button" ${attr}="${esc(it.code)}">أعِد عرضه من جديد (${(it.relists || 0) + 1} من ${RELIST_MAX})</button>`;
 const soonX = it => (st.expMode || 'flash') === 'flash' && it.cancelled && it.status === 'shown';
+/* النسخة المفتوحة: اسم المعلن بجانب زر «احجز» */
+const byName = it => OPEN ? (it.ownerName || (!SRV ? (st.people || {})[it.owner] : '') || '') : '';
 const win = (it, i) => {
   const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length;
   const tag = g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
@@ -947,7 +950,7 @@ const win = (it, i) => {
       <div class="titlerow"><h3>${esc(it.title)}</h3>
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
-      ${!g && !x && !it.queue.length ? `<button class="grab" data-book="${esc(it.code)}">احجز الآن</button>` : ''}
+      ${!g && !x && !it.queue.length ? `<div class="grabrow"><button class="grab" data-book="${esc(it.code)}">احجز الآن</button>${byName(it) ? `<span class="byname">المعلن: ${esc(byName(it))}</span>` : ''}</div>` : byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : ''}
       ${!g && !x && it.queue.length ? (it.queue[0] === st.me
         ? `<div class="heldbox"><span>🔘 محجوز لك</span><button type="button" data-cancel="${esc(it.code)}">إلغاء الحجز</button></div>`
         : `<button class="grab held" type="button" disabled aria-disabled="true">🔘 محجوز</button>`) : ''}
@@ -1603,7 +1606,7 @@ const renderMe = src => {
       <p>تصفّح المعروضات متاح للجميع بلا تسجيل. وللعرض أو الحجز اكتب رقم واتسابك مرة واحدة، فيصير زرّ تواصل يراه من يحجز غرضك أو تحجز غرضه.</p>
       <label for="ph">رقم واتساب</label>
       <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${esc(pendingPhoneRaw || '')}">
-      <label for="nm">اسمك أو كنيتك <span class="hint">(اختياري)</span></label>
+      <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر بجانب زر «احجز» في إعلاناتك)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       <button class="btn primary wide" type="submit" style="margin-top:14px">ادخل</button>
       <p class="hint">هذه النسخة المفتوحة. وللدخول الموثّق بالإيميل: <a href="https://almaateeq.com/jisr">almaateeq.com/jisr</a></p>
@@ -1613,6 +1616,7 @@ const renderMe = src => {
       const msg = $('#loginMsg'), bad = t => { msg.innerHTML = `<div class="result err">${t}</div>`; };
       pendingPhoneRaw = $('#ph').value; pendingName = $('#nm').value.trim();
       const p = phoneOk(pendingPhoneRaw); if (!p) return bad(ERR.bad_phone);
+      if (pendingName.length < 2) return bad('اكتب اسمك أو كنيتك، فيظهر بجانب زر «احجز» في إعلاناتك.');
       if (!SRV) { st.me = p; (st.people = st.people || {})[p] = pendingName || ''; save(); toast('أهلًا بك في جسر العطاء'); return renderMe(); }
       const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
       try {

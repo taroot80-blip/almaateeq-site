@@ -142,6 +142,11 @@
       "permanent": false
     },
     {
+      "source": "/jisr2",
+      "destination": "/apps/jisr/?open",
+      "permanent": false
+    },
+    {
       "source": "/apps/jisr",
       "destination": "/apps/jisr/",
       "permanent": false

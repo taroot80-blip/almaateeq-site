@@ -265,6 +265,8 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 #giveForm #pPick{grid-template-columns:1fr}
 #giveForm .pick.tiles{gap:8px}
 #giveForm label{display:block;margin-top:14px}
+.relisted{display:inline-block;background:#E4F1E4;color:#2D5530;border-radius:999px;padding:3px 12px;font-weight:700;font-size:14px;margin:4px 0}
+.relisted.done{display:block;background:#FFF4D6;color:#8A5A00;border-radius:12px}
 .subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 /* زر الاختيار المفعّل في «ما انتهى وقته» يومض ببطء */
 #expMode button[aria-pressed=true]{animation:selglow 3.2s ease-in-out infinite}
@@ -786,6 +788,7 @@ const ERR = {
   banned:'رقمك موقوف عن الحجز والعرض. تواصل مع إدارة المبادرة.',
   missing:'اختر قبل الإعلان: الصورة والتصنيف والمنطقة.',
   not_found:'لم نجد هذا الغرض.',
+  relist_limit:'أُعيد عرض هذا الغرض ثلاث مرات، فصوّره من جديد واعرضه إعلانًا جديدًا.',
   bad_link:'رابط المجموعة غير صحيح، أو لم يُشغَّل تحديث الخادم 7 بعد.',
   closed:'انتهى هذا العرض.',
   no_booker:'لا يوجد صاحب حجز الآن.',
@@ -925,10 +928,15 @@ const needLogin = () => { if (st.me) return false; toast('سجّل دخولك ب
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
 const picOf = it => pics(it).length ? `<img src="${pics(it)[0]}" alt="${esc(it.title)}">` : (ICONS[it.icon] || ICONS.box) + '<span class="nopic">لا توجد صور</span>';
 /* في وضع «يومض حتى يُقرَّر» يبقى الملغى في نافذته إلى آخر اليوم، فيُكتب عليه «سيُلغى قريبًا» */
+/* إعادة العرض ثلاث مرات فقط: (1) ثم (2) ثم (3)، وبعدها يُصوَّر الغرض ويُعرض إعلانًا جديدًا */
+const RELIST_MAX = 3;
+const relistBtn = (it, attr, cls) => (it.relists || 0) >= RELIST_MAX
+  ? `<p class="relisted done">أُعيد عرضه ${RELIST_MAX} مرات، وهذا آخرها. صوّره من جديد واعرضه إعلانًا جديدًا.</p><button class="${cls}" type="button" data-go="give">اعرض غرضًا جديدًا</button>`
+  : `<button class="${cls}" type="button" ${attr}="${esc(it.code)}">أعِد عرضه من جديد (${(it.relists || 0) + 1} من ${RELIST_MAX})</button>`;
 const soonX = it => (st.expMode || 'flash') === 'flash' && it.cancelled && it.status === 'shown';
 const win = (it, i) => {
   const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length;
-  const tag = g || x ? '' : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
+  const tag = g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait">محجوز${it.queue.length > 1 ? ' · ' + (it.queue.length - 1) + ' ينتظر' : ''}</span>` : '<span class="tag free">متاح</span>';
   return `<article class="win${g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${ex ? ' expired' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
     <div class="pic">${picOf(it)}${g ? '<span class="stamp">ذهب لمستفيد</span>' : x ? (soonX(it) ? '<span class="stamp soon">سيُلغى قريبًا</span>' : '<span class="stamp">أُلغي</span>') : ''}</div>
     <div class="sum">
@@ -952,7 +960,7 @@ const win = (it, i) => {
         ${it.owner === st.me || isAdmin() ? `<div class="row" style="margin-bottom:8px">
           ${ex ? `<button class="btn primary" type="button" data-renew="${esc(it.code)}">جدّده يومًا آخر</button>` : ''}
           ${!g && !x ? `<button class="btn ghost danger" type="button" data-icancel="${esc(it.code)}">${ex ? 'احذفه من العرض' : 'ألغِ العرض'}</button>` : ''}
-          ${x ? `<button class="btn primary" type="button" data-relist2="${esc(it.code)}">أعِد عرضه من جديد</button><button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
+          ${x ? `${relistBtn(it, 'data-relist2', 'btn primary')}<button class="btn ghost" type="button" data-wacancel="${esc(it.code)}">أبلغ المجموعة بالإلغاء</button>` : ''}
           ${isAdmin() ? `<button class="btn ghost danger" type="button" data-iremove="${esc(it.code)}">أزل الإعلان نهائيًا</button>` : ''}</div>` : ''}
         ${g || x ? '' : `<p class="free-note">مجاني تمامًا، والتواصل كتابةً عبر واتساب فقط.</p>
           ${it.queue.includes(st.me) ? `<p class="free-note">${it.queue[0] === st.me ? 'الغرض باسمك، ولا يتجاوزك أحد إلا إن تنازلت.' : `أنت رقم ${it.queue.indexOf(st.me)} في الطابور.`}</p>`
@@ -1473,7 +1481,7 @@ document.addEventListener('click', async e => {
   if (r2) {
     const code = r2.dataset.relist2; r2.disabled = true;
     if (SRV) { const r = await api('jisr_owner_action', {_code:code, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { r2.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
-    else { const it = st.items.find(i => i.code === code); logEv('posted', it.code, it.owner); Object.assign(it, {expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); fill(now()); save(); render(); }
+    else { const it = st.items.find(i => i.code === code); logEv('posted', it.code, it.owner); if ((it.relists || 0) >= RELIST_MAX) return toast(ERR.relist_limit); Object.assign(it, {relists:(it.relists || 0) + 1, expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); fill(now()); save(); render(); }
     return toast('عاد إلى العرض، وأُضيف إلى طابور النشر في واتساب');
   }
   const rn = e.target.closest('[data-renew]');
@@ -1662,8 +1670,8 @@ const renderMe = src => {
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
         <button class="btn text" data-skip="${esc(i.code)}">لم يحضر، حوّله للتالي</button>` : ''}
       ${i.expired && !i.given && !i.cancelled && i.status === 'shown' && !i.queue.length ? `<p>انتهى يوم عرضه ولم يُحجز، وهو يومض في المنصة.</p><button class="btn primary wide" data-renew="${esc(i.code)}">جدّده يومًا آخر</button>` : ''}
-      ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ العرض، لم يعد متاحًا</button>` : ''}
-      ${(i.cancelled || i.status === 'cancelled') && !i.given && i.status !== 'given' ? `<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p><button class="btn ghost wide" data-relist="${esc(i.code)}">أعِد عرضه من جديد</button>` : ''}
+      ${!i.given && !i.cancelled && ['shown', 'waiting', 'reserved'].includes(i.status) ? `${i.relists ? `<p class="relisted">عاد وأصبح متاحًا (${i.relists})</p>` : ''}<button class="btn text" data-xcancel="${esc(i.code)}">ألغِ هذا العرض</button>` : ''}
+      ${(i.cancelled || i.status === 'cancelled') && !i.given && i.status !== 'given' ? `<p>أُلغي العرض، والغرض عندك تتصرف به. الشكر الجزيل لك.</p>${relistBtn(i, 'data-relist', 'btn ghost wide')}` : ''}
       ${i.given || i.status === 'given' ? '<p>الشكر الجزيل لك على ما قدّمت.</p>' : ''}
     </div>`).join('') || '<p class="sample">لم تعرض شيئًا بعد.</p><button class="btn ghost" data-go="give">اعرض غرضًا</button>'}</div>
     <h3 style="font-size:24px;margin-top:18px">حجوزاتي</h3>
@@ -1688,7 +1696,7 @@ $('#meBox').addEventListener('click', async e => {
   if (rl) {
     rl.disabled = true;
     if (SRV) { const r = await api('jisr_owner_action', {_code:rl.dataset.relist, _act:'relist'}).catch(() => ({err:'net'})); if (r.err) { rl.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
-    else { const it = find(rl.dataset.relist); logEv('posted', it.code, it.owner); Object.assign(it, {expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); save(); tick(); renderMe(); }
+    else { const it = find(rl.dataset.relist); logEv('posted', it.code, it.owner); if ((it.relists || 0) >= RELIST_MAX) return toast(ERR.relist_limit); Object.assign(it, {relists:(it.relists || 0) + 1, expired:false, cancelled:false, cancelledAt:null, queue:[], waSent:false, created:now(), status:it.status === 'shown' ? 'shown' : 'waiting'}); save(); tick(); renderMe(); }
     return toast('عاد إلى العرض، ويظهر في أول نافذة تفرغ');
   }
   if (SRV && (d || s || xc0)) {

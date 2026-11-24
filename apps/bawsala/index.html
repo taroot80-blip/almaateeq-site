@@ -257,6 +257,15 @@ details>summary{cursor:pointer;list-style:none;min-height:36px}details>summary::
 .hcard p{margin:4px 0;font-size:14.5px}.hcard ul,.hcard ol{margin:4px 0;padding-inline-start:20px;font-size:14.5px}.hcard li{margin:2px 0}
 .hcard ol.two{columns:2;column-gap:18px}
 .kp4{grid-template-columns:repeat(4,minmax(0,1fr))!important}.kp4 .kpi span{font-size:12px}
+.pickPop{position:fixed;inset:0;z-index:90;background:rgba(18,52,59,.35);display:grid;place-items:center;padding:16px;animation:fade .2s ease-out}
+.pcard{width:min(420px,100%);background:#fff;border:2px solid var(--pri);border-radius:22px;padding:18px 16px;text-align:center;box-shadow:0 18px 50px rgba(18,52,59,.3);animation:popIn .45s cubic-bezier(.34,1.56,.64,1) both;position:relative;overflow:hidden}
+.pcard::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(242,182,50,.25) 50%,transparent 65%);transform:translateX(120%);animation:shine 2.2s ease-out .3s 1 both;pointer-events:none}
+@keyframes popIn{from{opacity:0;transform:scale(.7) translateY(20px)}}
+.pname{font-family:Amiri;font-weight:700;font-size:clamp(28px,8vw,40px);color:var(--pri);line-height:1.3;margin:4px 0 6px}
+.pbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:8px;margin-top:12px}.pbtns .btn{min-height:52px;font-size:16px;padding:6px}
+.btn.ansb{border:2px solid #c9a227;color:#8a6d0b;background:#fffbea}.btn.badb{border:2px solid #dc5a3c;color:#b23b1f;background:#fff2ee}
+.btn.absb{border:2px solid var(--abs);color:var(--abs);background:#f3f3ff}
+#wPur .chip{min-height:52px;font-size:14px;padding:4px}
 .bullet{position:relative;height:26px;border-radius:6px;overflow:hidden;display:flex;margin:10px 0 4px}.bullet>span{height:100%}.bullet>i{position:absolute;right:0;top:8px;height:10px;background:#12343b;border-radius:3px;transform-origin:right;animation:grow .9s var(--ease-out) both}.bullet>b{position:absolute;top:2px;bottom:2px;width:3px;background:#F2B632;border-radius:2px}
 .svc{grid-template-columns:repeat(4,minmax(0,1fr))!important}.svc .chip{min-height:46px;font-size:13.5px;padding:4px}
 .gcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;grid-auto-rows:1fr}.gcard{background:#fff;border:2px solid var(--c);border-radius:14px;padding:10px 6px;text-align:center}.gname{font-family:Amiri;font-size:20px;display:block}.gavg{font-family:Amiri;font-size:30px;color:var(--c);line-height:1.1}.gavg small{font-size:13px;color:var(--mut)}.gl{font-weight:700;color:var(--c);font-size:13px}.gm{display:grid;font-size:12px;margin-top:4px}
@@ -531,14 +540,25 @@ function uniqLabels(list,start){const P=list.map(s=>nameParts(s.name));const k=P
 function addRecord(sid,kind,b,o={}){const c=C(),les=lessonOf(c),d=new Date();
   S.records.push({id:uid(),ts:+d,tid:S.cur,cid:c.id,sid,kind,bid:b.id,bname:b.name,item:b.item,sub:b.sub||'',pts:b.pts,level:b.level||0,place:o.place||S.place,action:o.action||(kind==='pos'?S.rewards[0]:''),deprive:o.deprive||[],period:curPeriod(d),lesson:les.title,unit:les.unit,part:les.parts[c.part||0]||'',note:o.note||'',pledge:o.pledge||'',purpose:o.purpose||''});save()}
 function quickWheel(pk){const c=C(),P=PURPOSES.find(x=>x.k===pk);const p=pool(c);const list=p.map(id=>c.students.find(s=>s.id===id));
-  openSheet(`<h3>اختيار عشوائي: ${esc(P.n)}</h3><p class="note">بقي في الدائرة ${list.length} من ${c.students.length}. ومن يُختر يخرج من الدائرة.</p>${list.length?wheelSvg(list,S._rot,'qspin'):'<div class="empty">اختيرت الدائرة كلها.</div>'}<div id="qOut" style="min-height:60px"></div><div class="row"><button class="btn gold grow" id="qGo" ${list.length?'':'disabled'}>أدِر الدائرة</button><button class="btn" id="qReset">أعِد الدائرة</button></div>`);
+  openSheet(`<h3>اختيار عشوائي: ${esc(P.n)}</h3><p class="note">بقي في الدائرة ${list.length} من ${c.students.length}. ومن يُختر يخرج من الدائرة.</p>${list.length?wheelSvg(list,S._rot,'qspin'):'<div class="empty">اختيرت الدائرة كلها.</div>'}<div class="row"><button class="btn gold grow" id="qGo" ${list.length?'':'disabled'}>أدِر الدائرة</button><button class="btn" id="qReset">أعِد الدائرة</button></div>`);
   $('#qReset').onclick=e=>arm(e.currentTarget,()=>{S.pools[c.id]=c.students.map(s=>s.id);S._rot=0;save();quickWheel(pk)},'متأكد؟');
-  const g=$('#qGo');if(!g)return;g.onclick=()=>{g.disabled=true;spinPick(c,'qspin',s=>{const pb=purPos(P),ab=byName(S.abs,P.abs)||S.abs[0];
-    $('#qOut').innerHTML=`<div class="chosen">${esc(s.name)}</div><div class="row" style="justify-content:center;margin:8px 0">${pb?`<button class="btn ok sm" id="qOk">أجاد: ${esc(pb.name)}</button>`:''}${ab?`<button class="btn sm" id="qAb" style="border-color:var(--abs)">غائب</button>`:''}<button class="btn sm" id="qOpen">افتح صفحته</button><button class="btn sm" id="qNext">التالي</button></div>`;
-    if(pb)$('#qOk').onclick=()=>{addRecord(s.id,'pos',pb,{purpose:P.n});toast('✓ '+s.name+': '+pb.name);snd('ok');quickWheel(pk);render()};
-    if(ab)$('#qAb').onclick=()=>{addRecord(s.id,'abs',ab,{purpose:P.n});toast('غ '+s.name+': '+ab.name);snd('bad');quickWheel(pk);render()};
-    $('#qOpen').onclick=()=>openRecord(s.id,pb?'pos':'abs',pb?(P.own?null:pb.id):ab&&ab.id);
-    $('#qNext').onclick=()=>quickWheel(pk)})}}
+  const g=$('#qGo');if(!g)return;g.onclick=()=>{g.disabled=true;spinPick(c,'qspin',s=>{
+    pickPop(s,P,()=>{render();quickWheel(pk)},()=>{render();quickWheel(pk);setTimeout(()=>{const q=$('#qGo');if(q)q.click()},250)})})}}
+const ANS=[{k:'doubt',n:'اشتبه في الجواب',pts:.25,cls:'btn ansb'},{k:'nofind',n:'لم يجد الجواب',pts:0,cls:'btn ansb'},{k:'wrong',n:'أخطأ في الجواب',pts:0,cls:'btn ansb'},{k:'inatt',n:'غير منتبه',pts:-.25,cls:'btn badb',kind:'abs'}];
+function evalBtns(P,withNext){const pb=purPos(P),ab=byName(S.abs,P.abs)||S.abs[0];return [pb?['ok','أجاد','btn ok']:null,...ANS.map(a=>[a.k,a.n,a.cls]),ab?['ab','غائب','btn absb']:null,['op','افتح صفحته','btn'],withNext?['nx','التالي','btn gold']:null].filter(Boolean)}
+function doEval(k,s,P){const pb=purPos(P),ab=byName(S.abs,P.abs)||S.abs[0];const sub=pb&&pb.item==='part'?pb.sub||'disc':'disc';
+  if(k==='ok'){addRecord(s.id,'pos',pb,{purpose:P.n});toast('✓ '+s.name+': '+pb.name);snd('ok');return 1}
+  if(k==='ab'){addRecord(s.id,'abs',ab,{purpose:P.n});toast('غ '+s.name+': '+ab.name);snd('bad');return 1}
+  if(k==='op'){openRecord(s.id,pb?'pos':'abs',pb?(P.own?null:pb.id):ab&&ab.id);return 0}
+  const a=ANS.find(x=>x.k===k);if(a){addRecord(s.id,a.kind||'ans',{id:'ans-'+a.k,name:a.n,item:'part',sub,pts:a.pts},{purpose:P.n,action:''});toast(s.name+': '+a.n);snd(a.pts>0?'ok':'warn');return 1}
+  return 0}
+function pickPop(s,P,done,next){const old=$('#pickPop');if(old)old.remove();
+  const btns=evalBtns(P,1);
+  const d=document.createElement('div');d.id='pickPop';d.className='pickPop';
+  d.innerHTML=`<div class="pcard"><div class="note">${esc(P.n)}</div><div class="pname">${esc(s.name)}</div><div class="pbtns">${btns.map(b=>`<button class="${b[2]}" data-pk="${b[0]}">${b[1]}</button>`).join('')}</div></div>`;
+  document.body.appendChild(d);snd('win');
+  const close=()=>d.remove();d.onclick=e=>{if(e.target===d){close();done()}};
+  d.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{const k=b.dataset.pk;close();if(k==='nx'){next();return}if(doEval(k,s,P))done()})}
 function curtain(pk,chip){const cu=$('#curtain'),c=C(),P=PURPOSES.find(x=>x.k===pk);
   if(cu.dataset.k===pk&&cu.classList.contains('on')){cu.classList.remove('on');cu.dataset.k='';chip.classList.remove('on');return}
   document.querySelectorAll('#qp .chip').forEach(x=>x.classList.toggle('on',x===chip));cu.dataset.k=pk;
@@ -547,14 +567,12 @@ function curtain(pk,chip){const cu=$('#curtain'),c=C(),P=PURPOSES.find(x=>x.k===
   const draw=()=>{const done=id=>recs({cid:c.id,sid:id,from}).filter(r=>r.purpose===P.n).length;
     cu.innerHTML=`<div class="cuIn"><div class="cuHd"><b>${esc(P.n)}</b><span class="note">اختر الطالب ثم تقييمه</span><button class="btn sm" id="cuX">أغلق</button></div>
      <div class="cnames">${c.students.map(s=>{const d=done(s.id);return `<button class="cn ${sel===s.id?'on':''} ${d?'done':''}" data-cn="${s.id}">${esc(LB[s.id])}${d?`<small>✓ ${d}</small>`:''}</button>`}).join('')}</div>
-     ${sel?`<div class="cuEv"><div class="chosen" style="font-size:24px">${esc(c.students.find(x=>x.id===sel).name)}</div><div class="evs">${pb?`<button class="btn ok" id="evOk">أجاد</button>`:''}${ab?`<button class="btn" id="evAb" style="border-color:var(--abs);color:var(--abs)">غائب</button>`:''}<button class="btn" id="evOpen">افتح صفحته</button></div></div>`:''}</div>`;
+     ${sel?`<div class="cuEv"><div class="chosen" style="font-size:24px">${esc(c.students.find(x=>x.id===sel).name)}</div><div class="pbtns">${evalBtns(P,0).map(b=>`<button class="${b[2]}" data-ev="${b[0]}">${b[1]}</button>`).join('')}</div></div>`:''}</div>`;
     cu.querySelectorAll('[data-cn]').forEach(b=>b.onclick=()=>{sel=b.dataset.cn;snd('click');draw();const e=$('#curtain .cuEv');if(e)e.scrollIntoView({block:'nearest',behavior:'smooth'})});
     $('#cuX').onclick=()=>{cu.classList.remove('on');cu.dataset.k='';chip.classList.remove('on')};
     if(!sel)return;const s=c.students.find(x=>x.id===sel);
-    const after=(msg,ok)=>{toast(msg);snd(ok?'ok':'bad');sel=null;draw();const card=document.querySelector(`.stu[data-s="${s.id}"]`);if(card){const k=counts(recs({cid:c.id,sid:s.id,from}));card.querySelector('.meta').innerHTML=`${k.p?`<span class="pill p">+${k.p}</span>`:''}${k.n?`<span class="pill n">−${k.n}</span>`:''}${k.a?`<span class="pill a">غ ${k.a}</span>`:''}<span class="pill num">${totals(c.id,s.id).tot} / ${totals(c.id,s.id).max}</span>`}};
-    if(pb)$('#evOk').onclick=()=>{addRecord(s.id,'pos',pb,{purpose:P.n});after('✓ '+s.name+': '+pb.name,1)};
-    if(ab)$('#evAb').onclick=()=>{addRecord(s.id,'abs',ab,{purpose:P.n});after('غ '+s.name+': '+ab.name,0)};
-    $('#evOpen').onclick=()=>openRecord(s.id,pb?'pos':'abs',pb?(P.own?null:pb.id):ab&&ab.id)};
+    const after=()=>{sel=null;draw();const card=document.querySelector(`.stu[data-s="${s.id}"]`);if(card){const k=counts(recs({cid:c.id,sid:s.id,from}));card.querySelector('.meta').innerHTML=`${k.p?`<span class="pill p">+${k.p}</span>`:''}${k.n?`<span class="pill n">−${k.n}</span>`:''}${k.a?`<span class="pill a">غ ${k.a}</span>`:''}<span class="pill num">${totals(c.id,s.id).tot} / ${totals(c.id,s.id).max}</span>`}};
+    cu.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{if(doEval(b.dataset.ev,s,P))after('',1)})};
   draw();cu.classList.add('on');setTimeout(()=>cu.scrollIntoView({block:'nearest',behavior:'smooth'}),80)}
 function varsHtml(c,sid){const items=T().items,t=totals(c.id,sid),m=manual(c.id,sid);
   const cards=items.map(it=>{const v=t.per[it.key],col=ITEMC[it.key]||'--gold';let inner='';
@@ -632,7 +650,7 @@ function openRecord(sid,presetKind,presetBid){
   draw();
 }
 function logHtml(cid,sid,limit){const rs=recs({cid,sid}).sort((a,b)=>b.ts-a.ts).slice(0,limit||999);if(!rs.length)return '<p class="note">لا تسجيلات له بعد.</p>';
-  return `<h4 style="margin:14px 0 4px;font-family:Amiri;color:var(--gold)">آخر التسجيلات</h4><div class="scroll"><table class="log"><tbody>${rs.map(r=>`<tr><td style="color:${r.kind==='pos'?'#15803d':r.kind==='neg'?'#b91c1c':'#4f46e5'}">${r.kind==='pos'?'+':r.kind==='neg'?'−':'غ'} ${esc(r.bname)}</td><td class="num">${fmtD(r.ts)} ${fmtT(r.ts)}</td><td>${esc(r.place)}</td><td>${r.kind==='neg'?`<button class="btn sm" data-vr="${r.id}">تقرير</button>`:''}<button class="btn sm" data-del="${r.id}">حذف</button></td></tr>`).join('')}</tbody></table></div>`}
+  return `<h4 style="margin:14px 0 4px;font-family:Amiri;color:var(--gold)">آخر التسجيلات</h4><div class="scroll"><table class="log"><tbody>${rs.map(r=>`<tr><td style="color:${r.kind==='pos'?'#15803d':r.kind==='neg'?'#b91c1c':'#4f46e5'}">${r.kind==='pos'?'+':r.kind==='neg'?'−':r.kind==='ans'?'؟':'غ'} ${esc(r.bname)}</td><td class="num">${fmtD(r.ts)} ${fmtT(r.ts)}</td><td>${esc(r.place)}</td><td>${r.kind==='neg'?`<button class="btn sm" data-vr="${r.id}">تقرير</button>`:''}<button class="btn sm" data-del="${r.id}">حذف</button></td></tr>`).join('')}</tbody></table></div>`}
 
 /* ===== الدائرة العشوائية ===== */
 function pool(c){let p=S.pools[c.id];if(!p){p=S.pools[c.id]=c.students.map(s=>s.id)}return p.filter(id=>c.students.some(s=>s.id===id))}
@@ -641,25 +659,19 @@ function vWheel(){
   const out=c.students.filter(s=>!p.includes(s.id));
   return `<div class="row" style="margin-bottom:10px"><div style="max-width:220px">${classSelect()}</div><span class="note grow">بقي في الدائرة <b class="num" style="color:var(--gold)">${n}</b> من ${c.students.length}</span><button class="btn sm" id="resetW">أعِد الدائرة كاملة</button></div>
   <div class="wheelBox">
-    ${n?wheelSvg(list,S._rot,'spin'):'<div class="empty card">اختيرت الدائرة كلها. اضغط «أعِد الدائرة كاملة».</div>'}
+    <div>${n?wheelSvg(list,S._rot,'spin'):'<div class="empty card">اختيرت الدائرة كلها. اضغط «أعِد الدائرة كاملة».</div>'}<button class="btn gold" id="spinB" style="width:100%;margin-top:12px;min-height:58px;font-size:19px" ${n?'':'disabled'}>أدِر الدائرة</button></div>
     <div class="card pop">
       <h2 style="color:var(--gold);font-size:22px">من يجيب الآن؟</h2>
       <p class="note">تدور الدائرة وتختار طالبًا ثم تُخرجه منها، فيقلّ العدد حتى ينتهي الطلاب. وإن لم يكن الطالب حاضرًا فاضغط «غائب» ليُسجَّل عليه الغياب.</p>
-      <label class="f">الغرض من الاختيار</label><div class="chips" id="wPur">${PURPOSES.map(P=>`<button class="chip ${(S._wp||'eval')===P.k?'on':''}" data-w="${P.k}">${esc(P.n)}</button>`).join('')}</div>
-      <div id="chosen" style="min-height:70px"></div>
-      <button class="btn gold" id="spinB" style="width:100%" ${n?'':'disabled'}>أدِر الدائرة</button>
+      <label class="f">الغرض من الاختيار</label><div class="chips" id="wPur" style="grid-template-columns:repeat(3,minmax(0,1fr))">${PURPOSES.map(P=>`<button class="chip ${(S._wp||'eval')===P.k?'on':''}" data-w="${P.k}">${esc(P.n)}</button>`).join('')}</div>
       ${out.length?`<h4 style="font-family:Amiri;color:var(--mut);margin:14px 0 6px">اختيروا (${out.length})</h4><div class="chips">${out.map(s=>`<span class="chip" style="--c:var(--c-proj);cursor:default">${esc(nm2(s.name))}</span>`).join('')}</div>`:''}
     </div></div>`}
 bind.wheel=()=>{bindClassSel();const c=C();
   const rs=$('#resetW');rs.onclick=()=>arm(rs,()=>{S.pools[c.id]=c.students.map(s=>s.id);S._rot=0;save();render()},'متأكد؟ اضغط مرة أخرى');
   document.querySelectorAll('#wPur .chip').forEach(b=>b.onclick=()=>{S._wp=b.dataset.w;snd('click');document.querySelectorAll('#wPur .chip').forEach(x=>x.classList.toggle('on',x===b))});
   const b=$('#spinB');if(!b)return;
-  b.onclick=()=>{b.disabled=true;spinPick(c,'spin',s=>{const P=PURPOSES.find(x=>x.k===(S._wp||'eval'));const pb=purPos(P),ab=byName(S.abs,P.abs)||S.abs[0];
-      $('#chosen').innerHTML=`<div class="chosen">${esc(s.name)}</div><div class="row" style="justify-content:center;margin:8px 0">${pb?`<button class="btn ok sm" id="cOk">أجاد</button>`:''}<button class="btn sm" id="cR">افتح صفحته</button><button class="btn sm" id="cA" style="border-color:var(--abs)">غائب</button><button class="btn sm" id="cN">التالي</button></div>`;
-      if(pb)$('#cOk').onclick=()=>{addRecord(s.id,'pos',pb,{purpose:P.n});toast('✓ '+s.name+': '+pb.name);snd('ok');render()};
-      $('#cR').onclick=()=>openRecord(s.id,pb?'pos':'abs',pb?(P.own?null:pb.id):ab&&ab.id);
-      $('#cA').onclick=()=>{if(ab){addRecord(s.id,'abs',ab,{purpose:P.n});toast('غ '+s.name+': '+ab.name);snd('bad')}render()};
-      $('#cN').onclick=()=>render()})}};
+  b.onclick=()=>{b.disabled=true;spinPick(c,'spin',s=>{const P=PURPOSES.find(x=>x.k===(S._wp||'eval'));
+      pickPop(s,P,()=>render(),()=>{render();setTimeout(()=>{const q=$('#spinB');if(q)q.click()},250)})})}};
 
 /* ===== الدرجات ===== */
 function vGrades(){const c=C(),items=T().items;const t0=c.students[0]?totals(c.id,c.students[0].id):{max:40,allMax:100};
@@ -850,7 +862,7 @@ function printIndiv(sid,from,to){const c=C(),s=c.students.find(x=>x.id===sid),rs
   <div class="kp"><div><b>${k.p}</b>إيجابي</div><div><b>${k.n}</b>مخالفة</div><div><b>${k.a}</b>غياب</div><div><b>${net(rs)}</b>صافي النقاط</div>${T().items.map(i=>`<div><b>${t.per[i.key].v??'—'}</b>${esc(i.name)} من ${i.max}</div>`).join('')}</div>
   ${(()=>{const rl=readLv(c.id,sid),so=socR(c.id,sid);return `<div class="box"><b>مستوى القراءة:</b> ${rl==null?'لم يُقيَّم':READ_LV[rl][0]} · <b>المجموع مع الاختبار النهائي:</b> ${t.all} من ${t.allMax}</div>
    <table><thead><tr><th>المهارة الاجتماعية</th>${SOC_LV.map(l=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${S.social.map((k,i)=>`<tr><td class="n">${esc(k)}</td>${SOC_LV.map((l,j)=>`<td>${so[i]===j+1?'●':''}</td>`).join('')}</tr>`).join('')}</tbody></table>`})()}
-  <table><thead><tr><th>اليوم</th><th>التاريخ</th><th>الوقت</th><th>الحصة</th><th>الدرس</th><th>التناول</th><th>المكان</th><th>السلوك</th><th>النوع</th><th>الإجراء</th></tr></thead><tbody>${rs.map(r=>`<tr><td>${fmtDay(r.ts)}</td><td>${fmtD(r.ts)}</td><td>${fmtT(r.ts)}</td><td>${esc(r.period)}</td><td>${esc(r.lesson)}</td><td>${esc(r.part)}</td><td>${esc(r.place)}</td><td class="n">${esc(r.bname)}${r.note?'<br><small>'+esc(r.note)+'</small>':''}</td><td>${r.kind==='pos'?'إيجابي':r.kind==='neg'?'مخالفة '+(LEVELS[r.level-1]||{}).k:'غياب'}</td><td>${esc([r.action,...(r.deprive||[])].filter(Boolean).join('، '))}</td></tr>`).join('')||'<tr><td colspan="10">لا تسجيلات في هذه الفترة</td></tr>'}</tbody></table>`+sigs(['معلم المادة','الأخصائي الاجتماعي','ولي الأمر'])+pft();
+  <table><thead><tr><th>اليوم</th><th>التاريخ</th><th>الوقت</th><th>الحصة</th><th>الدرس</th><th>التناول</th><th>المكان</th><th>السلوك</th><th>النوع</th><th>الإجراء</th></tr></thead><tbody>${rs.map(r=>`<tr><td>${fmtDay(r.ts)}</td><td>${fmtD(r.ts)}</td><td>${fmtT(r.ts)}</td><td>${esc(r.period)}</td><td>${esc(r.lesson)}</td><td>${esc(r.part)}</td><td>${esc(r.place)}</td><td class="n">${esc(r.bname)}${r.note?'<br><small>'+esc(r.note)+'</small>':''}</td><td>${r.kind==='pos'?'إيجابي':r.kind==='neg'?'مخالفة '+(LEVELS[r.level-1]||{}).k:r.kind==='ans'?'تقييم إجابة':'غياب'}</td><td>${esc([r.action,...(r.deprive||[])].filter(Boolean).join('، '))}</td></tr>`).join('')||'<tr><td colspan="10">لا تسجيلات في هذه الفترة</td></tr>'}</tbody></table>`+sigs(['معلم المادة','الأخصائي الاجتماعي','ولي الأمر'])+pft();
   showPrint('تقرير '+s.name,body)}
 function printViolation(rid){const r=S.records.find(x=>x.id===rid);if(!r)return;const c=S.classes.find(x=>x.id===r.cid),s=c.students.find(x=>x.id===r.sid);
   const prev=S.records.filter(x=>x.tid===r.tid&&x.sid===r.sid&&x.kind==='neg'&&x.ts<=r.ts&&x.ts>=termFrom()).sort((a,b)=>a.ts-b.ts);

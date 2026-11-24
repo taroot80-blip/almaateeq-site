@@ -269,6 +269,11 @@ a.btn{color:inherit;text-decoration:none;text-align:center}
 .relisted{display:inline-block;background:#E4F1E4;color:#2D5530;border-radius:999px;padding:3px 12px;font-weight:700;font-size:14px;margin:4px 0}
 .relisted.done{display:block;background:#FFF4D6;color:#8A5A00;border-radius:12px}
 .openTag{display:block;width:max-content;font-size:.4em;line-height:1.5;background:#F2B632;color:#3A2A00;border-radius:999px;padding:0 9px;margin-top:2px;font-family:inherit}
+.regm{position:fixed;inset:0;z-index:90;background:rgba(20,28,18,.55);display:grid;place-items:center;padding:16px;animation:fade .2s}
+.regbox{background:var(--paper,#fff);border-radius:20px;padding:18px;width:min(420px,100%);display:grid;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.regbox h3{margin:0;font-size:19px;line-height:1.5}.regbox .hint{margin:0}
+.ownact{background:#F3F7EE;border-radius:14px;padding:10px 12px;margin:8px 0}.ownact p{margin:0 0 6px}
+body.open-mode:not(.is-admin) nav button[data-v="me"]{display:none}body.open-mode:not(.is-admin) nav .wrap{grid-template-columns:repeat(3,1fr)}
 .subgrp{margin:6px 0 2px;font-size:13px;color:var(--muted,#5B6857)}
 /* زر الاختيار المفعّل في «ما انتهى وقته» يومض ببطء */
 #expMode button[aria-pressed=true]{animation:selglow 3.2s ease-in-out infinite}
@@ -925,8 +930,40 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
-const needLogin = () => { if (st.me) return false; toast(window.JISR_OPEN ? 'اكتب رقم واتسابك أولًا' : 'سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
+const render = () => { if (OPEN) { document.body.classList.add('open-mode'); document.body.classList.toggle('is-admin', !!(st.me && isAdmin())); if (view === 'me' && !(st.me && isAdmin())) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } } const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
+const needLogin = (after, why) => { if (st.me) return false; if (OPEN) { openReg(after, why); return true; } toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
+/* النسخة المفتوحة: تسجيل مباشر برقم الواتساب عند أول عرض أو حجز، بلا صفحة «حسابي» */
+const openReg = (after, why) => {
+  let m = document.getElementById('regModal'); if (m) m.remove();
+  const give = why === 'give';
+  document.body.insertAdjacentHTML('beforeend', `<div id="regModal" class="regm" role="dialog" aria-modal="true"><form class="regbox" novalidate>
+    <h3>${give ? 'ضع رقمك الذي عليه واتساب' : 'ضع رقمك الذي عليه حساب الواتساب كي نعتمد الحجز'}</h3>
+    <p class="hint">${give ? 'عليه يراسلك من يحجز غرضك. يُحفظ مرة واحدة.' : 'عليه تتواصل مع صاحب الغرض. يُحفظ مرة واحدة.'}</p>
+    <input class="field ltr" id="rgPh" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" autocomplete="tel">
+    <input class="field" id="rgNm" maxlength="30" placeholder="${give ? 'اسمك أو كنيتك (يظهر في إعلانك)' : 'اسمك أو كنيتك (اختياري)'}">
+    <div id="rgMsg"></div>
+    <div class="row"><button class="btn primary" type="submit">${give ? 'سجّل رقمي وأعلن' : 'سجّل رقمي واحجز'}</button><button class="btn ghost" type="button" id="rgX">إلغاء</button></div></form></div>`);
+  m = document.getElementById('regModal'); setTimeout(() => $('#rgPh').focus(), 50);
+  $('#rgX').onclick = () => m.remove();
+  m.querySelector('form').onsubmit = async ev => {
+    ev.preventDefault();
+    const bad = t => { $('#rgMsg').innerHTML = `<div class="result err">${t}</div>`; };
+    const p = phoneOk($('#rgPh').value), nm = $('#rgNm').value.trim();
+    if (!p) return bad(ERR.bad_phone);
+    if (give && nm.length < 2) return bad('اكتب اسمك أو كنيتك، فيظهر في إعلانك.');
+    const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
+    try {
+      if (SRV) {
+        const {data:{session}} = await sb.auth.getSession();
+        if (!session) { const {error} = await sb.auth.signInAnonymously(); if (error) return bad('التسجيل بالرقم غير مفعّل في الخادم بعد. أبلغ إدارة المبادرة.'); }
+        const r = await api('jisr_claim_phone', {_name:nm, _phone:p}); if (r.err) return bad(errMsg(r));
+        await pull(true);
+      } else { st.me = p; (st.people = st.people || {})[p] = nm; save(); }
+      m.remove(); toast('تم تسجيل الرقم وحفظه'); render(); if (after) setTimeout(after, 400);
+    } catch(err) { bad('تعذّر الاتصال بالخادم. حاول مرة أخرى.'); }
+    finally { btn.disabled = false; }
+  };
+};
 
 /* عرض اليوم */
 const pics = it => it.photos && it.photos.length ? it.photos : it.photo ? [it.photo] : [];
@@ -938,6 +975,18 @@ const relistBtn = (it, attr, cls) => (it.relists || 0) >= RELIST_MAX
   ? `<p class="relisted done">أُعيد عرضه ${RELIST_MAX} مرات، وهذا آخرها. صوّره من جديد واعرضه إعلانًا جديدًا.</p><button class="${cls}" type="button" data-go="give">اعرض غرضًا جديدًا</button>`
   : `<button class="${cls}" type="button" ${attr}="${esc(it.code)}">أعِد عرضه من جديد (${(it.relists || 0) + 1} من ${RELIST_MAX})</button>`;
 const soonX = it => (st.expMode || 'flash') === 'flash' && it.cancelled && it.status === 'shown';
+/* النسخة المفتوحة بلا «حسابي»: التواصل والتسليم داخل نافذة الغرض نفسها */
+const openActs = it => {
+  if (it.given || it.cancelled || !it.queue.length || !st.me) return '';
+  if (it.owner === st.me && it.queue[0] && it.queue[0] !== '~') return `<div class="ownact"><p>أول من حجزه: <span dir="ltr">${showPhone(it.queue[0])}</span>، وبقي على مهلته ${hm(it.bookedAt + DAY - now())}.</p>
+    <div class="row"><a class="btn ghost" href="${wa(it.queue[0], it.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.queue[0])}</span></a>
+    <button class="btn primary" type="button" data-done="${esc(it.code)}">تم التسليم</button></div>
+    <button class="btn text" type="button" data-skip="${esc(it.code)}">لم يحضر، حوّله للتالي</button></div>`;
+  if (it.queue[0] === st.me && it.owner && it.owner !== '~') return `<div class="ownact"><p>الغرض لك. استلمه خلال ${hm(it.bookedAt + DAY - now())}.</p>
+    <a class="btn primary wide" href="${wa(it.owner, it.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.owner)}</span></a></div>`;
+  const pos = it.queue.indexOf(st.me);
+  return pos > 0 ? `<div class="ownact"><p>أنت في الطابور: دورك ${pos + 1}.</p></div>` : '';
+};
 /* النسخة المفتوحة: اسم المعلن بجانب زر «احجز» */
 const byName = it => OPEN ? (it.ownerName || (!SRV ? (st.people || {})[it.owner] : '') || '') : '';
 const win = (it, i) => {
@@ -962,6 +1011,7 @@ const win = (it, i) => {
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
         ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
         ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
+        ${OPEN ? openActs(it) : ''}
         ${ex && (it.owner === st.me || isAdmin()) ? '<p class="free-note">انتهى يوم عرضه ولم يُحجز. جدّده يومًا آخر، أو احذفه من العرض فيعود عندك.</p>' : ''}
         ${it.owner === st.me || isAdmin() ? `<div class="row" style="margin-bottom:8px">
           ${ex ? `<button class="btn primary" type="button" data-renew="${esc(it.code)}">جدّده يومًا آخر</button>` : ''}
@@ -1003,7 +1053,7 @@ $('#grid').addEventListener('click', e => {
   }
   const sp = e.target.closest('[data-pic]');
   if (sp) { const w = sp.closest('.win'); w.querySelector('.pic img').src = sp.src; w.querySelectorAll('.strip img').forEach(x => x.classList.toggle('on', x === sp)); return; }
-  const b = e.target.closest('[data-book]'); if (b) { go('book'); $('#bCode').value = b.dataset.book; $('#bCode').focus(); }
+  const b = e.target.closest('[data-book]'); if (b) { go('book'); $('#bCode').value = b.dataset.book; if (OPEN) $('#bookForm').requestSubmit(); else $('#bCode').focus(); }
 });
 const clock = () => {
   if (tick()) render();
@@ -1295,6 +1345,16 @@ const shrink = f => new Promise(res => {
   img.onerror = () => { URL.revokeObjectURL(url); res(null); };
   img.src = url;
 });
+/* استقبال ما يشاركه العضو من واتساب إلى التطبيق: صورة فتُعرض غرضًا، أو نص فيه كود فيُحجز */
+window.jisrShared = (imgs, text) => {
+  const m = String(text || '').match(/\b([A-Za-z]{2})\s*-?\s*(\d{4})\b/);
+  if ((!imgs || !imgs.length) && m) { go('book'); $('#bCode').value = (m[1] + '-' + m[2]).toUpperCase(); if (OPEN) $('#bookForm').requestSubmit(); else $('#bCode').focus(); return toast('وصل الكود من واتساب'); }
+  if (imgs && imgs.length) {
+    go('give'); photos = photos.concat(imgs).slice(0, 3); drawThumbs();
+    const note = String(text || '').replace(/https?:\/\/\S+/g, '').trim().slice(0, 60); if (note && !$('#gNote').value) $('#gNote').value = note;
+    return toast('وصلت الصورة من واتساب، أكمل بيانات الغرض ثم أعلنه');
+  }
+};
 const drawThumbs = () => {
   $('#thumbs').innerHTML = photos.map((u, k) => `<div class="thumb"><img src="${u}" alt="صورة ${k + 1}"><button type="button" class="x" data-rm="${k}" aria-label="احذف الصورة">×</button>${k ? '' : '<span class="main">الرئيسية</span>'}</div>`).join('');
 };
@@ -1354,10 +1414,10 @@ drawPicks();
 $('#formClock').addEventListener('click', () => openClock(null));
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
-  if (needLogin()) return;
   const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = titleOf(), note = $('#gNote').value.trim();
   const miss = [!photos.length && !note && 'صورة الغرض أو تفصيل قصير', !sel.cats.length && 'التصنيف', sel.cats.length && !sel.subs.length && sel.cats.some(c => TAX[c].length > 1) && 'غرضًا واحدًا على الأقل من الأغراض تحت التصنيف', !area && 'المنطقة'].filter(Boolean);
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
+  if (needLogin(() => $('#giveForm').requestSubmit(), 'give')) return;
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
   if (SRV) { postSrv(out, title, area, e.target, note); return; }
   const code = newCode(area);
@@ -1553,7 +1613,7 @@ document.addEventListener('click', e => {
 /* احجز بالكود */
 $('#bookForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (needLogin()) return;
+  if (needLogin(() => $('#bookForm').requestSubmit(), 'book')) return;
   tick();
   const out = $('#bookResult'), code = normCode($('#bCode').value);
   if (!code) { out.innerHTML = '<div class="result err">اكتب الكود كما هو: حرفان ثم أربعة أرقام، مثل QT-5780.</div>'; return; }
@@ -1725,7 +1785,7 @@ const renderMe = src => {
   </div>`;
   $('#logout').addEventListener('click', async ev => { if (!sure(ev.currentTarget, (OPEN ? 'متأكد من الخروج؟ ستكتب رقمك من جديد لتدخل' : 'متأكد من الخروج؟ ستحتاج رمزًا جديدًا على إيميلك لتدخل مرة أخرى'))) return; if (SRV) { await sb.auth.signOut(); await pull(true); return; } st.me = null; save(); renderMe(); });
 };
-$('#meBox').addEventListener('click', async e => {
+const meClick = async e => {
   const find = c => st.items.find(i => i.code === c);
   const d = e.target.closest('[data-done]'), s = e.target.closest('[data-skip]'), c = e.target.closest('[data-cancel]'), xc0 = e.target.closest('[data-xcancel]');
   if (c) return cancelBooking(c);
@@ -1747,7 +1807,10 @@ $('#meBox').addEventListener('click', async e => {
   if (s) { const it = find(s.dataset.skip); logEv('returned', it.code, it.queue.shift()); it.bookedAt = now(); it.cancels = (it.cancels || 0) + 1; if (!it.queue.length && it.status === 'reserved') toStore(it, now()); save(); toast(it.queue.length ? 'انتقل الحجز للتالي' : it.status === 'cancelled' ? 'لم يُستلم، فأُلغي والغرض عندك' : 'عاد الغرض متاحًا'); tick(); renderMe(); }
   const xc = e.target.closest('[data-xcancel]');
   if (xc) { const it = find(xc.dataset.xcancel); logEv('cancelled', it.code, it.owner); it.cancelled = true; it.queue = []; if (it.status !== 'shown') it.status = 'cancelled'; save(); toast('أُلغي العرض، والغرض عندك'); renderMe(); }
-});
+};
+$('#meBox').addEventListener('click', meClick);
+/* النسخة المفتوحة: أزرار صاحب الغرض داخل نافذته في عرض اليوم */
+$('#grid') && $('#grid').addEventListener('click', e => { if (e.target.closest('.ownact')) meClick(e); });
 /* إلغاء الحجز: بضغطتين، لأن من تنازل يعود آخر الطابور إن أراد الغرض مرة أخرى */
 const cancelBooking = async b => {
   const code = b.dataset.cancel, it = st.items.find(i => i.code === code); if (!it) return;

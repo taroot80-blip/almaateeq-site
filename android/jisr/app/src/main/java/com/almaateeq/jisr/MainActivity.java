@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -28,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 // جسر العطاء: تطبيق هاتف عمودي، يفتح نسخة الموقع مع الإنترنت (آخر تحديث دائمًا)، والنسخة المدمجة بلا إنترنت
 public class MainActivity extends Activity {
@@ -38,6 +41,8 @@ public class MainActivity extends Activity {
   private ValueCallback<Uri[]> pending;
   private Uri cameraUri;
   private boolean fellBack = false;
+  private boolean loaded = false;
+  private String shareImgs = null, shareText = null;   // ما شاركه العضو من واتساب إلى التطبيق
 
   @Override protected void onCreate(Bundle b) {
     super.onCreate(b);
@@ -61,6 +66,7 @@ public class MainActivity extends Activity {
         try { startActivity(new Intent(Intent.ACTION_VIEW, r.getUrl())); } catch (Exception e) {}
         return true; // واتساب والروابط الخارجية تفتح في تطبيقاتها
       }
+      @Override public void onPageFinished(WebView v, String url) { loaded = true; deliverShare(); }
       @Override public void onReceivedError(WebView v, WebResourceRequest r, WebResourceError e) {
         if (r.isForMainFrame() && !fellBack) { fellBack = true; v.loadUrl(LOCAL); }
       }
@@ -90,6 +96,7 @@ public class MainActivity extends Activity {
     });
     web.addJavascriptInterface(new Bridge(), "JisrAndroid");
     web.loadUrl(online() ? LIVE : LOCAL);
+    takeShare(getIntent());
   }
 
   private boolean online() {
@@ -202,6 +209,45 @@ public class MainActivity extends Activity {
     String w = waApp();
     if ("ask".equals(w)) return new String[0];
     return "normal".equals(w) ? new String[]{"com.whatsapp", "com.whatsapp.w4b"} : new String[]{"com.whatsapp.w4b", "com.whatsapp"};
+  }
+
+  /* استقبال صورة أو نص من واتساب (مشاركة ← جسر العطاء) */
+  @Override protected void onNewIntent(Intent i) { super.onNewIntent(i); setIntent(i); takeShare(i); }
+  private void takeShare(Intent i) {
+    if (i == null) return;
+    String a = i.getAction();
+    if (!Intent.ACTION_SEND.equals(a) && !Intent.ACTION_SEND_MULTIPLE.equals(a)) return;
+    ArrayList<Uri> uris = new ArrayList<>();
+    try {
+      if (Intent.ACTION_SEND_MULTIPLE.equals(a)) { ArrayList<Uri> l = i.getParcelableArrayListExtra(Intent.EXTRA_STREAM); if (l != null) uris.addAll(l); }
+      else { Uri u = i.getParcelableExtra(Intent.EXTRA_STREAM); if (u != null) uris.add(u); }
+    } catch (Exception e) {}
+    JSONArray arr = new JSONArray();
+    for (Uri u : uris) { if (arr.length() >= 3) break; String d = shrink(u); if (d != null) arr.put(d); }
+    shareImgs = arr.toString();
+    CharSequence t = i.getCharSequenceExtra(Intent.EXTRA_TEXT);
+    shareText = t == null ? "" : t.toString();
+    deliverShare();
+  }
+  private String shrink(Uri u) {
+    try {
+      BitmapFactory.Options o = new BitmapFactory.Options(); o.inJustDecodeBounds = true;
+      InputStream in = getContentResolver().openInputStream(u); BitmapFactory.decodeStream(in, null, o); in.close();
+      int sample = 1; while (Math.max(o.outWidth, o.outHeight) / sample > 1800) sample *= 2;
+      BitmapFactory.Options o2 = new BitmapFactory.Options(); o2.inSampleSize = sample;
+      in = getContentResolver().openInputStream(u); Bitmap b = BitmapFactory.decodeStream(in, null, o2); in.close();
+      if (b == null) return null;
+      float k = Math.min(1f, 900f / Math.max(b.getWidth(), b.getHeight()));
+      if (k < 1f) b = Bitmap.createScaledBitmap(b, Math.round(b.getWidth() * k), Math.round(b.getHeight() * k), true);
+      ByteArrayOutputStream out = new ByteArrayOutputStream(); b.compress(Bitmap.CompressFormat.JPEG, 80, out);
+      return "data:image/jpeg;base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+    } catch (Exception e) { return null; }
+  }
+  private void deliverShare() {
+    if (!loaded || shareImgs == null || web == null) return;
+    final String js = "window.jisrShared && window.jisrShared(" + shareImgs + "," + JSONObject.quote(shareText) + ")";
+    shareImgs = null; shareText = null;
+    web.postDelayed(() -> web.evaluateJavascript(js, null), 900);
   }
 
   @Override public void onBackPressed() { if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }

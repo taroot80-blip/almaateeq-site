@@ -1465,8 +1465,7 @@ const waPost = it => [
   '🚗 الاستلام على المستفيد من:', `*${it.area.replace(/\s*\/\s*/g, '-')}*`,
   ...(it.pickTime ? [`⏰ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`] : []), '',
   '⛔️ الحجز يلغى بعد 24 ', 'ساعة إذا لم يتم الاستلام', '',
-  `🔗 للحجز والتفاصيل والصور (لعامة الناس): https://almaateeq.com/jisr2#${it.code}`, '',
-  `🔐 للإدارة: https://almaateeq.com/jisr#${it.code}`, '',
+  `🔗 رابط المنصة: https://almaateeq.com/jisr2#${it.code}`, '',
   GROUP.name, GROUP.link
 ].join('\n');
 /* المشاركة: الصور مع النص حيث يدعمه الجهاز، وإلا فالنص مع رابط الصور */

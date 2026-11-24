@@ -612,16 +612,18 @@ function openRecord(sid,presetKind,presetBid){
     $('#sheet').querySelector('.body').innerHTML=`
       <div class="switch"><button class="btn sm" id="prevS" aria-label="الطالب السابق" ${idx>0?'':'disabled'}>→</button>${sel}<button class="btn sm" id="nextS" aria-label="الطالب التالي" ${idx<c.students.length-1?'':'disabled'}>←</button></div>
       <p class="note" style="margin:4px 0 8px">الصف ${esc(c.name)} · الطالب ${idx+1} من ${c.students.length}</p>
-      ${varsHtml(c,s.id)}
-      <h4 class="ttl">سجّل الآن</h4>
+      <h4 class="ttl" style="border-top:0;padding-top:0;margin-top:6px">أين السلوك الآن؟</h4>
+      <div class="places" style="margin:6px 0 10px" id="splace">${PLACES.map(p=>`<button class="chip ${st.place===p.k?'on':''}" style="--c:var(${p.c})" data-p="${p.k}">${p.k}</button>`).join('')}</div>
       <div class="seg" id="kind"><button data-k="pos" class="${st.kind==='pos'?'on':''}">إيجابي</button><button data-k="neg" class="${st.kind==='neg'?'on neg':''}">سلبي</button><button data-k="abs" class="${st.kind==='abs'?'on abs':''}">غياب</button></div>
-      <div class="places" style="margin:10px 0" id="splace">${PLACES.map(p=>`<button class="chip ${st.place===p.k?'on':''}" style="--c:var(${p.c})" data-p="${p.k}">${p.k}</button>`).join('')}</div>
+      <div style="height:8px"></div>
       ${body}${act}
       ${b?`<label class="f" for="nt">${st.kind==='pos'?'عبارة المدح (اختيارية)':st.kind==='neg'?'وصف المخالفة (اختياري)':'ملاحظة (اختيارية)'}</label><div class="fld"><input type="text" id="nt" value="${esc(st.note)}" placeholder="${st.kind==='pos'?'مثل: أحسنت في استنتاج الفكرة الرئيسة':'اكتب أو تحدّث'}">${micBtn('nt')}</div>`:''}
       ${b&&st.kind==='neg'?`<label class="f" for="pl">نص التعهد (يُطبع في تقرير المخالفة)</label><div class="fld"><textarea id="pl" style="min-height:80px">${esc(st.pledge??('أتعهد أنا الطالب '+s.name+' بعدم تكرار «'+b.name+'»، والالتزام بالنظام المدرسي.'))}</textarea>${micBtn('pl')}</div>`:''}
       <p class="note">يُحفظ معه تلقائيًا: ${fmtDay(now)} ${fmtD(now)} · ${fmtT(now)} · الحصة ${esc(curPeriod(now))} · ${esc(les.title)} · ${esc(les.parts[c.part||0]||'')}</p>
       ${b?`<div class="apply"><span>طبّق «${esc(b.name)}» على:</span><div class="switch"><button class="btn sm" id="prevS2" aria-label="السابق" ${idx>0?'':'disabled'}>→</button>${sel.replace('id="stuSel"','id="stuSel2"')}<button class="btn sm" id="nextS2" aria-label="التالي" ${idx<c.students.length-1?'':'disabled'}>←</button></div></div>`:''}
       <div class="row"><button class="btn gold grow" id="saveR" ${b?'':'disabled style="opacity:.5"'}>سجّل ${b?'«'+esc(b.name)+'»':'بعد اختيار السلوك'}</button>${b&&idx<c.students.length-1?'<button class="btn grow" id="saveN">سجّل وانتقل إلى التالي</button>':''}</div>
+      <h4 class="ttl">درجاته ومهاراته</h4>
+      ${varsHtml(c,s.id)}
       ${logHtml(c.id,s.id,6)}`;
     const sh=$('#sheet');
     const goS=id=>{st.sid=id;st.note='';st.pledge=undefined;snd('click');draw();sh.scrollTo({top:0})};

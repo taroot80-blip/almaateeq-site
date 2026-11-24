@@ -150,6 +150,26 @@
       "source": "/jisr-apk",
       "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/jisr-latest/jisr-alataa.apk",
       "permanent": false
+    },
+    {
+      "source": "/bawsala/android",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/bawsala-latest/bawsala.apk",
+      "permanent": false
+    },
+    {
+      "source": "/bawsala-apk",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/bawsala-latest/bawsala.apk",
+      "permanent": false
+    },
+    {
+      "source": "/bawsala",
+      "destination": "/apps/bawsala/",
+      "permanent": false
+    },
+    {
+      "source": "/apps/bawsala",
+      "destination": "/apps/bawsala/",
+      "permanent": false
     }
   ],
   "headers": [
@@ -200,6 +220,15 @@
     },
     {
       "source": "/apps/jisr/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/apps/bawsala/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

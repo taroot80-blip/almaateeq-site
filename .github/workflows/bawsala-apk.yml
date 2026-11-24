@@ -1,0 +1,37 @@
+name: البوصلة السلوكية — بناء APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/bawsala/**'
+      - 'android/bawsala/**'
+      - '.github/workflows/bawsala-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.14.3' }
+      - run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+      - name: Build
+        working-directory: android/bawsala
+        run: |
+          mkdir -p app/src/main/assets
+          cp ../../apps/bawsala/index.html app/src/main/assets/
+          gradle :app:assembleRelease --no-daemon --stacktrace
+          mkdir -p ../../out && cp app/build/outputs/apk/release/app-release.apk ../../out/bawsala.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: bawsala, path: out/ }
+      - name: Publish latest APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete bawsala-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create bawsala-latest out/bawsala.apk --title "البوصلة السلوكية — أحدث نسخة" \
+            --notes "تطبيق أندرويد «البوصلة السلوكية»: يفتح نسخة الموقع مع الإنترنت فيظهر آخر تحديث دائمًا، وبلا إنترنت يعمل بالنسخة المدمجة على البيانات نفسها." --latest=false

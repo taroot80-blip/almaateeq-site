@@ -891,7 +891,7 @@ const pickEnd = it => { const t = it.pickTime && it.pickTime.to, m = t && String
 const overdue = it => !it.given && !it.cancelled && it.queue.length && isConf(it) && pickEnd(it) !== null && now() > pickEnd(it);
 const LINK = c => `https://almaateeq.com/jisr2#${c}`;
 const ownerOf = it => it.owner && it.owner !== '~' ? it.owner : '';
-const msgGroupBooked = it => [`${it.code}✅ تم الحجز`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'حُجز هذا الغرض عن طريق منصة جسر العطاء.', `🔗 رابط المنصة: ${LINK(it.code)}`].join('\n');
+const msgGroupBooked = it => [`${it.code}✅ تم الحجز`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'حُجز هذا الغرض عن طريق منصة جسر العطاء.', `🔗 رابط الحجز: ${LINK(it.code)}`].join('\n');
 const msgToBen = it => ['السلام عليكم، حجزك مؤكد في منصة جسر العطاء ✅', `الغرض: ${it.title} (${it.code})`, `المنطقة: ${it.area}`, `طريقة الاستلام: ${it.pick || 'يُتفق عليها'}`,
   `وقت الاستلام: ${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه مع العارض'}`, `رقم العارض: +${ownerOf(it)}`, `تواصل معه واتساب: https://wa.me/${ownerOf(it)}`,
   'بعد الاستلام اضغط «تم الاستلام» في المنصة:', LINK(it.code), 'لا يُدفع أي مقابل.'].join('\n');
@@ -1593,7 +1593,7 @@ const postDone = (out, it, form) => {
 };
 /* نص الإعلان بصيغة مجموعة واتساب */
 const waPost = it => [
-  `${it.code}⬅️`, 'للحجز أرسل هذا الكود فقط ⬆️', '',
+  `${it.code}⬅️`, 'كود العرض ⬆️', '',
   `📍${(it.det || it.title).replace(/ من تصنيف «.*$/, '').replace(/\.$/, '')}`, '',
   `الحالة: ${it.cond}💫`,
   pics(it).length ? 'النوع موضح بالصورة 📸' : '🚫لايوجد صور 📸', '',
@@ -1601,20 +1601,34 @@ const waPost = it => [
   '🚗 الاستلام على المستفيد من:', `*${it.area.replace(/\s*\/\s*/g, '-')}*`,
   ...(it.pickTime ? [`⏰ وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}`] : []), '',
   '⛔️ الحجز يلغى بعد 24 ', 'ساعة إذا لم يتم الاستلام', '',
-  `🔗 رابط المنصة: https://almaateeq.com/jisr2#${it.code}`, '',
+  `🔗 رابط الحجز: https://almaateeq.com/jisr2#${it.code}`, '',
   GROUP.name, GROUP.link
 ].join('\n');
-/* المشاركة: الصور مع النص حيث يدعمه الجهاز، وإلا فالنص مع رابط الصور */
+/* المشاركة في رسالة واحدة: صورة واحدة وعليها الشرح والروابط تعليقًا مدمجًا.
+   إن كان للغرض أكثر من صورة جُمعت في صورة واحدة (لوحة)، لأن واتساب يضع التعليق على الصورة الواحدة فقط */
+const oneImage = async it => {
+  const list = pics(it).slice(0, 3).map(u => new URL(u, location.href).href);
+  if (list.length < 2) return list[0] || null;
+  try {
+    const bms = await Promise.all(list.map(async u => createImageBitmap(await (await fetch(u)).blob())));
+    const W = 1080, H = bms.length === 2 ? 720 : 1080, g = 8, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    const draw = (bm, dx, dy, dw, dh) => { const r = Math.max(dw / bm.width, dh / bm.height), sw = dw / r, sh = dh / r; x.drawImage(bm, (bm.width - sw) / 2, (bm.height - sh) / 2, sw, sh, dx, dy, dw, dh); };
+    if (bms.length === 2) { draw(bms[0], 0, 0, (W - g) / 2, H); draw(bms[1], (W + g) / 2, 0, (W - g) / 2, H); }
+    else { const L = Math.round(W * .62); draw(bms[0], W - L, 0, L, H); draw(bms[1], 0, 0, W - L - g, (H - g) / 2); draw(bms[2], 0, (H + g) / 2, W - L - g, (H - g) / 2); }
+    return c.toDataURL('image/jpeg', .86);
+  } catch(e) { return list[0]; }   // تعذّر الجمع: تُرسل الصورة الرئيسية وحدها
+};
 const shareItem = async (it, text0) => {
-  const text = text0 || waPost(it);
-  /* داخل تطبيق أندرويد: جسر يرسل النص والصور إلى واتساب مباشرة */
+  const text = text0 || waPost(it), img = await oneImage(it);
+  /* داخل تطبيق أندرويد: جسر يرسل الصورة الواحدة وعليها النص تعليقًا */
   if (window.JisrAndroid && JisrAndroid.canShareFiles && JisrAndroid.canShareFiles()) {
-    JisrAndroid.share(text, JSON.stringify(pics(it).slice(0, 3).map(u => new URL(u, location.href).href)));
+    JisrAndroid.share(text, JSON.stringify(img ? [img] : []));
     return true;
   }
   try {
-    if (navigator.canShare && pics(it).length) {
-      const files = await Promise.all(pics(it).slice(0, 3).map(async (u, k) => { const b = await (await fetch(u)).blob(); return new File([b], `${it.code}-${k + 1}.jpg`, {type:b.type || 'image/jpeg'}); }));
+    if (navigator.canShare && img) {
+      const b = await (await fetch(img)).blob(), files = [new File([b], `${it.code}.jpg`, {type:'image/jpeg'})];
       if (navigator.canShare({files, text})) { await navigator.share({files, text}); return true; }
     }
   } catch(err) { if (err && err.name === 'AbortError') return false; }

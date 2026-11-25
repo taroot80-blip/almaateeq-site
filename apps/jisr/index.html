@@ -895,7 +895,7 @@ const AP_MODES = {manual:'بموافقة الأدمن', auto:'تلقائي بل�
 /* نهاية وقت الاستلام المتفق عليه: في يوم تأكيد الحجز، أو اليوم التالي إن كان الحجز بعده */
 const pickEnd = it => { const t = it.pickTime && it.pickTime.to, m = t && String(t).match(/(\d{1,2}):(\d{2})\s*(مساء|صباح)?/); if (!m || !it.bookedAt) return null;
   const d = new Date(it.bookedAt); d.setHours((+m[1] % 12) + (m[3] === 'مساء' ? 12 : 0), +m[2], 0, 0); let e = d.getTime(); if (e < it.bookedAt) e += DAY; return e; };
-const GIVEN_KEEP = 30 * 3600e3;   // ما استلمه المستفيد يبقى بختمه 30 ساعة ثم يختفي عن الجميع
+const GIVEN_KEEP = 15 * 60e3;   // ما استلمه المستفيد يبقى بختمه 15 دقيقة ثم يختفي عن الجميع
 const goneGiven = it => it.given && it.givenAt && now() - it.givenAt > GIVEN_KEEP;
 /* التذكير قبل انتهاء مهلة الاستلام بأربع ساعات، أو بعد انتهاء الوقت المتفق عليه */
 const overdue = it => !it.given && !it.cancelled && it.queue.length && isConf(it) && it.bookedAt &&
@@ -953,7 +953,7 @@ const renderWa = () => {
 
 /* محرّك الدورة: عرض وأخذ فقط. تتجدد النوافذ كل 24 ساعة، وما لم يُستلم يُكتب عليه «أُلغي» ويبقى عند صاحبه */
 const fill = t => {
-  let free = SLOTS - shown().filter(i => !i.expired && !i.cancelled && !(i.given && i.givenAt && t - i.givenAt > 30 * 3600e3)).length;
+  let free = SLOTS - shown().filter(i => !i.expired && !i.cancelled && !(i.given && i.givenAt && t - i.givenAt > GIVEN_KEEP)).length;
   const fresh = st.items.filter(i => i.status === 'waiting' && isApp(i)).sort((a, b) => (a.approvedAt || a.created) - (b.approvedAt || b.created));
   const back = [];
   for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }

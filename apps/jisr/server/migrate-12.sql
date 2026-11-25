@@ -2,7 +2,7 @@
 -- جسر العطاء: تحديث 12
 --  • رفض العرض يحذفه من المنصة نهائيًا، ويبقى في الإحصاء مرفوضًا
 --  • ما انتهى وقت عرضه ولم يحجزه أحد يُسجَّل في الإحصاء «انتهى ولم يُحجز»
---  • ما استلمه المستفيد يبقى بختمه 30 ساعة ثم يختفي عن الجميع، وتفرغ نافذته (والأدمن يراه في سجله)
+--  • ما استلمه المستفيد يبقى بختمه 15 دقيقة ثم يختفي عن الجميع، وتفرغ نافذته (والأدمن يراه في سجله)
 -- يُلصق في SQL Editor ثم Run بعد التحديث 11. يمكن تشغيله أكثر من مرة.
 -- =====================================================================
 
@@ -11,7 +11,7 @@ language plpgsql security definer set search_path = public as $$
 declare free int;
 begin
   select s.slots - (select count(*) from jisr_items where status = 'shown' and not expired and not cancelled
-                     and not (given and given_at < _t - interval '30 hours')) into free from jisr_settings s where id = 1;
+                     and not (given and given_at < _t - interval '15 minutes')) into free from jisr_settings s where id = 1;
   if free > 0 then
     update jisr_items set status = 'shown', shows = shows + 1, shown_at = _t
     where code in (select code from jisr_items where status = 'waiting' and approved order by coalesce(approved_at, created) limit free);
@@ -64,7 +64,7 @@ begin
       ) order by i.created)
       from jisr_items i
       where ((i.status = 'shown' and s.wa_mode <> 'whatsapp') or (me is not null and (i.owner = me or me = any(i.queue))))
-            and not (i.given and i.given_at < now() - interval '30 hours')
+            and not (i.given and i.given_at < now() - interval '15 minutes')
          or (adm and i.created > now() - interval '62 days')), '[]'::json),
     'log', case when adm then coalesce((select json_agg(json_build_object('t', floor(extract(epoch from e.t) * 1000), 'type', e.type, 'code', e.code, 'who', e.who, 'area', e.area, 'cat', e.cat) order by e.t)
         from jisr_events e where e.t > now() - interval '62 days'), '[]'::json) end,

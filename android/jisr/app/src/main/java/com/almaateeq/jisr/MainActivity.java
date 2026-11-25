@@ -148,7 +148,10 @@ public class MainActivity extends Activity {
         } catch (Exception e) {}
       });
     }
-    @JavascriptInterface public void share(final String text, final String urlsJson) {
+    /* الإرسال إلى رقم بعينه: تُفتح محادثته في واتساب مباشرة بالصورة والتعليق، ويضغط الأدمن «إرسال» */
+    @JavascriptInterface public void shareTo(final String text, final String urlsJson, final String phone) { shareImpl(text, urlsJson, phone); }
+    @JavascriptInterface public void share(final String text, final String urlsJson) { shareImpl(text, urlsJson, null); }
+    private void shareImpl(final String text, final String urlsJson, final String phone) {
       new Thread(() -> {
         final ArrayList<Uri> uris = new ArrayList<>();
         try {
@@ -162,7 +165,7 @@ public class MainActivity extends Activity {
             uris.add(FileProvider.getUriForFile(MainActivity.this, "com.almaateeq.jisr.files", f));
           }
         } catch (Exception e) { /* إن تعذرت الصور يُرسل النص وحده */ }
-        runOnUiThread(() -> send(text, uris));
+        runOnUiThread(() -> send(text, uris, phone));
       }).start();
     }
   }
@@ -185,12 +188,13 @@ public class MainActivity extends Activity {
     } catch (Exception e) { return null; }
   }
 
-  private void send(String text, ArrayList<Uri> uris) {
+  private void send(String text, ArrayList<Uri> uris, String phone) {
     Intent it;
     if (uris.isEmpty()) { it = new Intent(Intent.ACTION_SEND); it.setType("text/plain"); }
     else if (uris.size() == 1) { it = new Intent(Intent.ACTION_SEND); it.setType("image/*"); it.putExtra(Intent.EXTRA_STREAM, uris.get(0)); }
     else { it = new Intent(Intent.ACTION_SEND_MULTIPLE); it.setType("image/*"); it.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris); }
     it.putExtra(Intent.EXTRA_TEXT, text);
+    if (phone != null && phone.replaceAll("\\D", "").length() > 6) it.putExtra("jid", phone.replaceAll("\\D", "") + "@s.whatsapp.net");
     if (!uris.isEmpty()) {
       ClipData clip = ClipData.newRawUri("", uris.get(0));
       for (int i = 1; i < uris.size(); i++) clip.addItem(new ClipData.Item(uris.get(i)));

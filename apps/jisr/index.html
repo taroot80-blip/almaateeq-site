@@ -132,6 +132,12 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .admq li{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:13.5px;border-bottom:1px dashed rgba(0,0,0,.1);padding-bottom:5px}
 .admq li em{color:var(--green);font-style:normal;font-weight:700;white-space:nowrap}
 .admq li button{white-space:nowrap}
+.win.pending .pic img,.win.pending .pic svg{opacity:.4;filter:grayscale(.5)}
+.win.pending{border-style:dashed}
+.tag.pend{background:#FFF4D6;color:#6B4A00;display:inline-flex;align-items:center;gap:5px}
+.tag.pend::before{content:"";width:8px;height:8px;border-radius:50%;background:#E0A100;animation:pdot 1.2s ease-in-out infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
+.btn.off{opacity:.45;pointer-events:none}
 .remind{border:1.5px solid #B07D00;background:#FFF4D6;color:#6B4A00;border-radius:12px;padding:7px 10px;font-weight:700;margin:6px 0;animation:soonGlow 2.8s ease-in-out infinite}
 /* «سيُلغى قريبًا»: في وضع «يومض حتى يُقرَّر» يتحرك الختم ويدور حوله وهج ذهبي */
 .cancelled .stamp.soon{border-color:#B07D00;color:#8A5A00;background:color-mix(in srgb,#FFF4D6 92%,transparent);isolation:isolate;overflow:visible;animation:stamp .5s var(--ease) both,soonSway 2.8s ease-in-out .5s infinite}
@@ -445,6 +451,7 @@ nav button[aria-current=page]{color:var(--green);font-weight:700}
 </style>
 <!-- الربط بالخادم: إن وُجدت مفاتيح في config.js عمل التطبيق على الخادم المشترك، وإلا عمل نسخة تجريبية على الجهاز -->
 <script src="config.js"></script>
+<script src="qr.js"></script>
 <script>var jsrv = /[?&]server\b/.test(location.search); try { if (jsrv) localStorage.setItem('jisr-srv', '1'); jsrv = jsrv || localStorage.getItem('jisr-srv') === '1'; } catch(e) {} /* وضع الخادم يبقى بعد التنقل بين الصفحات */
 window.JISR_OPEN = /[?&]open\b/.test(location.search);  /* النسخة المفتوحة: almaateeq.com/jisr2، الدخول برقم الواتساب فقط */
 window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKey && (JISR_CONFIG.live || jsrv) && !/[?&]demo\b/.test(location.search)); if (JISR_SRV) document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');</script>
@@ -888,7 +895,11 @@ const AP_MODES = {manual:'بموافقة الأدمن', auto:'تلقائي بل�
 /* نهاية وقت الاستلام المتفق عليه: في يوم تأكيد الحجز، أو اليوم التالي إن كان الحجز بعده */
 const pickEnd = it => { const t = it.pickTime && it.pickTime.to, m = t && String(t).match(/(\d{1,2}):(\d{2})\s*(مساء|صباح)?/); if (!m || !it.bookedAt) return null;
   const d = new Date(it.bookedAt); d.setHours((+m[1] % 12) + (m[3] === 'مساء' ? 12 : 0), +m[2], 0, 0); let e = d.getTime(); if (e < it.bookedAt) e += DAY; return e; };
-const overdue = it => !it.given && !it.cancelled && it.queue.length && isConf(it) && pickEnd(it) !== null && now() > pickEnd(it);
+const GIVEN_KEEP = 30 * 3600e3;   // ما استلمه المستفيد يبقى بختمه 30 ساعة ثم يختفي عن الجميع
+const goneGiven = it => it.given && it.givenAt && now() - it.givenAt > GIVEN_KEEP;
+/* التذكير قبل انتهاء مهلة الاستلام بأربع ساعات، أو بعد انتهاء الوقت المتفق عليه */
+const overdue = it => !it.given && !it.cancelled && it.queue.length && isConf(it) && it.bookedAt &&
+  (now() > it.bookedAt + DAY - 4 * 3600e3 || (pickEnd(it) !== null && now() > pickEnd(it)));
 const LINK = c => `https://almaateeq.com/jisr2#${c}`;
 const ownerOf = it => it.owner && it.owner !== '~' ? it.owner : '';
 const msgGroupBooked = it => [`${it.code}✅ تم الحجز`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'حُجز هذا الغرض عن طريق منصة جسر العطاء.', `🔗 رابط الحجز: ${LINK(it.code)}`].join('\n');
@@ -897,7 +908,15 @@ const msgToBen = it => ['السلام عليكم، حجزك مؤكد في منص
   'بعد الاستلام اضغط «تم الاستلام» في المنصة:', LINK(it.code), 'لا يُدفع أي مقابل.'].join('\n');
 const msgToOwner = it => { const b = it.queue[0], n = (st.people || {})[b]; return ['السلام عليكم، حُجز غرضك في منصة جسر العطاء ✅', `الغرض: ${it.title} (${it.code})`,
   `المستفيد: ${n ? n + ' ' : ''}+${b}`, `تواصل معه واتساب: https://wa.me/${b}`, 'بعد التسليم اضغط «تم الاستلام» في المنصة:', LINK(it.code), 'جزاك الله خيرًا.'].join('\n'); };
-const msgRemind = it => [`تذكير من جسر العطاء ⏰`, `انتهى وقت الاستلام المتفق عليه للغرض ${it.code} (${it.title}).`, 'إن تم التسليم فاضغط «تم الاستلام» في المنصة:', LINK(it.code)].join('\n');
+const msgRemind = it => [`تذكير من جسر العطاء ⏰`, `بخصوص الغرض ${it.code} (${it.title}).`, 'إذا استلمت الغرض أو سلّمته، أكّد ذلك في المنصة رجاءً بزر «استلمه المستفيد»:', LINK(it.code), 'وعمومًا تحذفه المنصة بعد انتهاء مدة العرض.'].join('\n');
+const NOTE_DONE = '⚠️ تنويه هام: إذا سلّمت الغرض أو استلمته، ارجع من هذا الرابط أو من تطبيق المنصة وأكّد لنا الاستلام، كي نرفع غرضًا آخر يُنتفع به.';
+/* رسالة الطرفين بعد تأكيد الحجز: للعارض رابط واتساب المستفيد، وللمستفيد رابط واتساب العارض، مع باركود في الصورة */
+const msgPair = (it, toOwner) => { const b = it.queue[0], o = ownerOf(it), other = toOwner ? b : o, n = (st.people || {})[other];
+  return ['السلام عليكم، من منصة جسر العطاء ✅', toOwner ? 'حُجز غرضك، وتأكد الحجز:' : 'حجزك مؤكد:', `الغرض: ${it.title} (${it.code})`, `المنطقة: ${it.area}`,
+    `طريقة الاستلام: ${it.pick || 'يُتفق عليها'}`, `وقت الاستلام: ${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه بينكما'}`, '',
+    `${toOwner ? 'للتواصل مع المستفيد' : 'للتواصل مع العارض'}${n ? ' (' + n + ')' : ''}: https://wa.me/${other}`, '(أو امسح الباركود في الصورة)', '',
+    `🔗 رابط المنصة للعودة والتعديل أو الإلغاء أو التنازل عن الحجز: ${LINK(it.code)}`, '', NOTE_DONE, '', 'لا يُدفع أي مقابل في جسر العطاء.'].join('\n'); };
+const msgGeneralRemind = () => ['تذكير عام من جسر العطاء ⏰', '', 'من استلم غرضًا أو سلّمه عن طريق المنصة، فليؤكد ذلك رجاءً بزر «استلمه المستفيد» داخل نافذة الغرض،', 'كي نرفع غرضًا آخر يُنتفع به.', '', `🔗 ${'https://almaateeq.com/jisr2'}`, '', 'جزاكم الله خيرًا.'].join('\n');
 /* مكان النشر وطابور واتساب للإدارة */
 const WA_MODES = {platform:'المنصة فقط', whatsapp:'واتساب فقط', both:'المنصة وواتساب'};
 const WA_NOTE = {
@@ -934,7 +953,7 @@ const renderWa = () => {
 
 /* محرّك الدورة: عرض وأخذ فقط. تتجدد النوافذ كل 24 ساعة، وما لم يُستلم يُكتب عليه «أُلغي» ويبقى عند صاحبه */
 const fill = t => {
-  let free = SLOTS - shown().filter(i => !i.expired && !i.cancelled).length;
+  let free = SLOTS - shown().filter(i => !i.expired && !i.cancelled && !(i.given && i.givenAt && t - i.givenAt > 30 * 3600e3)).length;
   const fresh = st.items.filter(i => i.status === 'waiting' && isApp(i)).sort((a, b) => (a.approvedAt || a.created) - (b.approvedAt || b.created));
   const back = [];
   for (const it of [...fresh, ...back]) { if (free <= 0) break; it.status = 'shown'; it.shows++; it.shownAt = t; free--; }
@@ -1025,20 +1044,21 @@ const relistBtn = (it, attr, cls) => (it.relists || 0) >= RELIST_MAX
 const soonX = it => (st.expMode || 'flash') === 'flash' && it.cancelled && it.status === 'shown';
 /* النسخة المفتوحة بلا «حسابي»: التواصل والتسليم داخل نافذة الغرض نفسها */
 const openActs = it => {
-  if (it.given || it.cancelled || !it.queue.length || !st.me) return '';
-  const rem = overdue(it) ? `<p class="remind">⏰ انتهى وقت الاستلام المتفق عليه (حتى ${esc(it.pickTime.to)}). إن تم التسليم فاضغط «تم الاستلام».</p>` : '';
+  if (it.given || it.cancelled || !st.me) return '';
+  if (!it.queue.length) return it.owner === st.me && isApp(it) ? `<div class="ownact"><button class="btn ghost off" type="button" disabled>واتساب المستفيد · يعمل بعد الحجز</button></div>` : '';
+  const rem = overdue(it) ? `<p class="remind">⏰ إذا استلمت الغرض أو سلّمته، أكّد ذلك رجاءً بزر «استلمه المستفيد».</p>` : '';
   if (it.owner === st.me) {
     if (!isConf(it)) return `<div class="ownact"><p>حجزه ${it.queue.length} حتى الآن، وتؤكد الإدارة الحجز لأحدهم ثم يظهر لك رقمه.</p></div>`;
     if (it.queue[0] && it.queue[0] !== '~') return `<div class="ownact">${rem}<p>المستفيد: <span dir="ltr">${showPhone(it.queue[0])}</span>، وبقي على مهلته ${hm(it.bookedAt + DAY - now())}.</p>
     <div class="row"><a class="btn ghost" href="${wa(it.queue[0], it.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.queue[0])}</span></a>
-    <button class="btn primary" type="button" data-done="${esc(it.code)}">تم الاستلام</button></div>
+    <button class="btn primary" type="button" data-done="${esc(it.code)}">استلمه المستفيد</button></div>
     <button class="btn text" type="button" data-skip="${esc(it.code)}">لم يحضر، حوّله للتالي</button></div>`;
   }
   if (it.queue[0] === st.me) {
     if (!isConf(it)) return `<div class="ownact"><p>أنت أول الحاجزين، وحجزك ينتظر تأكيد الإدارة. يظهر لك رقم العارض بعد التأكيد.</p></div>`;
     if (it.owner && it.owner !== '~') return `<div class="ownact">${rem}<p>الغرض لك. استلمه خلال ${hm(it.bookedAt + DAY - now())}.</p>
     <div class="row"><a class="btn ghost" href="${wa(it.owner, it.code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.owner)}</span></a>
-    <button class="btn primary" type="button" data-done="${esc(it.code)}">تم الاستلام</button></div></div>`;
+    <button class="btn primary" type="button" data-done="${esc(it.code)}">استلمه المستفيد</button></div></div>`;
   }
   const pos = it.queue.indexOf(st.me);
   return pos > 0 ? `<div class="ownact"><p>أنت في الدور: رقم ${pos + 1}.</p></div>` : '';
@@ -1046,36 +1066,37 @@ const openActs = it => {
 /* لوحة الأدمن داخل نافذة الغرض: الحاجزون بالترتيب ووقت كل حجز، وتأكيد الحجز لأحدهم، ورسائل جاهزة */
 const fmtTime = t => t ? new Intl.DateTimeFormat('ar', {weekday:'short', hour:'numeric', minute:'2-digit'}).format(new Date(t)) : '';
 const admQ = it => {
-  if (it.given || it.cancelled) return '';
+  if (it.cancelled) return '';
+  if (it.given) return '';
   const q = it.queue.filter(p => p && p !== '~');
-  const pub = `<div class="row" style="margin-bottom:8px"><button class="btn ghost" type="button" data-pubonly="${esc(it.code)}">انشره في الواتساب</button></div>`;
+  const pub = `<div class="row" style="margin-bottom:8px"><button class="btn small ghost" type="button" data-pubonly="${esc(it.code)}">انشره في واتساب</button></div>`;
   if (!q.length) return pub;
-  const conf = isConf(it), own = ownerOf(it);
+  const conf = isConf(it), own = ownerOf(it), step = pairStep[it.code] || 0;
   return `<div class="admq"><b>الحاجزون بالترتيب (${q.length}) · ${autoConf() ? 'التأكيد تلقائي بالترتيب' : 'التأكيد يختاره الأدمن'}</b>
     <ol>${q.map((p, k) => `<li><span>${k + 1}. ${esc((st.people || {})[p] || 'مستفيد')} <span dir="ltr">${showPhone(p)}</span><br><small>${esc(fmtTime((it.queueT || {})[p]))}</small></span>
-      ${k === 0 && conf ? '<em>✔ مؤكد له</em>' : `<button class="btn small ${k === 0 ? 'primary' : 'ghost'}" type="button" data-confirm="${esc(it.code)}|${esc(p)}">أكّد له</button>`}</li>`).join('')}</ol>
-    ${conf ? `<p class="hint" style="margin:4px 0">الرسائل بعد تأكيد الحجز:</p>
-    <div class="row"><button class="btn small primary" type="button" data-wabooked="${esc(it.code)}">أبلغ القروب بالحجز</button>
-      <a class="btn small ghost" href="${wa(q[0], msgToBen(it))}" target="_blank" rel="noopener" data-walink>أرسل للمستفيد</a>
-      ${own ? `<a class="btn small ghost" href="${wa(own, msgToOwner(it))}" target="_blank" rel="noopener" data-walink>أرسل للعارض</a>` : ''}</div>
-    ${overdue(it) ? `<p class="remind">⏰ انتهى وقت الاستلام المتفق عليه. ذكّرهما بزر «تم الاستلام»:</p><div class="row">
+      ${k === 0 && conf ? '<em>✔ مستحق</em>' : `<button class="btn small ${k === 0 ? 'primary' : 'ghost'}" type="button" data-confirm="${esc(it.code)}|${esc(p)}">أكّد له</button>`}</li>`).join('')}</ol>
+    ${conf ? `<p class="hint" style="margin:4px 0">بعد تأكيد الحجز:</p>
+    <div class="row">${own ? `<button class="btn small primary" type="button" data-pair="${esc(it.code)}">${step ? 'والآن أرسل للمستفيد' : 'أرسل للعارض والمستفيد معًا'}</button>` : ''}
+      <button class="btn small ghost" type="button" data-wabooked="${esc(it.code)}">أبلغ القروب بالحجز</button></div>
+    ${overdue(it) ? `<p class="remind">⏰ اقترب انتهاء المهلة. ذكّرهما بتأكيد الاستلام:</p><div class="row">
       <a class="btn small ghost" href="${wa(q[0], msgRemind(it))}" target="_blank" rel="noopener" data-walink>ذكّر المستفيد</a>
       ${own ? `<a class="btn small ghost" href="${wa(own, msgRemind(it))}" target="_blank" rel="noopener" data-walink>ذكّر العارض</a>` : ''}</div>` : ''}
-    <div class="row"><button class="btn small primary" type="button" data-done="${esc(it.code)}">تم الاستلام</button></div>` : ''}</div>${pub}`;
+    <div class="row"><button class="btn small primary" type="button" data-done="${esc(it.code)}">استلمه المستفيد</button></div>` : ''}</div>${pub}`;
 };
+const pairStep = {};
 /* النسخة المفتوحة: اسم المعلن بجانب زر «احجز» */
 const byName = it => OPEN ? (it.ownerName || (!SRV ? (st.people || {})[it.owner] : '') || '') : '';
 const win = (it, i) => {
-  const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length;
-  const tag = g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait cnt">(${it.queue.length}) حجزوا</span>` : '<span class="tag free">متاح</span>';
-  return `<article class="win${g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${ex ? ' expired' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
+  const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length, pd = !isApp(it) && !x;
+  const tag = pd ? `<span class="tag pend">${isAdmin() ? 'ينتظر الموافقة' : 'في الانتظار'}</span>` : g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait cnt">(${it.queue.length}) حجزوا</span>` : '<span class="tag free">متاح</span>';
+  return `<article class="win${pd ? ' pending' : g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${ex ? ' expired' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
     <div class="pic">${picOf(it)}${g ? '<span class="stamp">ذهب لمستفيد</span>' : !x && it.queue.length && isConf(it) ? '<span class="stamp booked">تم الحجز</span>' : x ? (soonX(it) ? '<span class="stamp soon">سيُلغى قريبًا</span>' : '<span class="stamp">أُلغي</span>') : ''}</div>
     <div class="sum">
       <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
       <div class="titlerow"><h3>${esc(it.title)}</h3>
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
-      ${g || x ? (byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '') : (() => { const my = it.queue.indexOf(st.me), n = it.queue.length;
+      ${pd ? '<p class="byname">ينتظر موافقة الإدارة على نشره لعامة المستفيدين.</p>' : g || x ? (byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '') : (() => { const my = it.queue.indexOf(st.me), n = it.queue.length;
         if (my === 0) return `<div class="heldbox"><span>${isConf(it) ? '🔘 محجوز لك' : '⏳ حجزك ينتظر تأكيد الإدارة'}</span><button type="button" data-cancel="${esc(it.code)}">تنازل عن الحجز</button></div>`;
         if (my > 0) return `<div class="heldbox"><span>دورك ${my + 1} من ${n}</span><button type="button" data-cancel="${esc(it.code)}">تنازل عن الحجز</button></div>`;
         if (it.owner === st.me) return byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '';
@@ -1103,7 +1124,8 @@ const win = (it, i) => {
     </div></article>`;
 };
 const renderHome = () => { setTimeout(() => typeof reSure === 'function' && reSure(), 0);
-  const list = shown().filter(i => waMode() !== 'whatsapp' || isAdmin() || i.owner === st.me || i.queue.includes(st.me) || linked.has(i.code)).sort((a, b) => a.shownAt - b.shownAt || a.created - b.created);
+  const list = [...st.items.filter(i => !isApp(i) && i.owner === st.me && i.status === 'waiting' && !i.cancelled && !isAdmin()),
+    ...shown().filter(i => !goneGiven(i)).filter(i => waMode() !== 'whatsapp' || isAdmin() || i.owner === st.me || i.queue.includes(st.me) || linked.has(i.code)).sort((a, b) => a.shownAt - b.shownAt || a.created - b.created)];
   const given = st.items.filter(i => (i.given && i.status === 'shown') || i.status === 'given').length;
   const regs = ['الكل', ...new Set(list.map(i => i.area.split('/')[0].trim()))];
   if (!regs.includes(region)) region = 'الكل';
@@ -1112,10 +1134,11 @@ const renderHome = () => { setTimeout(() => typeof reSure === 'function' && reSu
   const vis = list.filter(i => region === 'الكل' || i.area.startsWith(region)).filter(i => !q || (i.title + i.area + i.code + i.det).replace(/ى/g, 'ي').toUpperCase().includes(q));
   let html = vis.map(win).join('');
   const pd = isAdmin() ? pending() : [];
-  if (pd.length) html = `<section class="pendbox"><h3>عروض بانتظار الموافقة (${pd.length})</h3><p class="hint" style="text-align:center;margin:0 0 6px">لا تظهر للزوار حتى تقبلها.</p>${pd.map(i => `<div class="pend"><div class="ph">${picOf(i)}</div><div>
-    <div class="coderow"><span class="code">${esc(i.code)}</span></div><b>${esc(i.title)}</b><br><small>${esc(i.area)} · ${esc(i.cond || '')}${ownerOf(i) ? ` · العارض: ${esc((st.people || {})[ownerOf(i)] || '')} <span dir="ltr">${showPhone(ownerOf(i))}</span>` : ''}</small>
-    <div class="btns"><button class="btn primary" type="button" data-approve="${esc(i.code)}">اقبل واعرضه في المنصة</button><button class="btn primary" type="button" data-approvepub="${esc(i.code)}">اقبل وانشره في القروب</button>
-      <button class="btn ghost" type="button" data-pubonly="${esc(i.code)}">انشره في الواتساب</button><button class="btn ghost danger" type="button" data-icancel="${esc(i.code)}">ارفض العرض</button></div></div></div>`).join('')}</section>` + html;
+  if (isAdmin() && !pd.length) html = `<section class="pendbox" style="border-style:solid;padding:8px"><div class="row" style="justify-content:center"><button class="btn small ghost" type="button" data-genrem>تذكير عام بتأكيد الاستلام</button></div></section>` + html;
+  if (pd.length) html = `<section class="pendbox"><h3>عروض بانتظار الموافقة (${pd.length})</h3><div class="row" style="justify-content:center;margin:4px 0 8px"><button class="btn small ghost" type="button" data-genrem>تذكير عام بتأكيد الاستلام</button></div><p class="hint" style="text-align:center;margin:0 0 6px">لا تظهر للزوار حتى تقبلها.</p>${pd.map(i => `<div class="pend"><div class="ph">${picOf(i)}</div><div>
+    <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag pend">ينتظر الموافقة</span></div><b>${esc(i.title)}</b><br><small>${esc(i.area)} · ${esc(i.cond || '')}${ownerOf(i) ? ` · العارض: ${esc((st.people || {})[ownerOf(i)] || '')} <span dir="ltr">${showPhone(ownerOf(i))}</span>` : ''}</small>
+    <div class="btns"><button class="btn primary" type="button" data-approvepub="${esc(i.code)}">اقبل وانشره في القروب</button><button class="btn primary" type="button" data-approvewa="${esc(i.code)}">اقبل وأرسله لجهة في واتساب</button>
+      <button class="btn ghost" type="button" data-approve="${esc(i.code)}">اقبل واعرضه في المنصة فقط</button><button class="btn ghost danger" type="button" data-reject="${esc(i.code)}">ارفضه واحذفه</button></div></div></div>`).join('')}</section>` + html;
   remindOnce();
   if (waMode() === 'whatsapp' && !isAdmin()) html += `<div class="panel" style="grid-column:1/-1;text-align:center"><h3>المعروضات تُنشر في مجموعة واتساب</h3><p>تابع الإعلانات في المجموعة، ثم احجز هنا بالكود من «احجز بالكود».</p><div class="row" style="justify-content:center"><a class="btn primary" href="${GROUP.link}" target="_blank" rel="noopener">افتح ${GROUP.name}</a><button class="btn ghost" type="button" data-go="book">احجز بالكود</button></div></div>`;
   else if (!q && region === 'الكل') for (let k = list.length; k < SLOTS; k++) html += `<div class="empty-win" style="--i:${k}"><div><b>نافذة فارغة</b>تنتظر غرضًا جديدًا<br><button class="btn small ghost" data-go="give" style="margin-top:10px">اعرض غرضًا</button></div></div>`;
@@ -1619,6 +1642,41 @@ const oneImage = async it => {
     return c.toDataURL('image/jpeg', .86);
   } catch(e) { return list[0]; }   // تعذّر الجمع: تُرسل الصورة الرئيسية وحدها
 };
+/* الإرسال إلى جهة بعينها: في التطبيق 1.6 تُفتح محادثة الرقم مباشرة بالصورة والتعليق،
+   وفي غيره تُفتح قائمة المشاركة فيختار الأدمن الجهة بنفسه */
+const shareTo = async (text, imgs, phone) => {
+  if (window.JisrAndroid && JisrAndroid.shareTo && phone) { JisrAndroid.shareTo(text, JSON.stringify(imgs), String(phone)); return true; }
+  if (window.JisrAndroid && JisrAndroid.canShareFiles && JisrAndroid.canShareFiles()) { JisrAndroid.share(text, JSON.stringify(imgs)); return true; }
+  try {
+    if (navigator.canShare && imgs.length) {
+      const b = await (await fetch(imgs[0])).blob(), files = [new File([b], 'jisr.jpg', {type:'image/jpeg'})];
+      if (navigator.canShare({files, text})) { await navigator.share({files, text}); return true; }
+    }
+    if (navigator.share && !phone) { await navigator.share({text}); return true; }
+  } catch(err) { if (err && err.name === 'AbortError') return false; }
+  window.open(phone ? wa(phone, text) : 'https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  return true;
+};
+/* صورة رسالة الطرفين: صورة الغرض، وتحتها شريط فيه باركود واتساب الطرف الآخر */
+const pairImage = async (it, phone, label) => {
+  try {
+    const base = await oneImage(it), W = 1080, band = 360, c = document.createElement('canvas');
+    let bm = null; if (base) bm = await createImageBitmap(await (await fetch(base)).blob());
+    const ph = bm ? Math.round(W * Math.min(1.1, bm.height / bm.width)) : 0; c.width = W; c.height = ph + band;
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, W, c.height);
+    if (bm) x.drawImage(bm, 0, 0, W, ph);
+    x.fillStyle = '#F4F7F1'; x.fillRect(0, ph, W, band);
+    if (window.qrcode && phone) { const q = qrcode(0, 'M'); q.addData('https://wa.me/' + phone); q.make(); const n = q.getModuleCount(), sz = 300, cell = sz / n, ox = 40, oy = ph + 30;
+      x.fillStyle = '#fff'; x.fillRect(ox - 10, oy - 10, sz + 20, sz + 20); x.fillStyle = '#1F3B22';
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect(ox + k * cell, oy + r * cell, Math.ceil(cell), Math.ceil(cell)); }
+    x.direction = 'rtl'; x.textAlign = 'right'; x.fillStyle = '#1F3B22';
+    x.font = 'bold 54px "Noto Naskh Arabic", "Amiri", serif'; x.fillText(it.code, W - 40, ph + 95);
+    x.font = 'bold 40px "Noto Naskh Arabic", "Amiri", serif'; x.fillText(label, W - 40, ph + 175);
+    x.font = '34px "Noto Naskh Arabic", "Amiri", serif'; x.fillStyle = '#2D5530'; x.fillText('جسر العطاء', W - 40, ph + 250);
+    x.font = '30px sans-serif'; x.direction = 'ltr'; x.textAlign = 'right'; x.fillText('+' + phone, W - 40, ph + 310);
+    return c.toDataURL('image/jpeg', .88);
+  } catch(e) { return await oneImage(it); }
+};
 const shareItem = async (it, text0) => {
   const text = text0 || waPost(it), img = await oneImage(it);
   /* داخل تطبيق أندرويد: جسر يرسل الصورة الواحدة وعليها النص تعليقًا */
@@ -1771,20 +1829,29 @@ const manage = async (act, code, arg) => {
   save(); render(); return true;
 };
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-approve],[data-approvepub],[data-pubonly],[data-confirm],[data-wabooked],[data-apmode],[data-cfmode]'); if (!t) return;
+  const t = e.target.closest('[data-approve],[data-approvepub],[data-approvewa],[data-pubonly],[data-confirm],[data-wabooked],[data-apmode],[data-cfmode],[data-reject],[data-pair],[data-genrem]'); if (!t) return;
   const d = t.dataset;
+  if (t.matches('[data-genrem]')) { if (await shareTo(msgGeneralRemind(), [], '')) toast('اختر في واتساب قائمة البث أو الجهات المطلوبة'); return; }
+  if (d.reject) { if (!sure(t, 'اضغط مرة أخرى: يُحذف العرض نهائيًا مع كل ما يتعلق به')) return; t.disabled = true;
+    if (SRV) { const r = await api('jisr_reject', {_code:d.reject}).catch(() => ({err:'net'})); if (r.err) { t.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
+    else { st.items = st.items.filter(i => i.code !== d.reject); st.log = (st.log || []).filter(l => l.code !== d.reject); save(); render(); }
+    return toast('رُفض العرض وحُذف نهائيًا'); }
+  if (d.pair) { const it = st.items.find(i => i.code === d.pair); if (!it) return; const s0 = pairStep[d.pair] || 0, toOwner = s0 === 0, ph = toOwner ? ownerOf(it) : it.queue[0];
+    const img = await pairImage(it, toOwner ? it.queue[0] : ownerOf(it), toOwner ? 'امسح للتواصل مع المستفيد' : 'امسح للتواصل مع العارض');
+    if (await shareTo(msgPair(it, toOwner), img ? [img] : [], ph)) { pairStep[d.pair] = toOwner ? 1 : 0; render(); toast(toOwner ? 'أُرسلت للعارض؟ اضغط الآن «والآن أرسل للمستفيد»' : 'جُهّزت رسالة المستفيد. اكتمل الإرسال للطرفين'); }
+    return; }
   if (d.apmode) { if (await manage('approve_mode', null, d.apmode)) toast('قبول العروض: ' + AP_MODES[d.apmode]); return; }
   if (d.cfmode) { if (await manage('confirm_mode', null, d.cfmode)) toast('تأكيد الحجز: ' + CF_MODES[d.cfmode]); return; }
   if (d.confirm) { const [c, p] = d.confirm.split('|'); t.disabled = true; if (await manage('confirm', c, p)) { open.add(c); render(); toast(`أُكّد الحجز لـ ${(st.people || {})[p] || 'المستفيد'}. أرسل له وللعارض الرسالتين الجاهزتين`); } else t.disabled = false; return; }
-  const code = d.approve || d.approvepub || d.pubonly || d.wabooked, it = st.items.find(i => i.code === code); if (!it) return;
+  const code = d.approve || d.approvepub || d.approvewa || d.pubonly || d.wabooked, it = st.items.find(i => i.code === code); if (!it) return;
   if (d.wabooked) { if (await shareItem(it, msgGroupBooked(it))) toast('جُهّز بلاغ «تم الحجز» للقروب'); return; }
   if (d.pubonly) { if (await shareItem(it)) { if (SRV) { await api('jisr_admin', {_act:'wa_sent', _arg:code}).catch(() => {}); pull(true); } else { it.waSentAt = now(); save(); } toast('جُهّز الإعلان للنشر في الواتساب'); } return; }
   /* المشاركة أولًا ما دامت الضغطة طازجة، ثم القبول */
-  const shared = d.approvepub ? await shareItem(it) : false;
+  const shared = d.approvepub || d.approvewa ? await shareItem(it) : false;
   t.disabled = true;
   if (!await manage('approve', code)) { t.disabled = false; return; }
   if (shared) { if (SRV) { await api('jisr_admin', {_act:'wa_sent', _arg:code}).catch(() => {}); pull(true); } else { const it2 = st.items.find(i => i.code === code); it2.waSentAt = now(); save(); } }
-  toast(d.approvepub ? `قُبل ${code}، وجُهّز للنشر في القروب` : `قُبل ${code}، ويظهر في المنصة`);
+  toast(d.approvepub ? `قُبل ${code}، اختر القروب في واتساب` : d.approvewa ? `قُبل ${code}، اختر الجهة في واتساب` : `قُبل ${code}، ويظهر في المنصة`);
 });
 /* احجز بالكود */
 $('#bookForm').addEventListener('submit', async e => {

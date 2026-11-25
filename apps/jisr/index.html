@@ -964,8 +964,8 @@ const roll = t => {
     if (it.given) it.status = 'given';
     else if (it.cancelled) toStore(it, t);
     else if (it.queue.length) { it.status = 'reserved'; it.expired = false; }
-    else if ((st.expMode || 'flash') === 'flash') it.expired = true;
-    else toStore(it, t);
+    else if ((st.expMode || 'flash') === 'flash') { if (!it.expired) logEv('expired', it.code, it.owner); it.expired = true; }
+    else { logEv('expired', it.code, it.owner); toStore(it, t); }
   }
   st.cycleStart = t;
   fill(t);
@@ -1231,7 +1231,7 @@ const calc = () => {
   const end = now(), start = end - (per === 'week' ? 7 : 30) * DAY;
   const ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
   const n = ty => ev.filter(e => e.type === ty).length;
-  const k = {posted:n('posted'), given:n('given'), cancelled:n('cancelled'), returned:n('returned'), booked:n('booked')};
+  const k = {posted:n('posted'), given:n('given'), cancelled:n('cancelled'), returned:n('returned'), booked:n('booked'), expired:n('expired'), rejected:n('rejected'), removed:n('removed')};
   const ppl = {};
   for (const e of ev) if (e.who && ['booked', 'given', 'returned'].includes(e.type)) { const o = ppl[e.who] = ppl[e.who] || {p:e.who, booked:0, given:0, returned:0}; o[e.type]++; }
   const list = Object.values(ppl).sort((a, b) => b.given - a.given || b.booked - a.booked);
@@ -1250,9 +1250,11 @@ const statHTML = (forPrint) => {
     ${forPrint ? '<h3>أولًا: حركة المقتنيات</h3>' : ''}
     ${(() => { const ev = (st.log || []).filter(e => e.t >= start && e.t <= end); return heroCells(k, ev) + reading(k, group(ev, 'area'), group(ev, 'cat'), donorsOf(ev)); })()}
     <div class="kpis"><div class="kpi"><b>${k.posted}</b><span>عُرض</span></div><div class="kpi"><b>${k.given}</b><span>أُخذ</span></div><div class="kpi x"><b>${k.cancelled}</b><span>أُلغي</span></div><div class="kpi r"><b>${k.returned}</b><span>أُعيد</span></div></div>
-    <p class="ratio">نسبة ما أُخذ مما عُرض: <b>${pct(k.given, k.posted)}</b> · نسبة ما أُلغي: <b>${pct(k.cancelled, k.posted)}</b> · عدد الحجوزات: <b>${k.booked}</b></p>
+    <div class="kpis"><div class="kpi x"><b>${k.expired}</b><span>انتهى ولم يُحجز</span></div><div class="kpi x"><b>${k.rejected}</b><span>رُفض</span></div><div class="kpi x"><b>${k.removed}</b><span>أُزيل</span></div><div class="kpi"><b>${k.booked}</b><span>حجز</span></div></div>
+    <p class="ratio">نسبة ما أُخذ مما عُرض: <b>${pct(k.given, k.posted)}</b> · نسبة ما أُلغي: <b>${pct(k.cancelled, k.posted)}</b> · ما انتهى ولم يُحجز: <b>${pct(k.expired, k.posted)}</b> · عدد الحجوزات: <b>${k.booked}</b></p>
+    ${(() => { const ev = (st.log || []).filter(e => e.t >= start && e.t <= end), ar = group(ev, 'area').filter(a => a.given || a.posted); return ar.length ? `<section><p class="cap">التسليم والاستلام حسب المنطقة</p><table class="ptable"><tr><th>المنطقة</th><th>عُرض</th><th>حُجز</th><th>استُلم</th><th>انتهى ولم يُحجز</th><th>أُلغي</th><th>رُفض أو أُزيل</th></tr>${ar.map(a => `<tr><td>${esc(a.name)}</td><td class="n">${a.posted}</td><td class="n">${a.booked}</td><td class="n">${a.given}</td><td class="n">${a.expired}</td><td class="n">${a.cancelled}</td><td class="n">${a.rejected + a.removed}</td></tr>`).join('')}</table></section>` : ''; })()}
     <p class="sample" style="margin:0">«أُعيد»: حجز لم يُستلم أو ألغاه صاحبه، فعاد الغرض أو انتقل لمن بعده.</p>
-    <section><p class="cap">مصير ما عُرض في هذه الفترة</p>${stack100([{l:'أُخذ', v:k.given, c:C.g}, {l:'أُلغي', v:k.cancelled, c:C.x}, {l:'معروض أو محجوز', v:Math.max(0, k.posted - k.given - k.cancelled), c:C.b}])}</section>
+    <section><p class="cap">مصير ما عُرض في هذه الفترة</p>${stack100([{l:'أُخذ', v:k.given, c:C.g}, {l:'أُلغي', v:k.cancelled, c:C.x}, {l:'رُفض أو أُزيل', v:k.rejected + k.removed, c:'#8A8F99'}, {l:'معروض أو محجوز', v:Math.max(0, k.posted - k.given - k.cancelled - k.rejected - k.removed), c:C.b}])}</section>
     <section><p class="cap">من العرض إلى الأخذ</p>${funnel([{l:'عُرض', v:k.posted}, {l:'حُجز', v:k.booked}, {l:'أُخذ', v:k.given}])}</section>
     ${forPrint ? '<h3>ثانيًا: الأشخاص: الحجز والأخذ</h3>' : '<h3 style="margin-top:14px">الأشخاص هذه الفترة</h3>'}
     <div class="bars">${bars || '<p class="sample">لا حجوزات في هذه الفترة.</p>'}</div>
@@ -1286,7 +1288,7 @@ const levels = list => {
 };
 const group = (ev, key) => {
   const g = {};
-  for (const e of ev) { const o = g[e[key] || 'غير محدد'] = g[e[key] || 'غير محدد'] || {name:e[key] || 'غير محدد', posted:0, booked:0, given:0, cancelled:0, returned:0}; if (o[e.type] !== undefined) o[e.type]++; }
+  for (const e of ev) { const o = g[e[key] || 'غير محدد'] = g[e[key] || 'غير محدد'] || {name:e[key] || 'غير محدد', posted:0, booked:0, given:0, cancelled:0, returned:0, expired:0, rejected:0, removed:0}; if (o[e.type] !== undefined) o[e.type]++; }
   return Object.values(g).map(o => ({...o, cred:o.booked ? Math.round(o.given / o.booked * 100) : null, take:o.posted ? Math.round(o.given / o.posted * 100) : null})).sort((a, b) => b.given - a.given || b.posted - a.posted);
 };
 /* أنماط من تقارير النتائج: رقم كبير بشريط خلايا، وبطاقات المناطق، وأشرطة 100٪ لكل منطقة، وقراءة آلية، والمقارنة بين اثنين */
@@ -1324,7 +1326,7 @@ const compareBox = areas => {
 document.addEventListener('change', e => { if (e.target.id === 'cmpA' || e.target.id === 'cmpB') { cmpA = $('#cmpA').value; cmpB = $('#cmpB').value; renderStats(); } });
 const reportHTML = (forPrint) => {
   const end = now(), start = end - 30 * DAY, ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
-  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned')};
+  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned'), expired:n('expired'), rejected:n('rejected'), removed:n('removed')};
   const pc = (a, b) => b ? Math.round(a / b * 100) : 0;
   const areas = group(ev, 'area'), cats = group(ev, 'cat');
   const hbars = (arr, val, lab) => { const mx = Math.max(1, ...arr.map(val)); return `<div class="bars">${arr.map(o => `<div class="bar"><span class="nm">${esc(o.name)}</span><span class="tr"><span class="ft" style="width:${val(o) / mx * 100}%"></span><span class="lb">${lab(o)}</span></span></div>`).join('')}</div>`; };
@@ -1387,7 +1389,7 @@ const drawPOpts = () => {
 };
 const printHTML = (pp, sel) => {
   const days = pp === 'week' ? 7 : 30, end = now(), start = end - days * DAY, ev = (st.log || []).filter(e => e.t >= start && e.t <= end);
-  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned')};
+  const n = ty => ev.filter(e => e.type === ty).length, K = {posted:n('posted'), booked:n('booked'), given:n('given'), cancelled:n('cancelled'), returned:n('returned'), expired:n('expired'), rejected:n('rejected'), removed:n('removed')};
   const pc = (a, b) => b ? Math.round(a / b * 100) : 0, areas = group(ev, 'area'), cats = group(ev, 'cat');
   const hb = (arr, val, lab) => { const mx = Math.max(1, ...arr.map(val)); return `<div class="bars">${arr.map(o => `<div class="bar"><span class="nm">${esc(o.name)}</span><span class="tr"><span class="ft" style="width:${val(o) / mx * 100}%"></span><span class="lb">${lab(o)}</span></span></div>`).join('')}</div>`; };
   const tb = arr => `<table class="ptable"><tr><th>البند</th><th>عُرض</th><th>حجز</th><th>أُخذ</th><th>أُلغي</th><th>أُعيد</th><th>نسبة الأخذ</th><th>المصداقية</th></tr>${arr.map(o => `<tr class="${o.cred !== null && o.cred < 60 ? 'flag' : ''}"><td>${esc(o.name)}</td><td class="n">${o.posted}</td><td class="n">${o.booked}</td><td class="n">${o.given}</td><td class="n">${o.cancelled}</td><td class="n">${o.returned}</td><td class="n">${o.take === null ? '—' : o.take + '٪'}</td><td class="n">${o.cred === null ? '—' : o.cred + '٪'}</td></tr>`).join('')}</table>`;
@@ -1834,8 +1836,8 @@ document.addEventListener('click', async e => {
   if (t.matches('[data-genrem]')) { if (await shareTo(msgGeneralRemind(), [], '')) toast('اختر في واتساب قائمة البث أو الجهات المطلوبة'); return; }
   if (d.reject) { if (!sure(t, 'اضغط مرة أخرى: يُحذف العرض نهائيًا مع كل ما يتعلق به')) return; t.disabled = true;
     if (SRV) { const r = await api('jisr_reject', {_code:d.reject}).catch(() => ({err:'net'})); if (r.err) { t.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }
-    else { st.items = st.items.filter(i => i.code !== d.reject); st.log = (st.log || []).filter(l => l.code !== d.reject); save(); render(); }
-    return toast('رُفض العرض وحُذف نهائيًا'); }
+    else { logEv('rejected', d.reject, st.me); st.items = st.items.filter(i => i.code !== d.reject); save(); render(); }
+    return toast('رُفض العرض وحُذف من المنصة، ويبقى في الإحصاء'); }
   if (d.pair) { const it = st.items.find(i => i.code === d.pair); if (!it) return; const s0 = pairStep[d.pair] || 0, toOwner = s0 === 0, ph = toOwner ? ownerOf(it) : it.queue[0];
     const img = await pairImage(it, toOwner ? it.queue[0] : ownerOf(it), toOwner ? 'امسح للتواصل مع المستفيد' : 'امسح للتواصل مع العارض');
     if (await shareTo(msgPair(it, toOwner), img ? [img] : [], ph)) { pairStep[d.pair] = toOwner ? 1 : 0; render(); toast(toOwner ? 'أُرسلت للعارض؟ اضغط الآن «والآن أرسل للمستفيد»' : 'جُهّزت رسالة المستفيد. اكتمل الإرسال للطرفين'); }

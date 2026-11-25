@@ -1,6 +1,7 @@
 -- =====================================================================
 -- جسر العطاء: تحديث 12
---  • رفض العرض يحذفه نهائيًا مع كل ما يتعلق به، فلا يدخل في أي إحصاء
+--  • رفض العرض يحذفه من المنصة نهائيًا، ويبقى في الإحصاء مرفوضًا
+--  • ما انتهى وقت عرضه ولم يحجزه أحد يُسجَّل في الإحصاء «انتهى ولم يُحجز»
 --  • ما استلمه المستفيد يبقى بختمه 30 ساعة ثم يختفي عن الجميع، وتفرغ نافذته (والأدمن يراه في سجله)
 -- يُلصق في SQL Editor ثم Run بعد التحديث 11. يمكن تشغيله أكثر من مرة.
 -- =====================================================================
@@ -17,14 +18,14 @@ begin
   end if;
 end $$;
 
--- رفض العرض: حذف نهائي للعرض وسجلاته
+-- رفض العرض: يُحذف من المنصة، ويبقى أثره في الإحصاء
 create or replace function jisr_reject(_code text) returns json
 language plpgsql security definer set search_path = public as $$
 declare me text := jisr_me();
 begin
   if not jisr_is_admin(me) then return json_build_object('err', 'not_admin'); end if;
   if not exists (select 1 from jisr_items where code = _code) then return json_build_object('err', 'not_found'); end if;
-  delete from jisr_events where code = _code;
+  perform jisr_log('rejected', _code, me);   -- يبقى في الإحصاء: عُرض ثم رُفض
   delete from jisr_items where code = _code;
   perform jisr_fill(now());
   return json_build_object('ok', true);
@@ -70,4 +71,24 @@ begin
     'people', case when adm then coalesce((select json_object_agg(phone, name) from jisr_profiles), '{}'::json) end
   ) into res from jisr_settings s where s.id = 1;
   return res;
+end $$;
+
+-- نهاية الدفعة: ما انتهى وقته ولم يحجزه أحد يُسجَّل في الإحصاء
+create or replace function jisr_roll(_t timestamptz) returns void
+language plpgsql security definer set search_path = public as $$
+declare r record; m text;
+begin
+  select exp_mode into m from jisr_settings where id = 1;
+  for r in select * from jisr_items where status = 'shown' for update loop
+    if r.given then update jisr_items set status = 'given', expired = false where code = r.code;
+    elsif r.cancelled then perform jisr_to_store(r.code, _t, false);
+    elsif cardinality(r.queue) > 0 then update jisr_items set status = 'reserved', expired = false where code = r.code;
+    elsif m = 'flash' then
+      if not r.expired then perform jisr_log('expired', r.code, r.owner); end if;
+      update jisr_items set expired = true where code = r.code;  -- يبقى ويومض
+    else perform jisr_log('expired', r.code, r.owner); perform jisr_to_store(r.code, _t);
+    end if;
+  end loop;
+  update jisr_settings set cycle_start = _t where id = 1;
+  perform jisr_fill(_t);
 end $$;

@@ -265,3 +265,33 @@ begin
   ) into res from jisr_settings s where s.id = 1;
   return res;
 end $$;
+
+-- تعديل العرض: للعارض والأدمن ما دام الغرض لم يُسلَّم ولم يُلغَ (الكود يبقى كما هو)
+create or replace function jisr_edit_item(_code text, _title text, _det text, _area text, _cond text, _pick text, _cat text, _photos text[] default null) returns json
+language plpgsql security definer set search_path = public as $$
+declare me text := jisr_me(); it jisr_items;
+begin
+  select * into it from jisr_items where code = _code for update;
+  if not found or me is null or (it.owner <> me and not jisr_is_admin(me)) then return json_build_object('err', 'not_found'); end if;
+  if it.given or it.cancelled or it.status in ('given','cancelled') then return json_build_object('err', 'closed'); end if;
+  if coalesce(_title, '') = '' or coalesce(_area, '') = '' then return json_build_object('err', 'missing'); end if;
+  update jisr_items set title = left(_title, 80), det = left(coalesce(_det, ''), 400), area = left(_area, 60),
+    cond = left(coalesce(_cond, ''), 60), pick = left(coalesce(_pick, ''), 80), cat = coalesce(nullif(_cat, ''), cat),
+    photos = case when _photos is null then photos else _photos[1:3] end where code = it.code;
+  perform jisr_log('edited', it.code, me);
+  return json_build_object('ok', true);
+end $$;
+revoke execute on function jisr_edit_item(text, text, text, text, text, text, text, text[]) from public, anon;
+grant execute on function jisr_edit_item(text, text, text, text, text, text, text, text[]) to authenticated;
+
+-- وقت الاستلام: يعدّله العارض متى شاء بتحريك العقارب، ما دام الغرض لم يُسلَّم ولم يُلغَ
+create or replace function jisr_set_pick_time(_code text, _from text, _to text) returns json
+language plpgsql security definer set search_path = public as $$
+declare me text := jisr_me(); it jisr_items;
+begin
+  select * into it from jisr_items where code = _code for update;
+  if not found or (it.owner <> me and not jisr_is_admin(me)) then return json_build_object('err', 'not_found'); end if;
+  if it.given or it.cancelled then return json_build_object('err', 'closed'); end if;
+  update jisr_items set pick_from = left(_from, 20), pick_to = left(_to, 20) where code = _code;
+  return json_build_object('ok', true);
+end $$;

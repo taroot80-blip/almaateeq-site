@@ -1086,7 +1086,7 @@ const win = (it, i) => {
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
-        ${!g && !x && it.owner === st.me && !it.pickTime ? `<button class="btn ghost wide" data-clock="${esc(it.code)}" style="margin-bottom:8px">حدّد توقيت الاستلام</button>` : ''}
+        ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-clock="${esc(it.code)}">${it.pickTime ? 'عدّل وقت الاستلام' : 'حدّد توقيت الاستلام'}</button><button class="btn ghost" type="button" data-edit="${esc(it.code)}">عدّل العرض</button></div>` : ''}
         ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
         ${isAdmin() ? admQ(it) : ''}
         ${OPEN ? openActs(it) : ''}
@@ -1500,6 +1500,52 @@ const sumSub = () => { $('#pSubSum').textContent = sel.subs.length > 1 ? `اخت
 const titleOf = () => { const t = sel.cats.flatMap(c => { const s = TAX[c].filter(x => sel.subs.includes(x)); return s.length ? s : TAX[c].length === 1 ? TAX[c] : [c]; }).join('، '); return t.length > 78 ? t.slice(0, 76) + '…' : t; };
 drawPicks();
 $('#formClock').addEventListener('click', () => openClock(null));
+/* تعديل العرض: يُفتح نموذج «اعرض غرضًا» بما اختاره العارض، فيصحّح ما ضغطه بالغلط، والكود يبقى كما هو */
+let editing = null;
+const editBar = () => { let b = $('#editBar'); if (!editing) { if (b) b.remove(); $('#giveForm [type=submit]').textContent = 'أعلن الغرض واحصل على الكود'; return; }
+  if (!b) { $('#giveForm h2').insertAdjacentHTML('afterend', '<div id="editBar" class="remind" style="display:flex;justify-content:space-between;align-items:center;gap:8px"></div>'); b = $('#editBar'); }
+  b.innerHTML = `<span>تعدّل العرض ${esc(editing)}</span><button class="btn small ghost" type="button" id="editX">تراجع</button>`; $('#editX').onclick = () => endEdit(true);
+  $('#giveForm [type=submit]').textContent = 'احفظ التعديل'; };
+const endEdit = clear => { editing = null; if (clear) { $('#giveForm').reset(); photos = []; drawThumbs(); Object.assign(sel, {cats:[], subs:[], cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null}); drawPicks(); } editBar(); };
+const startEdit = code => {
+  const it = st.items.find(i => i.code === code); if (!it) return;
+  if (it.given || it.cancelled) return toast('لا يُعدَّل ما سُلّم أو أُلغي.');
+  const parts = String(it.title || '').replace(/…$/, '').split('، ').map(x => x.trim()).filter(Boolean), cats = [], subs = [];
+  for (const x of parts) { if (CATS.includes(x)) { if (!cats.includes(x)) cats.push(x); continue; } const c = CATS.find(k => TAX[k].includes(x)); if (c) { if (!cats.includes(c)) cats.push(c); subs.push(x); } }
+  if (!cats.length && it.cat) cats.push(it.cat);
+  const [a, nb] = String(it.area || '').split('/').map(x => x.trim());
+  Object.assign(sel, {cats, subs, cond:it.cond || 'نظيف', area:a || '', nb:nb || '', pick:it.pick || PICKS[0], pickTime:it.pickTime || null});
+  photos = pics(it).slice(0, 3); drawThumbs(); drawPicks();
+  const pre = (it.title || '') + '، ', d = it.det || '';
+  $('#gNote').value = d.startsWith(pre) && d.endsWith('.') ? d.slice(pre.length, -1) : '';
+  $('#formClock').textContent = sel.pickTime ? `وقت الاستلام: من ${sel.pickTime.from} إلى ${sel.pickTime.to} (اضغط للتغيير)` : 'حدّد الوقت بالساعة: من … إلى …';
+  editing = code; editBar(); $('#giveResult').innerHTML = ''; go('give'); window.scrollTo({top:0, behavior:'smooth'});
+};
+document.addEventListener('click', e => { const b = e.target.closest('[data-edit]'); if (b) { e.preventDefault(); startEdit(b.dataset.edit); } });
+const saveEdit = async (out, title, area, form, note) => {
+  const code = editing, btn = form.querySelector('[type=submit]');
+  const vals = {title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cats[0]};
+  if (SRV) {
+    btn.disabled = true; out.innerHTML = '<div class="result">جارٍ حفظ التعديل…</div>';
+    try {
+      const {data:{user}} = await sb.auth.getUser(); const urls = [];
+      for (const [k, u] of photos.entries()) {
+        if (!u.startsWith('data:')) { urls.push(u); continue; }   // الصور المرفوعة سابقًا تبقى كما هي
+        const path = `${user.id}/${Date.now()}-e${k}.jpg`;
+        const up = await sb.storage.from('jisr').upload(path, await dataBlob(u), {contentType:'image/jpeg', upsert:false}); if (up.error) throw up.error;
+        urls.push(sb.storage.from('jisr').getPublicUrl(path).data.publicUrl);
+      }
+      const r = await api('jisr_edit_item', {_code:code, _title:vals.title, _det:vals.det, _area:vals.area, _cond:vals.cond, _pick:vals.pick, _cat:vals.cat, _photos:urls});
+      if (r.err) { out.innerHTML = `<div class="result err">${errMsg(r)}</div>`; return; }
+      const t = sel.pickTime; if (t) await api('jisr_set_pick_time', {_code:code, _from:t.from, _to:t.to}).catch(() => {});
+      await pull(true);
+    } catch(err) { out.innerHTML = '<div class="result err">لم يُحفظ التعديل: تعذّر رفع الصور أو الاتصال. حاول مرة أخرى.</div>'; return; }
+    finally { btn.disabled = false; }
+  } else {
+    const it = st.items.find(i => i.code === code); Object.assign(it, vals, {cats:sel.cats.slice(), photos:photos.slice(), pickTime:sel.pickTime}); logEv('edited', code, st.me); save();
+  }
+  endEdit(true); open.add(code); go('home'); toast(`حُفظ تعديل ${code}`);
+};
 $('#giveForm').addEventListener('submit', e => {
   e.preventDefault();
   const out = $('#giveResult'), area = sel.area + (sel.nb ? ' / ' + sel.nb : ''), title = titleOf(), note = $('#gNote').value.trim();
@@ -1507,6 +1553,7 @@ $('#giveForm').addEventListener('submit', e => {
   if (miss.length) { out.innerHTML = `<div class="result err">اختر قبل الإعلان: ${miss.join('، ')}.</div>`; return; }
   if (needLogin(() => $('#giveForm').requestSubmit(), 'give')) return;
   if (!$('#gOk1').checked || !$('#gOk2').checked) { out.innerHTML = '<div class="result err">أكّد سلامة الغرض وتعهّد عدم طلب مقابل قبل الإعلان.</div>'; return; }
+  if (editing) { saveEdit(out, title, area, e.target, note); return; }
   if (SRV) { postSrv(out, title, area, e.target, note); return; }
   const code = newCode(area);
   const ap = isAdmin() || st.approveMode === 'auto';
@@ -1539,7 +1586,7 @@ const postDone = (out, it, form) => {
   const code = it.code;
   out.innerHTML = `<div class="result ok"><strong>${!isApp(it) ? 'وصل عرضك إلى الإدارة، ويظهر في المنصة بعد موافقتها.' : it.status === 'shown' ? 'دخل غرضك نافذة فارغة، وهو معروض الآن.' : 'نوافذ المقتنيات ممتلئة اليوم، فدخل غرضك قائمة الانتظار ويُعرض في الدفعة القادمة.'}</strong>
     <span class="code">${code}</span>هذا كود غرضك. ترى في «حسابي» من حجزه، ويظهر رقمك لصاحب الحجز الأول فقط.
-    ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row">${it.pickTime ? "" : `<button class="btn primary" type="button" data-clock="${code}">حدّد توقيت الاستلام</button>`}<button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div>
+    ${it.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${it.pickTime.from} إلى ${it.pickTime.to}</b></p>` : ""}<div class="row"><button class="btn ${it.pickTime ? 'ghost' : 'primary'}" type="button" data-clock="${code}">${it.pickTime ? 'عدّل وقت الاستلام' : 'حدّد توقيت الاستلام'}</button><button class="btn ghost" type="button" data-edit="${code}">عدّل العرض</button><button class="btn ghost" type="button" data-copy="${code}">انسخ الكود</button></div>
     <div class="row"><button class="btn ghost" type="button" data-wapost="${code}">انسخ الإعلان لواتساب</button><button class="btn ghost" type="button" data-washare="${code}">شاركه في واتساب</button></div>
     <div class="row"><button class="btn ghost" type="button" data-go="home">إلى عرض اليوم</button></div></div>`;
   form.reset(); photos = []; drawThumbs(); Object.assign(sel, {cats:[], subs:[], cond:'نظيف', area:'', nb:'', pick:PICKS[0], pickTime:null}); drawPicks(); $('#formClock').textContent = 'حدّد الوقت بالساعة: من … إلى …'; $('#formClock').classList.remove('primary');
@@ -1878,7 +1925,7 @@ const renderMe = src => {
     <div class="list">${mine.map(i => `<div class="mini">
       <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag">${stateName(i)}</span></div>
       <p>${esc(i.title)}</p>
-      ${i.given || i.cancelled || ['given', 'cancelled'].includes(i.status) ? '' : i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b><br><span class="hint">محفوظ، ولتغييره تواصل مع إدارة المبادرة.</span></p>` : `<button class="btn ghost wide" data-clock="${esc(i.code)}" style="margin:6px 0">توقيت الاستلام</button>`}
+      ${i.given || i.cancelled || ['given', 'cancelled'].includes(i.status) ? '' : `${i.pickTime ? `<p class="picktime">وقت الاستلام: <b>من ${i.pickTime.from} إلى ${i.pickTime.to}</b></p>` : ''}<div class="row" style="margin:6px 0"><button class="btn ghost" data-clock="${esc(i.code)}">${i.pickTime ? 'عدّل الوقت' : 'توقيت الاستلام'}</button><button class="btn ghost" type="button" data-edit="${esc(i.code)}">عدّل العرض</button></div>`}
       ${active(i) ? `<p>صاحب الحجز: <span dir="ltr">${showPhone(i.queue[0])}</span>، وبقي على مهلته ${hm(i.bookedAt + DAY - now())}.</p>
         <div class="row"><a class="btn ghost" href="${wa(i.queue[0], i.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(i.queue[0])}</span></a>
         <button class="btn primary" data-done="${esc(i.code)}">تم التسليم</button></div>
@@ -1951,6 +1998,7 @@ const cancelBooking = async b => {
 const ck = {code:null, step:0, t:[{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]};
 const two = n => String(n).padStart(2, '0');
 const fmtT = x => `${x.h}:${two(x.m)} ${x.pm ? 'مساءً' : 'صباحًا'}`;
+const parseT = t => { const m = String(t || '').match(/(\d{1,2}):(\d{2})\s*(مساء|صباح)?/); return m ? {h:(+m[1] % 12) || 12, m:+m[2], pm:m[3] === 'مساء' ? 1 : 0} : null; };
 const mins = x => ((x.h % 12) + (x.pm ? 12 : 0)) * 60 + x.m;
 const STEPS = ['اختر ساعة البداية', 'اختر دقيقة البداية', 'اختر ساعة النهاية', 'اختر دقيقة النهاية'];
 const drawClock = () => {
@@ -1984,11 +2032,12 @@ const openCycleClock = () => {
 };
 $('#clock').closest('.clock').addEventListener('click', () => { if (isAdmin()) openCycleClock(); });
 const openClock = code => {
-  if (code === null) { ck.code = null; ck.step = 0; ck.t = [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]; $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false; return; }
+  if (code === null) { ck.code = null; ck.step = 0; ck.t = sel.pickTime ? [parseT(sel.pickTime.from) || {h:4, m:0, pm:1}, parseT(sel.pickTime.to) || {h:7, m:0, pm:1}] : [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}]; $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false; return; }
   const it = st.items.find(i => i.code === code);
   if (!it) return;
-  if (it.pickTime) { toast('التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة'); return; }
   ck.code = code; ck.step = 0; ck.t = [{h:4, m:0, pm:1}, {h:7, m:0, pm:1}];
+  /* الوقت المحفوظ يُفتح على عقاربه، ويُعدَّل بتحريكها */
+  if (it.pickTime) ck.t = [parseT(it.pickTime.from) || ck.t[0], parseT(it.pickTime.to) || ck.t[1]];
   $('#ckErr').innerHTML = ''; drawClock(); $('#clockModal').hidden = false;
 };
 /* لمس الساعة أو سحب العقرب: أي نقطة في الدائرة تختار أقرب رقم، والسحب يحرّك العقرب مع الإصبع */

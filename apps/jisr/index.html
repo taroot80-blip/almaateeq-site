@@ -438,6 +438,7 @@ body.open-mode:not(.is-admin) nav button[data-v="me"]{display:none}body.open-mod
 /* التنقل */
 nav{position:fixed;inset:auto 0 0 0;z-index:6;background:var(--paper);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding-inline:2px}
+nav button[data-v="stats"]{display:none}body.adm-on nav button[data-v="stats"]{display:flex}body.adm-on nav .wrap{grid-template-columns:repeat(5,1fr)!important}
 nav button{border:0;background:none;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
 nav svg{width:24px;height:24px}
 nav button[aria-current=page]{color:var(--green);font-weight:700}
@@ -535,18 +536,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <p class="sample" id="waModeNote" style="text-align:right"></p>
       <div id="waQueue"></div>
       <h3 style="margin-top:16px">الإحصاء</h3>
-      <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
-      <div id="statBox"></div>
-      <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
-      <div id="printOpts" class="popts" hidden>
-        <b>الفترة</b>
-        <div class="pick" id="pPer"><button type="button" data-pp="week" aria-pressed="false">أسبوعي</button><button type="button" data-pp="month" aria-pressed="true">شهري</button></div>
-        <b>المؤشرات والرسوم في التقرير</b>
-        <div class="pchecks" id="pSecs"></div>
-        <div class="row"><button class="btn small ghost" type="button" id="pAll">اختر الكل</button><button class="btn small ghost" type="button" id="pNone">لا شيء</button></div>
-        <button class="btn primary wide" type="button" id="pGo">اطبع أو احفظ PDF</button>
-        <p class="sample" style="text-align:right;margin:0">في نافذة الطباعة اختر «حفظ بتنسيق PDF» لتحفظه ملفًا، أو اختر الطابعة.</p>
-      </div>
+      <button class="btn primary wide" type="button" data-go="stats">افتح صفحة الإحصاءات والمؤشرات</button>
       <p class="sample demo-only">الإحصاء الحالي فيه بيانات تجريبية لعرض الفكرة.</p>
     </div>
   </section>
@@ -681,6 +671,24 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
 
   <!-- حسابي -->
   <section class="view" id="v-me"><div id="meBox"></div></section>
+  <section class="view" id="v-stats"><div class="panel">
+      <h2 style="text-align:center;margin-top:0">الإحصاءات والمؤشرات</h2>
+      <p class="hint" style="text-align:center;margin-top:0">للأدمنية فقط: كل ما عُرض وحُجز واستُلم وأُلغي وانتهى ورُفض وأُزيل، بالمناطق والأصناف والأشخاص.</p>
+      
+      <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
+      <div id="statBox"></div>
+      <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
+      <div id="printOpts" class="popts" hidden>
+        <b>الفترة</b>
+        <div class="pick" id="pPer"><button type="button" data-pp="week" aria-pressed="false">أسبوعي</button><button type="button" data-pp="month" aria-pressed="true">شهري</button></div>
+        <b>المؤشرات والرسوم في التقرير</b>
+        <div class="pchecks" id="pSecs"></div>
+        <div class="row"><button class="btn small ghost" type="button" id="pAll">اختر الكل</button><button class="btn small ghost" type="button" id="pNone">لا شيء</button></div>
+        <button class="btn primary wide" type="button" id="pGo">اطبع أو احفظ PDF</button>
+        <p class="sample" style="text-align:right;margin:0">في نافذة الطباعة اختر «حفظ بتنسيق PDF» لتحفظه ملفًا، أو اختر الطابعة.</p>
+      </div>
+  </div></section>
+
 </main>
 
 <nav aria-label="التنقل">
@@ -688,6 +696,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
     <button data-v="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>عرض اليوم</button>
     <button data-v="give"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>اعرض غرضًا</button>
     <button data-v="book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l2 2 3-4"/></svg>احجز بالكود</button>
+    <button data-v="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>الإحصاء</button>
     <button data-v="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/></svg>حسابي</button>
   </div>
 </nav>
@@ -997,7 +1006,7 @@ const go = v => {
   scrollTo({top:0});
 };
 document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
-const render = () => { if (OPEN) { document.body.classList.add('open-mode'); document.body.classList.toggle('is-admin', !!(st.me && isAdmin()) || REVEAL); if (view === 'me' && !(st.me && isAdmin()) && !REVEAL) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } } const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); };
+const render = () => { document.body.classList.toggle('adm-on', !!isAdmin()); if (view === 'stats' && !isAdmin()) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } if (OPEN) { document.body.classList.add('open-mode'); document.body.classList.toggle('is-admin', !!(st.me && isAdmin()) || REVEAL); if (view === 'me' && !(st.me && isAdmin()) && !REVEAL) { view = 'home'; document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === 'v-home')); } } const ce = document.getElementById('clock'); if (ce) ce.closest('.clock').classList.toggle('adm', isAdmin()); const cn = document.querySelector('.clock .cn'); if (cn) cn.textContent = (st.expMode || 'flash') === 'flash' ? 'ما لم يُحجز قبل انتهائه يومض، حتى يجدده صاحبه أو يحذفه' : 'ما لم يُحجز قبل انتهائه يُكتب عليه «أُلغي» ويبقى عند صاحبه'; setTimeout(() => typeof reSure === 'function' && reSure(), 0); tick(); if (view === 'home') { renderHome(); if (typeof renderStats === 'function') renderStats(); if (typeof renderWa === 'function') renderWa(); } if (view === 'me') renderMe('auto'); if (view === 'stats' && typeof renderStats === 'function') renderStats(); };
 const needLogin = (after, why) => { if (st.me) return false; if (OPEN) { openReg(after, why); return true; } toast('سجّل دخولك بإيميلك أولًا'); go('me'); return true; };
 /* النسخة المفتوحة: تسجيل مباشر برقم الواتساب عند أول عرض أو حجز، بلا صفحة «حسابي» */
 const openReg = (after, why) => {

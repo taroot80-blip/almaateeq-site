@@ -1,4 +1,4 @@
-const CACHE = 'jisr-alataa-v45';
+const CACHE = 'jisr-alataa-v46';
 const FILES = ['./', './index.html', './config.js', './privacy.html', './logo-96.png', './qr.js', './logo.webp', './hero.jpg', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));

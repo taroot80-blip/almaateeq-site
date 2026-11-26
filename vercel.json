@@ -285,6 +285,15 @@
           "value": "no-cache, must-revalidate"
         }
       ]
+    },
+    {
+      "source": "/apps/almisbar/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
     }
   ]
 }

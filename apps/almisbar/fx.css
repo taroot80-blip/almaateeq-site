@@ -1,0 +1,78 @@
+/* fx.css: لازورد وذهب متناوبان، والبصمة الحركية للمسبار */
+:root {
+  --turq-hi: #ffe39a; --turq: #F2B632; --turq-lo: #c98d1d; --turq-edge: #7a5208;
+  --gold: #F2B632; --gold2: #ffd98a; --dim: #b4bcdb;
+  --bronze1: rgba(66,46,20,.95); --bronze2: rgba(24,16,9,.95);
+  --spring: cubic-bezier(.34,1.56,.64,1); --ease-out: cubic-bezier(.23,1,.32,1);
+}
+/* التناوب بين اللازورد والذهب */
+.btn, .imgbtn { color: #1a120b; text-shadow: none; }
+.btn.ghost, .imgbtn.alt, .imgbtns .imgbtn:nth-child(even) {
+  background: linear-gradient(180deg, #33468f, #1a2560 60%, #101845); color: var(--gold2); border: 1px solid var(--gold);
+  box-shadow: inset 0 1px 0 rgba(255,225,160,.35), 0 5px 0 #03050f, 0 9px 16px rgba(0,0,0,.5); }
+.tile:nth-child(4n+2), .tile:nth-child(4n+3) { background: linear-gradient(160deg, var(--bronze1), var(--bronze2)); border-color: var(--gold); }
+.tile:nth-child(4n+2) .ic, .tile:nth-child(4n+3) .ic { background: linear-gradient(180deg, #33468f, #1a2560); color: var(--gold2); box-shadow: inset 0 1px 0 rgba(255,225,160,.35), 0 3px 0 #03050f; }
+.tile em { color: var(--gold2); } .tile .live { color: var(--gold2); background: rgba(242,182,50,.14); border-color: rgba(242,182,50,.45); }
+.vbody > .panel:nth-child(even), section.view > .panel:nth-of-type(even) { background: linear-gradient(160deg, var(--bronze1), var(--bronze2)); }
+.time.is-next, .st.now, .next { background: linear-gradient(160deg, rgba(242,182,50,.26), rgba(12,17,44,.95)); border-color: var(--gold); }
+.dock .tab[aria-selected="true"] { color: #1a120b; } .dock .tab[aria-selected="true"] svg { color: #1a120b; }
+/* أهداف اللمس */
+.btn, .btn.sm, .imgbtn, .seg button, .tab, .iconbtn, .place-btn, .x, .about button { min-height: 48px; }
+.iconbtn { min-width: 48px; }
+/* الضغط: ارتداد نابض */
+.btn, .imgbtn, .tile, .iconbtn, .place-btn, .seg button { transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out); -webkit-tap-highlight-color: transparent; }
+.btn:active, .imgbtn:active, .iconbtn:active, .place-btn:active, .seg button:active { transform: scale(.97); }
+.tile:active { transform: scale(.97) translateY(3px); }
+/* اللمعة والتوهج على الأزرار والمربعات */
+.btn, .imgbtn, .tile { position: relative; overflow: hidden; }
+.btn::before, .imgbtn::before, .tile::before { content: ""; position: absolute; inset: -20% auto -20% 0; width: 34%; pointer-events: none; z-index: 0;
+  background: linear-gradient(100deg, transparent, rgba(255,240,200,.42), transparent); transform: translateX(-180%) skewX(-18deg); animation: sheen 6.5s var(--ease-out) infinite; animation-delay: calc(var(--i, 0) * .22s); }
+.tile > * { position: relative; z-index: 1; }
+.imgbtn > *, .btn > * { position: relative; z-index: 1; }
+.btn:not(.ghost), .imgbtn:not(.alt) { animation: glow 3.2s ease-in-out infinite; }
+.next, .time.is-next { animation: glow2 3.6s ease-in-out infinite; }
+@keyframes sheen { 0%, 62% { transform: translateX(-180%) skewX(-18deg); } 82%, 100% { transform: translateX(420%) skewX(-18deg); } }
+@keyframes glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.12) drop-shadow(0 0 8px rgba(242,182,50,.55)); } }
+@keyframes glow2 { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 9px rgba(242,182,50,.4)); } }
+/* دخول خاطف بنابض عند فتح كل باب */
+.enter .tile, .enter > .panel, .enter > .banner, .enter > .card, .enter .vbody > * { animation: strike 520ms var(--spring) both; animation-delay: calc(min(var(--i, 0), 14) * 45ms); }
+@keyframes strike { 0% { opacity: 0; transform: translateX(-26px) scale(.95); filter: brightness(1.7); } 55% { opacity: 1; filter: brightness(1.2); } 100% { opacity: 1; transform: none; filter: none; } }
+.p2box, .eve { animation: strike 460ms var(--spring) both; }
+/* النوافذ والرسائل */
+dialog[open] { animation: popin 300ms var(--spring) both; }
+dialog[open]::backdrop { animation: fadeb 220ms ease-out both; }
+.toast { animation: popin 280ms var(--spring) both; }
+@keyframes popin { from { opacity: 0; transform: scale(.95) translateY(10px); } to { opacity: 1; transform: none; } }
+.toast { transform-origin: center; }
+@keyframes fadeb { from { opacity: 0; } to { opacity: 1; } }
+.dock .tab[aria-selected="true"] svg { animation: hop 360ms var(--spring); }
+@keyframes hop { 0% { transform: scale(.7); } 100% { transform: scale(1); } }
+/* الليزر والضوء */
+#lasers { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+#lasers i { position: absolute; left: -60%; width: 220%; height: 2px; opacity: 0; border-radius: 2px; transform-origin: center;
+  background: linear-gradient(90deg, transparent, var(--c), #fff8e0, var(--c), transparent); box-shadow: 0 0 10px var(--c), 0 0 26px var(--c); animation: laser var(--d) linear infinite; animation-delay: var(--w); }
+@keyframes laser { 0% { opacity: 0; transform: rotate(var(--a)) translateY(-60vh); } 8% { opacity: .55; } 42% { opacity: .55; } 50%, 100% { opacity: 0; transform: rotate(var(--a)) translateY(70vh); } }
+header.top::after { content: ""; position: absolute; inset: auto 0 -1px 0; height: 2px; pointer-events: none; overflow: hidden;
+  background: linear-gradient(90deg, transparent 0 40%, var(--gold) 50%, #5b7bff 56%, transparent 66%); background-size: 240% 100%; animation: scan 5s linear infinite; }
+@keyframes scan { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+/* الافتتاحية */
+#splash { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: radial-gradient(circle at 50% 44%, #1b2552, #070b1f 68%); transition: opacity 420ms ease-out; }
+#splash.out { opacity: 0; pointer-events: none; }
+#splash .box { display: grid; justify-items: center; gap: 10px; }
+#splash svg { width: min(52vw, 230px); height: auto; overflow: visible; }
+#splash .r1 { transform-origin: 256px 256px; animation: spin 7s linear infinite; }
+#splash .r2 { transform-origin: 256px 256px; animation: spin 4.4s linear infinite reverse; }
+#splash .moon { transform-origin: 256px 256px; animation: strike 700ms var(--spring) 120ms both; }
+#splash b { font: 700 2.5rem/1.2 var(--head); color: var(--gold); animation: strike 620ms var(--spring) 360ms both; }
+#splash span { font: 500 1.15rem/1.3 var(--head); color: var(--gold2); animation: strike 620ms var(--spring) 520ms both; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* تخفيف المؤثرات */
+.fx-lite #lasers, .fx-lite .btn::before, .fx-lite .imgbtn::before, .fx-lite .tile::before { display: none; }
+.fx-lite .btn, .fx-lite .imgbtn, .fx-lite .next, .fx-lite .time.is-next { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  #lasers, header.top::after, .btn::before, .imgbtn::before, .tile::before { display: none; }
+  .btn, .imgbtn, .next, .time.is-next, #splash .r1, #splash .r2 { animation: none !important; }
+  .enter .tile, .enter > .panel, .enter > .banner, .enter > .card, .enter .vbody > *, .p2box, .eve, dialog[open], .toast, #splash .moon, #splash b, #splash span { animation-name: fadeb !important; }
+}
+.tile > .live { position: absolute; }
+main input, main select, #bAfter { min-height: 48px; }

@@ -141,6 +141,7 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .tag.pend::before{content:"";width:8px;height:8px;border-radius:50%;background:#E0A100;animation:pdot 1.2s ease-in-out infinite}
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
 .btn.off{opacity:.45;pointer-events:none}
+.result.waitbox{border:2px solid var(--green);background:#F4F9F1;text-align:center}.result.waitbox .hg{display:block;font-size:34px;line-height:1.2;animation:pdot 1.6s ease-in-out infinite}.result.waitbox strong{display:block;font-size:20px;color:var(--green)}
 .apick{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin:6px 0}.apick span{font-size:12.5px;color:var(--muted);font-weight:700}
 .apick .pk{width:38px;height:38px;border-radius:50%;border:2px solid var(--green);background:var(--paper);color:var(--green);font-weight:800;font-size:16px;cursor:pointer}
 .apick .pk.on{background:var(--green);color:#fff}.apick .pk.sure{background:#F2B632;border-color:#B07D00;color:#3a2a00}
@@ -1948,14 +1949,15 @@ $('#bookForm').addEventListener('submit', async e => {
     if (it.status !== 'shown') { out.innerHTML = '<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>'; return; }
     it.queue.push(st.me); (it.queueT = it.queueT || {})[st.me] = now(); pos = it.queue.length - 1; if (pos === 0) { it.bookedAt = now(); it.confirmed = autoConf(); } logEv('booked', it.code, st.me); save();
   }
-  out.innerHTML = pos === 0 && !isConf(it)
-    ? `<div class="result ok"><strong>سُجّل حجزك، وأنت أول الحاجزين.</strong><span class="code">${code}</span>تؤكد الإدارة الحجز، ثم يظهر لك رقم العارض في نافذة الغرض.</div>`
+  /* من ينتظر: تنبيه واحد واضح «أنت في حالة انتظار، انتظر موافقة الإدارة» مثل الذي على نافذة الغرض */
+  const waitBox = n => `<div class="result waitbox"><span class="hg">⏳</span><strong>أنت في حالة انتظار</strong><span class="code">${code}</span>انتظر موافقة الإدارة على حجزك.<br>${n === 0 ? 'أنت أول الحاجزين.' : `أنت رقم ${n + 1} بين الحاجزين.`} يظهر لك رقم العارض في نافذة الغرض بعد الموافقة.</div>`;
+  out.innerHTML = pos > 0 || !isConf(it) ? waitBox(pos)
     : pos === 0
     ? `<div class="result ok"><strong>الغرض لك، فأنت أول من أرسل الكود.</strong><span class="code">${code}</span>
        ${esc(it.title)} · ${esc(it.area)}<br>${it.pickTime ? `وقت الاستلام: من ${it.pickTime.from} إلى ${it.pickTime.to}.<br>` : ''}تواصل مع المتبرع واتساب، واستلمه خلال ${hm(it.bookedAt + DAY - now())}.
        <div class="row"><a class="btn primary" href="${wa(it.owner, code + ' – حجز مؤكد من منصة جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.owner)}</span></a></div>
        <p class="free-note">رقم المتبرع: <span dir="ltr">${showPhone(it.owner)}</span> · لا تدفع أي مقابل.</p></div>`
-    : `<div class="result"><strong>دخلت الدور.</strong><br>أنت رقم ${pos + 1} بين الحاجزين، وإن تنازل من قبلك أو أكّدت الإدارة الحجز لك ظهر لك رقم العارض.</div>`;
+    : waitBox(pos);
 });
 
 /* حسابي */

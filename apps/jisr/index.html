@@ -1698,8 +1698,21 @@ const pairImage = async (it, phone, label) => {
     return c.toDataURL('image/jpeg', .88);
   } catch(e) { return await oneImage(it); }
 };
-const shareItem = async (it, text0) => {
-  const text = text0 || waPost(it), img = await oneImage(it);
+/* صورة بلاغ «تم الحجز» للقروب: صورة الغرض وعليها ختم «تم الحجز» الأحمر */
+const bookedImage = async it => {
+  try {
+    const st0 = await createImageBitmap(await (await fetch('stamp-booked.png')).blob()), base = await oneImage(it);
+    const bm = base ? await createImageBitmap(await (await fetch(base)).blob()) : null;
+    const W = 1080, H = bm ? Math.round(W * Math.min(1.25, bm.height / bm.width)) : 720, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    if (bm) { const r = Math.max(W / bm.width, H / bm.height), sw = W / r, sh = H / r; x.drawImage(bm, (bm.width - sw) / 2, (bm.height - sh) / 2, sw, sh, 0, 0, W, H); }
+    const sw = W * .72, sh = sw * st0.height / st0.width; x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 24;
+    x.drawImage(st0, (W - sw) / 2, (H - sh) / 2, sw, sh);
+    return c.toDataURL('image/jpeg', .88);
+  } catch(e) { return await oneImage(it); }
+};
+const shareItem = async (it, text0, img0) => {
+  const text = text0 || waPost(it), img = img0 || await oneImage(it);
   /* داخل تطبيق أندرويد: جسر يرسل الصورة الواحدة وعليها النص تعليقًا */
   if (window.JisrAndroid && JisrAndroid.canShareFiles && JisrAndroid.canShareFiles()) {
     JisrAndroid.share(text, JSON.stringify(img ? [img] : []));
@@ -1865,7 +1878,7 @@ document.addEventListener('click', async e => {
   if (d.cfmode) { if (await manage('confirm_mode', null, d.cfmode)) toast('تأكيد الحجز: ' + CF_MODES[d.cfmode]); return; }
   if (d.confirm) { const [c, p] = d.confirm.split('|'); t.disabled = true; if (await manage('confirm', c, p)) { open.add(c); render(); toast(`أُكّد الحجز لـ ${(st.people || {})[p] || 'المستفيد'}. أرسل له وللعارض الرسالتين الجاهزتين`); } else t.disabled = false; return; }
   const code = d.approve || d.approvepub || d.approvewa || d.pubonly || d.wabooked, it = st.items.find(i => i.code === code); if (!it) return;
-  if (d.wabooked) { if (await shareItem(it, msgGroupBooked(it))) toast('جُهّز بلاغ «تم الحجز» للقروب'); return; }
+  if (d.wabooked) { if (await shareItem(it, msgGroupBooked(it), await bookedImage(it))) toast('جُهّز بلاغ «تم الحجز» للقروب'); return; }
   if (d.pubonly) { if (await shareItem(it)) { if (SRV) { await api('jisr_admin', {_act:'wa_sent', _arg:code}).catch(() => {}); pull(true); } else { it.waSentAt = now(); save(); } toast('جُهّز الإعلان للنشر في الواتساب'); } return; }
   /* المشاركة أولًا ما دامت الضغطة طازجة، ثم القبول */
   const shared = d.approvepub || d.approvewa ? await shareItem(it) : false;

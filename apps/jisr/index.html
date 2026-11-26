@@ -138,6 +138,8 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .tag.pend::before{content:"";width:8px;height:8px;border-radius:50%;background:#E0A100;animation:pdot 1.2s ease-in-out infinite}
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
 .btn.off{opacity:.45;pointer-events:none}
+.tag.tst{background:#E8E2F7;color:#4B3A8C;border:1px dashed #7B68C9}
+.testbar{grid-column:1/-1;text-align:center;background:#E8E2F7;color:#4B3A8C;border:1.5px dashed #7B68C9;border-radius:14px;padding:8px 10px;font-weight:700}
 .remind{border:1.5px solid #B07D00;background:#FFF4D6;color:#6B4A00;border-radius:12px;padding:7px 10px;font-weight:700;margin:6px 0;animation:soonGlow 2.8s ease-in-out infinite}
 /* «سيُلغى قريبًا»: في وضع «يومض حتى يُقرَّر» يتحرك الختم ويدور حوله وهج ذهبي */
 .cancelled .stamp.soon{border-color:#B07D00;color:#8A5A00;background:color-mix(in srgb,#FFF4D6 92%,transparent);isolation:isolate;overflow:visible;animation:stamp .5s var(--ease) both,soonSway 2.8s ease-in-out .5s infinite}
@@ -530,6 +532,10 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <h3 style="margin-top:16px">تأكيد الحجز</h3>
       <div class="pick" id="cfMode" role="radiogroup" aria-label="تأكيد الحجز"></div>
       <p class="sample" style="text-align:right">تلقائي بالترتيب: الحجز لأول من حجز. يختار الأدمن: يرى الحاجزين بالترتيب ووقت كل حجز داخل نافذة الغرض، ويؤكده لمن يراه.</p>
+      <h3 style="margin-top:16px">وضع التجربة</h3>
+      <div class="pick" id="tsMode" role="radiogroup" aria-label="وضع التجربة"></div>
+      <p class="sample" style="text-align:right">في وضع التجربة يصبح عرضك «في الانتظار» كأي عضو فتقبله بنفسك، وتستطيع حجز غرضك برقمك لتجرّب الدورة كاملة. أغراض التجربة عليها علامة «تجربة» ولا تدخل الإحصاء.</p>
+      <div class="row"><button class="btn ghost danger" type="button" id="testClear">امسح أغراض التجربة</button></div>
       <h3 style="margin-top:16px">النشر في مجموعة واتساب</h3>
       <p class="hint" style="margin:0 0 6px">أين تظهر المعروضات الجديدة:</p>
       <div class="pick" id="waMode" role="radiogroup" aria-label="مكان النشر"></div>
@@ -819,7 +825,7 @@ const load = () => { if (SRV) return {offset:0, cycleStart:Date.now(), me:null, 
 const save = () => { if (SRV) return; mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e) {} };
 let st = load();
 /* تحويل ما يرسله الخادم إلى صيغة الواجهة: قائمة الحجز لا تحمل إلا ما يحق لك رؤيته */
-const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', approveMode:d.approveMode || 'manual', confirmMode:d.confirmMode || 'auto', groupName:d.groupName, groupLink:d.groupLink, expMode:d.expMode || 'flash', profile:d.profile || null, people:d.people || {}, log:d.log || [],
+const toSt = d => ({offset:d.serverNow - Date.now(), cycleStart:d.cycleStart, me:d.me, waMode:d.waMode || 'both', approveMode:d.approveMode || 'manual', confirmMode:d.confirmMode || 'auto', testMode:!!(d.profile && d.profile.testMode), groupName:d.groupName, groupLink:d.groupLink, expMode:d.expMode || 'flash', profile:d.profile || null, people:d.people || {}, log:d.log || [],
   items:(d.items || []).map(x => { const q = x.queue || Array(x.queueLen).fill('~'); if (!x.queue) { if (x.first) q[0] = x.first; if (x.myPos >= 0) q[x.myPos] = d.me; } return Object.assign({}, x, {owner:x.owner || '~', queue:q, queueT:x.queueT || {}}); })});
 const api = async (fn, args) => {
   const {data, error} = await sb.rpc(fn, args || {});
@@ -856,7 +862,8 @@ let wantCode = null; const linked = new Set();   // رابط غرض قادم م�
 
 const now = () => Date.now() + st.offset;
 /* سجل الأحداث للإحصاء: posted عُرض، booked حجز، given أُخذ، cancelled أُلغي، returned أُعيد (حجز لم يُستلم فعاد أو انتقل) */
-const logEv = (type, code, who) => { const it = st.items.find(i => i.code === code) || {}; (st.log = st.log || []).push({t:now(), type, code, who:who || null, area:(it.area || '').split('/')[0].trim() || 'غير محدد', cat:it.cat || 'أخرى ومتنوعات'}); };
+const logEv = (type, code, who) => { const it = st.items.find(i => i.code === code) || {}; if (it.test) return;   // أغراض التجربة لا تدخل الإحصاء
+  (st.log = st.log || []).push({t:now(), type, code, who:who || null, area:(it.area || '').split('/')[0].trim() || 'غير محدد', cat:it.cat || 'أخرى ومتنوعات'}); };
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const digits = s => String(s).replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632).replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776);
@@ -948,6 +955,7 @@ const renderWa = () => {
   const radio = (o, cur, attr) => Object.entries(o).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === cur}" aria-checked="${k === cur}" ${attr}="${k}">${v}</button>`).join('');
   $('#apMode').innerHTML = radio(AP_MODES, st.approveMode || 'manual', 'data-apmode');
   $('#cfMode').innerHTML = radio(CF_MODES, st.confirmMode || 'auto', 'data-cfmode');
+  $('#tsMode').innerHTML = radio({off:'مطفأ', on:'مشغّل'}, st.testMode ? 'on' : 'off', 'data-tsmode');
   const m = waMode();
   $('#waMode').innerHTML = Object.entries(WA_MODES).map(([k, v]) => `<button type="button" role="radio" aria-pressed="${k === m}" aria-checked="${k === m}" data-wamode="${k}">${v}</button>`).join('');
   $('#waModeNote').textContent = WA_NOTE[m];
@@ -1097,18 +1105,19 @@ const pairStep = {};
 const byName = it => OPEN ? (it.ownerName || (!SRV ? (st.people || {})[it.owner] : '') || '') : '';
 const win = (it, i) => {
   const g = it.given, x = it.cancelled, isOpen = open.has(it.code), ex = it.expired && !g && !x && !it.queue.length, pd = !isApp(it) && !x;
-  const tag = pd ? `<span class="tag pend">${isAdmin() ? 'ينتظر الموافقة' : 'في الانتظار'}</span>` : g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait cnt">(${it.queue.length}) حجزوا</span>` : '<span class="tag free">متاح</span>';
+  const tst = it.test ? '<span class="tag tst">تجربة</span>' : '';
+  const tag0 = pd ? `<span class="tag pend">${isAdmin() ? 'ينتظر الموافقة' : 'في الانتظار'}</span>` : g || x ? '' : it.relists && !it.queue.length && !ex ? `<span class="tag free">عاد متاحًا (${it.relists})</span>` : ex ? '<span class="tag exp">انتهى وقته</span>' : it.queue.length ? `<span class="tag wait cnt">(${it.queue.length}) حجزوا</span>` : '<span class="tag free">متاح</span>';
   return `<article class="win${pd ? ' pending' : g ? ' given' : x ? ' cancelled' : it.queue.length ? ' held' : ' live'}${ex ? ' expired' : ''}${isOpen ? ' open' : ''}" style="--i:${i}">
     <div class="pic">${picOf(it)}${g ? '<span class="stamp">ذهب لمستفيد</span>' : !x && it.queue.length && isConf(it) ? '<span class="stamp booked">تم الحجز</span>' : x ? (soonX(it) ? '<span class="stamp soon">سيُلغى قريبًا</span>' : '<span class="stamp">أُلغي</span>') : ''}</div>
     <div class="sum">
-      <div class="coderow"><span class="code">${esc(it.code)}</span>${tag}</div>
+      <div class="coderow"><span class="code">${esc(it.code)}</span>${tst}${tag0}</div>
       <div class="titlerow"><h3>${esc(it.title)}</h3>
         <button class="more" data-more="${esc(it.code)}" aria-expanded="${isOpen}" aria-label="شرح ${esc(it.title)}">${CHEV}</button></div>
       <p class="meta">${PIN}<span>${esc(it.area)}</span></p>
       ${pd ? '<p class="byname">ينتظر موافقة الإدارة على نشره لعامة المستفيدين.</p>' : g || x ? (byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '') : (() => { const my = it.queue.indexOf(st.me), n = it.queue.length;
         if (my === 0) return `<div class="heldbox"><span>${isConf(it) ? '🔘 محجوز لك' : '⏳ حجزك ينتظر تأكيد الإدارة'}</span><button type="button" data-cancel="${esc(it.code)}">تنازل عن الحجز</button></div>`;
         if (my > 0) return `<div class="heldbox"><span>دورك ${my + 1} من ${n}</span><button type="button" data-cancel="${esc(it.code)}">تنازل عن الحجز</button></div>`;
-        if (it.owner === st.me) return byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '';
+        if (it.owner === st.me && !(it.test && isAdmin())) return byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '';
         return `<div class="grabrow"><button class="grab" data-book="${esc(it.code)}">${n ? 'احجز وادخل الدور' : 'احجز الآن'}</button>${byName(it) ? `<span class="byname">المعلن: ${esc(byName(it))}</span>` : ''}</div>`; })()}
       ${!g && !x && it.cancels ? `<p class="cnt">أُلغي الحجز ${it.cancels}</p>` : ''}
       ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : x ? `<p class="thanks">${soonX(it) ? 'سيُلغى قريبًا، ويعود الغرض إلى صاحبه.' : 'أُلغي العرض، والغرض عند صاحبه.'}</p>` : ''}
@@ -1143,9 +1152,10 @@ const renderHome = () => { setTimeout(() => typeof reSure === 'function' && reSu
   const vis = list.filter(i => region === 'الكل' || i.area.startsWith(region)).filter(i => !q || (i.title + i.area + i.code + i.det).replace(/ى/g, 'ي').toUpperCase().includes(q));
   let html = vis.map(win).join('');
   const pd = isAdmin() ? pending() : [];
+  if (isAdmin() && st.testMode) html = '<div class="testbar">🧪 وضع التجربة مشغّل: ما تعرضه الآن «تجربة»، وتستطيع حجزه بنفسك</div>' + html;
   if (isAdmin() && !pd.length) html = `<section class="pendbox" style="border-style:solid;padding:8px"><div class="row" style="justify-content:center"><button class="btn small ghost" type="button" data-genrem>تذكير عام بتأكيد الاستلام</button></div></section>` + html;
   if (pd.length) html = `<section class="pendbox"><h3>عروض بانتظار الموافقة (${pd.length})</h3><div class="row" style="justify-content:center;margin:4px 0 8px"><button class="btn small ghost" type="button" data-genrem>تذكير عام بتأكيد الاستلام</button></div><p class="hint" style="text-align:center;margin:0 0 6px">لا تظهر للزوار حتى تقبلها.</p>${pd.map(i => `<div class="pend"><div class="ph">${picOf(i)}</div><div>
-    <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag pend">ينتظر الموافقة</span></div><b>${esc(i.title)}</b><br><small>${esc(i.area)} · ${esc(i.cond || '')}${ownerOf(i) ? ` · العارض: ${esc((st.people || {})[ownerOf(i)] || '')} <span dir="ltr">${showPhone(ownerOf(i))}</span>` : ''}</small>
+    <div class="coderow"><span class="code">${esc(i.code)}</span><span class="tag pend">ينتظر الموافقة</span>${i.test ? '<span class="tag tst">تجربة</span>' : ''}</div><b>${esc(i.title)}</b><br><small>${esc(i.area)} · ${esc(i.cond || '')}${ownerOf(i) ? ` · العارض: ${esc((st.people || {})[ownerOf(i)] || '')} <span dir="ltr">${showPhone(ownerOf(i))}</span>` : ''}</small>
     <div class="btns"><button class="btn primary" type="button" data-approvepub="${esc(i.code)}">اقبل وانشره في القروب</button><button class="btn primary" type="button" data-approvewa="${esc(i.code)}">اقبل وأرسله لجهة في واتساب</button>
       <button class="btn ghost" type="button" data-approve="${esc(i.code)}">اقبل واعرضه في المنصة فقط</button><button class="btn ghost danger" type="button" data-reject="${esc(i.code)}">ارفضه واحذفه</button></div></div></div>`).join('')}</section>` + html;
   remindOnce();
@@ -1590,8 +1600,8 @@ $('#giveForm').addEventListener('submit', e => {
   if (editing) { saveEdit(out, title, area, e.target, note); return; }
   if (SRV) { postSrv(out, title, area, e.target, note); return; }
   const code = newCode(area);
-  const ap = isAdmin() || st.approveMode === 'auto';
-  st.items.push({code, title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cats[0], cats:sel.cats.slice(), pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], queueT:{}, status:'waiting', shows:0, created:now(), approved:ap, approvedAt:ap ? now() : null});
+  const tm = isAdmin() && !!st.testMode, ap = (isAdmin() && !tm) || st.approveMode === 'auto';
+  st.items.push({code, title, det:detOf(title, note), area, cond:sel.cond, pick:sel.pick, cat:sel.cats[0], cats:sel.cats.slice(), pickTime:sel.pickTime, photos:photos.slice(), icon:'box', owner:st.me, queue:[], queueT:{}, status:'waiting', shows:0, created:now(), approved:ap, approvedAt:ap ? now() : null, test:tm});
   logEv('posted', code, st.me);
   fill(now()); save();
   postDone(out, st.items.find(i => i.code === code), e.target);
@@ -1864,6 +1874,19 @@ document.addEventListener('click', async e => {
   if (shared) { if (SRV) { await api('jisr_admin', {_act:'wa_sent', _arg:code}).catch(() => {}); pull(true); } else { const it2 = st.items.find(i => i.code === code); it2.waSentAt = now(); save(); } }
   toast(d.approvepub ? `قُبل ${code}، اختر القروب في واتساب` : d.approvewa ? `قُبل ${code}، اختر الجهة في واتساب` : `قُبل ${code}، ويظهر في المنصة`);
 });
+/* وضع التجربة للأدمن */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-tsmode],#testClear'); if (!t || !isAdmin()) return;
+  if (t.dataset.tsmode) {
+    const on = t.dataset.tsmode === 'on';
+    if (SRV) { const r = await api('jisr_test', {_act:on ? 'on' : 'off'}).catch(() => ({err:'net'})); if (r.err) return r.err === 'net' || toast(errMsg(r)); await pull(true); }
+    else { st.testMode = on; save(); render(); }
+    return toast(on ? 'شُغّل وضع التجربة: ما تعرضه الآن «تجربة» لا يدخل الإحصاء' : 'أُطفئ وضع التجربة');
+  }
+  if (!sure(t, 'اضغط مرة أخرى: تُمسح كل أغراض التجربة')) return;
+  if (SRV) { const r = await api('jisr_test', {_act:'clear'}).catch(() => ({err:'net'})); if (r.err) return r.err === 'net' || toast(errMsg(r)); await pull(true); toast(`مُسحت أغراض التجربة (${r.n || 0})`); }
+  else { const n = st.items.filter(i => i.test).length; st.items = st.items.filter(i => !i.test); fill(now()); save(); render(); toast(`مُسحت أغراض التجربة (${n})`); }
+});
 /* احجز بالكود */
 $('#bookForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1886,7 +1909,7 @@ $('#bookForm').addEventListener('submit', async e => {
   if (!it) { out.innerHTML = `<div class="result err">لا يوجد غرض بالكود ${code}. تأكد منه في نافذة الغرض.</div>`; return; }
   if (it.cancelled || it.status === 'cancelled') { out.innerHTML = '<div class="result">أُلغي عرض هذا الغرض، وهو عند صاحبه.</div>'; return; }
   if (it.given || it.status === 'given') { out.innerHTML = '<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>'; return; }
-  if (it.owner === st.me) { out.innerHTML = '<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>'; return; }
+  if (it.owner === st.me && !(it.test && isAdmin())) { out.innerHTML = '<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>'; return; }
   let pos = it.queue.indexOf(st.me);
   if (pos === -1 && !SRV) {
     if (it.status !== 'shown') { out.innerHTML = '<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>'; return; }

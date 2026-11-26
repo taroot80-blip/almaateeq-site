@@ -1873,6 +1873,17 @@ const shareItem = async (it, text0, img0) => {
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   return true;
 };
+/* بلاغ «تم الحجز» للقروب: الصورة وعليها الختم الأحمر وحدها، دون أي نص ولا رابط */
+const shareImageOnly = async (it, img) => {
+  if (!img) return false;
+  if (window.JisrAndroid && JisrAndroid.canShareFiles && JisrAndroid.canShareFiles()) { JisrAndroid.share('', JSON.stringify([img])); return true; }
+  try {
+    const b = await (await fetch(img)).blob(), files = [new File([b], `${it.code}.jpg`, {type:'image/jpeg'})];
+    if (navigator.canShare && navigator.canShare({files})) { await navigator.share({files}); return true; }
+  } catch(err) { if (err && err.name === 'AbortError') return false; }
+  const l = document.createElement('a'); l.href = img; l.download = `${it.code}-تم-الحجز.jpg`; document.body.appendChild(l); l.click(); l.remove();
+  toast('حُفظت صورة «تم الحجز»، أرسلها إلى القروب من واتساب'); return false;
+};
 /* إلغاء العرض وإزالته من نافذة الغرض، وإبلاغ المجموعة بالإلغاء */
 const cancelText = it => [`${it.code}⛔ أُلغي هذا العرض`, `📍${it.title} · ${it.area.replace(/\s*\/\s*/g, '-')}`, '', 'لم يعد متاحًا للحجز، فلا تُرسلوا كوده.', '', GROUP.name, GROUP.link].join('\n');
 /* في تطبيق أندرويد: روابط واتساب تُفتح في الواتساب الذي اختاره العضو (الأعمال أو العادي) */
@@ -2030,7 +2041,7 @@ document.addEventListener('click', async e => {
   if (d.cfmode) { if (await manage('confirm_mode', null, d.cfmode)) toast('تأكيد الحجز: ' + CF_MODES[d.cfmode]); return; }
   if (d.confirm) { const [c, p] = d.confirm.split('|'); t.disabled = true; if (await manage('confirm', c, p)) { open.add(c); render(); toast(`أُكّد الحجز لـ ${(st.people || {})[p] || 'المستفيد'}. أرسل له وللعارض الرسالتين الجاهزتين`); } else t.disabled = false; return; }
   const code = d.approve || d.approvepub || d.approvewa || d.pubonly || d.wabooked, it = st.items.find(i => i.code === code); if (!it) return;
-  if (d.wabooked) { if (await shareItem(it, msgGroupBooked(it), await bookedImage(it))) toast('جُهّز بلاغ «تم الحجز» للقروب'); return; }
+  if (d.wabooked) { if (await shareImageOnly(it, await bookedImage(it))) toast('جُهّزت صورة «تم الحجز» للقروب'); return; }
   if (d.pubonly) { if (await shareItem(it)) { if (SRV) { await api('jisr_admin', {_act:'wa_sent', _arg:code}).catch(() => {}); pull(true); } else { it.waSentAt = now(); save(); } toast('جُهّز الإعلان للنشر في الواتساب'); } return; }
   /* المشاركة أولًا ما دامت الضغطة طازجة، ثم القبول */
   const shared = d.approvepub || d.approvewa ? await shareItem(it) : false;

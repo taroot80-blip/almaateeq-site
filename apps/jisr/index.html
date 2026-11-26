@@ -141,6 +141,9 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .tag.pend::before{content:"";width:8px;height:8px;border-radius:50%;background:#E0A100;animation:pdot 1.2s ease-in-out infinite}
 @keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
 .btn.off{opacity:.45;pointer-events:none}
+.apick{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin:6px 0}.apick span{font-size:12.5px;color:var(--muted);font-weight:700}
+.apick .pk{width:38px;height:38px;border-radius:50%;border:2px solid var(--green);background:var(--paper);color:var(--green);font-weight:800;font-size:16px;cursor:pointer}
+.apick .pk.on{background:var(--green);color:#fff}.apick .pk.sure{background:#F2B632;border-color:#B07D00;color:#3a2a00}
 .tag.tst{background:#E8E2F7;color:#4B3A8C;border:1px dashed #7B68C9}
 .testbar{grid-column:1/-1;text-align:center;background:#E8E2F7;color:#4B3A8C;border:1.5px dashed #7B68C9;border-radius:14px;padding:8px 10px;font-weight:700}
 .remind{border:1.5px solid #B07D00;background:#FFF4D6;color:#6B4A00;border-radius:12px;padding:7px 10px;font-weight:700;margin:6px 0;animation:soonGlow 2.8s ease-in-out infinite}
@@ -592,7 +595,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <p>اكتب كود الغرض فقط، كما يظهر على نافذته.</p>
       <label for="bCode">الكود</label>
       <input class="field ltr big" id="bCode" autocomplete="off" placeholder="QT-5780" maxlength="12">
-      <button class="btn primary wide" type="submit" style="margin-top:12px">أرسل الكود</button>
+      <button class="btn primary wide" type="submit" style="margin-top:12px">أكّد الحجز بالكود</button>
       <div id="bookResult"></div>
       <div class="rules">
         <h3>مهم</h3>
@@ -1107,7 +1110,10 @@ const admQ = it => {
       ${own ? `<a class="btn small ghost" href="${wa(own, msgRemind(it))}" target="_blank" rel="noopener" data-walink>ذكّر العارض</a>` : ''}</div>` : ''}
     <div class="row"><button class="btn small primary" type="button" data-done="${esc(it.code)}">استلمه المستفيد</button></div>` : ''}</div>${pub}`;
 };
-const pairStep = {};
+const pairStep = {}; let pickArm = {};
+/* أرقام الحاجزين على النافذة نفسها للأدمن: يضغط الرقم 1 أو 2 أو 3 فيعتمد صاحبه مستحقًا */
+const admPick = it => { const q = it.queue.filter(p => p && p !== '~'); if (!q.length) return '';
+  return `<div class="apick"><span>اعتمد:</span>${q.map((p, k) => `<button type="button" class="pk${k === 0 && isConf(it) ? ' on' : ''}" data-pick="${esc(it.code)}|${esc(p)}|${k + 1}" title="${esc((st.people || {})[p] || 'مستفيد')} ${showPhone(p)}">${k === 0 && isConf(it) ? '✔' : k + 1}</button>`).join('')}</div>`; };
 /* النسخة المفتوحة: اسم المعلن بجانب زر «احجز» */
 const byName = it => OPEN ? (it.ownerName || (!SRV ? (st.people || {})[it.owner] : '') || '') : '';
 const win = (it, i) => {
@@ -1126,6 +1132,7 @@ const win = (it, i) => {
         if (my > 0) return `<div class="heldbox"><span>دورك ${my + 1} من ${n}</span><button type="button" data-cancel="${esc(it.code)}">تنازل عن الحجز</button></div>`;
         if (it.owner === st.me && !(it.test && isAdmin())) return byName(it) ? `<p class="byname">المعلن: ${esc(byName(it))}</p>` : '';
         return `<div class="grabrow"><button class="grab" data-book="${esc(it.code)}">${n ? 'احجز وادخل الدور' : 'احجز الآن'}</button>${byName(it) ? `<span class="byname">المعلن: ${esc(byName(it))}</span>` : ''}</div>`; })()}
+      ${isAdmin() && !g && !x ? admPick(it) : ''}
       ${!g && !x && it.cancels ? `<p class="cnt">أُلغي الحجز ${it.cancels}</p>` : ''}
       ${g ? '<p class="thanks">الشكر الجزيل لمن قدّم هذا الشيء.</p>' : x ? `<p class="thanks">${soonX(it) ? 'سيُلغى قريبًا، ويعود الغرض إلى صاحبه.' : 'أُلغي العرض، والغرض عند صاحبه.'}</p>` : ''}
       <div class="det${isOpen ? ' open' : ''}"><div><div class="det-in">
@@ -1870,8 +1877,14 @@ const manage = async (act, code, arg) => {
   save(); render(); return true;
 };
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-approve],[data-approvepub],[data-approvewa],[data-pubonly],[data-confirm],[data-wabooked],[data-apmode],[data-cfmode],[data-reject],[data-pair],[data-genrem]'); if (!t) return;
+  const t = e.target.closest('[data-pick],[data-approve],[data-approvepub],[data-approvewa],[data-pubonly],[data-confirm],[data-wabooked],[data-apmode],[data-cfmode],[data-reject],[data-pair],[data-genrem]'); if (!t) return;
   const d = t.dataset;
+  if (d.pick) { const [c, p, k] = d.pick.split('|'); const it0 = st.items.find(i => i.code === c);
+    if (it0 && it0.queue[0] === p && isConf(it0)) return toast(`الحاجز ${k} معتمد مستحقًا بالفعل`);
+    /* ضغطتان: الأولى تُعلِم الرقم وتذكر صاحبه، والثانية تعتمده */
+    if (!(pickArm.k === d.pick && Date.now() < pickArm.until)) { pickArm = {k:d.pick, until:Date.now() + 8000}; document.querySelectorAll('.apick .pk.sure').forEach(x => x.classList.remove('sure')); t.classList.add('sure'); return toast(`اضغط الرقم ${k} مرة أخرى لاعتماد ${(st.people || {})[p] || 'المستفيد'} ${showPhone(p)}`); }
+    pickArm = {};
+    t.disabled = true; if (await manage('confirm', c, p)) toast(`اعتُمد الحاجز ${k} مستحقًا. أرسل للعارض والمستفيد من نافذة الغرض`); else t.disabled = false; return; }
   if (t.matches('[data-genrem]')) { if (await shareTo(msgGeneralRemind(), [], '')) toast('اختر في واتساب قائمة البث أو الجهات المطلوبة'); return; }
   if (d.reject) { if (!sure(t, 'اضغط مرة أخرى: يُحذف العرض نهائيًا مع كل ما يتعلق به')) return; t.disabled = true;
     if (SRV) { const r = await api('jisr_reject', {_code:d.reject}).catch(() => ({err:'net'})); if (r.err) { t.disabled = false; return r.err === 'net' || toast(errMsg(r)); } await pull(true); }

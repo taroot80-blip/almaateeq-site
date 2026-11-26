@@ -81,6 +81,8 @@ header{position:sticky;top:0;padding-top:env(safe-area-inset-top);z-index:5;back
 .btn.wide{width:100%}
 .btn.primary{position:relative;isolation:isolate;overflow:hidden;background:var(--green);color:#fff;border:0}
 .btn.primary::before{content:"";position:absolute;inset:-80%;z-index:-2;background:conic-gradient(from 0deg,transparent 0 72%,rgba(63,227,236,.95) 82%,transparent 92%);animation:spin var(--live) linear infinite}
+/* سفاري القديم لا يقص الحلقة المتحركة بالزوايا المستديرة، فتُقص له وحده */
+@supports not (color: light-dark(#000, #fff)) { .win,.btn.primary,.clock,.nomoney,.empty-win{-webkit-mask-image:-webkit-radial-gradient(white,black)} }
 .btn.primary::after{content:"";position:absolute;inset:2px;border-radius:12px;background:var(--green);z-index:-1}
 @keyframes spin{to{transform:rotate(1turn)}}
 .btn.ghost{background:transparent}
@@ -1080,7 +1082,7 @@ const openActs = it => {
     if (it.queue[0] && it.queue[0] !== '~') return `<div class="ownact">${rem}<p>المستفيد: <span dir="ltr">${showPhone(it.queue[0])}</span>، وبقي على مهلته ${hm(it.bookedAt + DAY - now())}.</p>
     <div class="row"><a class="btn ghost" href="${wa(it.queue[0], it.code + ' – بخصوص حجزك في جسر العطاء')}" target="_blank" rel="noopener">واتساب <span dir="ltr">${showPhone(it.queue[0])}</span></a>
     <button class="btn primary" type="button" data-done="${esc(it.code)}">استلمه المستفيد</button></div>
-    <button class="btn text" type="button" data-skip="${esc(it.code)}">لم يحضر، حوّله للتالي</button></div>`;
+</div>`;
   }
   if (it.queue[0] === st.me) {
     if (!isConf(it)) return `<div class="ownact"><p>أنت أول الحاجزين، وحجزك ينتظر تأكيد الإدارة. يظهر لك رقم العارض بعد التأكيد.</p></div>`;
@@ -1140,8 +1142,8 @@ const win = (it, i) => {
         ${pics(it).length > 1 ? `<div class="strip">${pics(it).map((u, k) => `<img src="${u}" alt="صورة ${k + 1}" data-pic="${k}" class="${k ? '' : 'on'}">`).join('')}</div>` : ''}
         <p>${esc(it.det || 'لم يكتب المتبرع شرحًا إضافيًا.')}</p>
         <dl><dt>الحالة</dt><dd>${esc(it.cond)}</dd><dt>الاستلام</dt><dd>${esc(it.pick)}</dd><dt>وقت الاستلام</dt><dd>${it.pickTime ? `من ${it.pickTime.from} إلى ${it.pickTime.to}` : 'يُتفق عليه في واتساب'}</dd><dt>المنطقة</dt><dd>${esc(it.area)}</dd></dl>
-        ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-clock="${esc(it.code)}">${it.pickTime ? 'عدّل وقت الاستلام' : 'حدّد توقيت الاستلام'}</button><button class="btn ghost" type="button" data-edit="${esc(it.code)}">عدّل العرض</button></div>` : ''}
-        ${!g && !x && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
+        ${!g && !x && !it.queue.length && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-clock="${esc(it.code)}">${it.pickTime ? 'عدّل وقت الاستلام' : 'حدّد توقيت الاستلام'}</button><button class="btn ghost" type="button" data-edit="${esc(it.code)}">عدّل العرض</button></div>` : ''}
+        ${!g && !x && !it.queue.length && (it.owner === st.me || isAdmin()) ? `<div class="row" style="margin-bottom:8px"><button class="btn ghost" data-wapost="${esc(it.code)}">انسخ الإعلان لواتساب</button><button class="btn ghost" data-washare="${esc(it.code)}">شاركه في واتساب</button></div>` : ''}
         ${isAdmin() ? admQ(it) : ''}
         ${OPEN ? openActs(it) : ''}
         ${ex && (it.owner === st.me || isAdmin()) ? '<p class="free-note">انتهى يوم عرضه ولم يُحجز. جدّده يومًا آخر، أو احذفه من العرض فيعود عندك.</p>' : ''}

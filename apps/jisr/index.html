@@ -1023,7 +1023,7 @@ const openReg = (after, why) => {
   document.body.insertAdjacentHTML('beforeend', `<div id="regModal" class="regm" role="dialog" aria-modal="true"><form class="regbox" novalidate>
     <h3>${give ? 'ضع رقمك الذي عليه واتساب' : 'ضع رقمك الذي عليه حساب الواتساب كي نعتمد الحجز'}</h3>
     <p class="hint">${give ? 'عليه يراسلك من يحجز غرضك. يُحفظ مرة واحدة.' : 'عليه تتواصل مع صاحب الغرض. يُحفظ مرة واحدة.'}</p>
-    <input class="field ltr" id="rgPh" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" autocomplete="tel">
+    <input class="field ltr" id="rgPh" inputmode="tel" placeholder="05xxxxxxxx" autocomplete="tel">
     <input class="field" id="rgNm" maxlength="30" placeholder="${give ? 'اسمك أو كنيتك (يظهر في إعلانك)' : 'كنيتك (اختياري)، وإلا تظهر باسم «المستفيد»'}">
     <div id="rgMsg"></div>
     <div class="row"><button class="btn primary" type="submit">${give ? 'سجّل رقمي وأعلن' : 'سجّل رقمي واحجز'}</button><button class="btn ghost" type="button" id="rgX">إلغاء</button></div></form></div>`);
@@ -1957,7 +1957,7 @@ const renderMe = src => {
       <h2>ادخل برقم واتسابك</h2>
       <p>تصفّح المعروضات متاح للجميع بلا تسجيل. وللعرض أو الحجز اكتب رقم واتسابك مرة واحدة، فيصير زرّ تواصل يراه من يحجز غرضك أو تحجز غرضه.</p>
       <label for="ph">رقم واتساب</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${esc(pendingPhoneRaw || '')}">
+      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${esc(pendingPhoneRaw || '')}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر بجانب زر «احجز» في إعلاناتك)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       <button class="btn primary wide" type="submit" style="margin-top:14px">ادخل</button>
@@ -1992,7 +1992,7 @@ const renderMe = src => {
       ${needOnly ? '' : `<label for="em">الإيميل</label>
       <input class="field ltr" id="em" type="email" inputmode="email" autocomplete="email" placeholder="name@gmail.com" value="${esc(pendingEmail)}" ${otp ? 'readonly' : ''}>`}
       ${otp && !needOnly ? '' : `<label for="ph">رقم واتساب ${SRV && !needOnly ? '<span class="hint">(أول مرة فقط)</span>' : ''}</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx أو رقم كويتي" value="${phoneVal}">
+      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${phoneVal}">
       <p class="sample" style="text-align:right;margin:4px 0 0">اكتب الرقم الذي عليه واتساب فعلًا، فعليه يراسلك من يحجز غرضك أو تحجز غرضه.</p>
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">`}

@@ -23,7 +23,8 @@ grant execute on function jisr_set_area(text) to authenticated;
 
 -- التسجيل بالرقم صار يأخذ البلد أيضًا: الدالة القديمة تبقى باسم jisr_claim_phone0
 do $$ begin
-  if exists (select 1 from pg_proc where proname = 'jisr_claim_phone' and pronargs = 2) then
+  if exists (select 1 from pg_proc where proname = 'jisr_claim_phone' and pronargs = 2)
+     and not exists (select 1 from pg_proc where proname = 'jisr_claim_phone0') then
     alter function jisr_claim_phone(text, text) rename to jisr_claim_phone0;
   end if;
 end $$;

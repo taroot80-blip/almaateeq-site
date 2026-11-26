@@ -508,7 +508,7 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <div class="srv-only">
         <h3 style="margin-top:16px">الأرقام</h3>
         <label for="admPhone">رقم الجوال</label>
-        <input class="field ltr" id="admPhone" inputmode="tel" placeholder="05xxxxxxxx">
+        <input class="field ltr" id="admPhone" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone>
         <div class="row"><button class="btn small" data-adm="ban">أوقف الرقم</button><button class="btn small ghost" data-adm="unban">أعِد الرقم</button><button class="btn small ghost" data-adm="admin">اجعله من الإدارة</button></div>
         <label for="admCode">كود غرض</label>
         <input class="field ltr" id="admCode" placeholder="QT-5780">
@@ -852,7 +852,7 @@ const ERR = {
   no_booker:'لا يوجد صاحب حجز الآن.',
   locked:'التوقيت محفوظ، ولتغييره تواصل مع إدارة المبادرة.',
   not_admin:'هذا الحساب ليس من حسابات الإدارة.',
-  bad_phone:'اكتب رقم واتساب صحيحًا، مثل 0501234567 أو رقمًا كويتيًا من ثمانية أرقام.',
+  bad_phone:'اكتب رقم واتساب من 10 أرقام يبدأ بـ 05، مثل 0501234567، دون حروف أو رموز أو مسافات.',
   phone_taken:window.JISR_OPEN ? 'هذا الرقم مسجّل بإيميل في المنصة الأساسية، فادخل منها: almaateeq.com/jisr' : 'هذا الرقم مسجّل بإيميل آخر. ادخل بإيميلك السابق، أو تواصل كتابةً مع إدارة المبادرة.'
 };
 const errMsg = r => ERR[r.err] || 'لم يتم الطلب، حاول مرة أخرى.';
@@ -894,10 +894,14 @@ $('#sndBtn').addEventListener('click', () => { SND.set(!SND.on); if (SND.on) SND
 /* نقرة خفيفة مع كل زر، ونغمة تنبيه مع ضغطات التأكيد والمسح */
 document.addEventListener('click', e => { const b = e.target.closest('button, .grab, [data-go], [data-book]'); if (!b || b.id === 'sndBtn') return; SND.play(b.id === 'wipe' || b.classList.contains('sure') ? 'warn' : 'tap'); }, true);
 /* يقبل: 05xxxxxxxx أو 5xxxxxxxx (السعودية)، وثمانية أرقام (الكويت)، أو الرقم الدولي بمفتاحه مع + أو 00 أو دونهما */
-const phoneOk = s => { let p = digits(s).replace(/\D/g, '').replace(/^00/, '');
+/* رقم التسجيل: 10 أرقام بالضبط يبدأ بـ 05، ولا يُقبل فيه حرف ولا رمز */
+const phoneOk = s => { const raw = digits(String(s || '')).trim(); return /^05\d{8}$/.test(raw) ? '966' + raw.slice(1) : null; };
+const phoneOkLoose = s => { let p = digits(s).replace(/\D/g, '').replace(/^00/, '');
   if (/^05\d{8}$/.test(p)) p = '966' + p.slice(1); else if (/^5\d{8}$/.test(p)) p = '966' + p; else if (/^[4569]\d{7}$/.test(p)) p = '965' + p;
   return /^\d{10,13}$/.test(p) ? p : null; };
 const showPhone = p => '+' + p;
+/* مربع الرقم يقبل الأرقام فقط، وعشرة أرقام على الأكثر */
+document.addEventListener('input', e => { const f = e.target.closest && e.target.closest('[data-phone]'); if (!f) return; const v = digits(f.value).replace(/\D/g, '').slice(0, 10); if (v !== f.value) f.value = v; });
 const normCode = s => { const c = digits(s).toUpperCase().replace(/[^A-Z0-9]/g, ''); const m = c.match(/^([A-Z]{2,3})(\d{4})$/); return m ? m[1] + '-' + m[2] : null; };
 const wa = (p, msg) => `https://wa.me/${p}?text=${encodeURIComponent(msg)}`;
 const hm = ms => { ms = Math.max(0, ms); const h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3); return h ? `${h} ساعة و${m} دقيقة` : `${m} دقيقة`; };
@@ -1023,7 +1027,7 @@ const openReg = (after, why) => {
   document.body.insertAdjacentHTML('beforeend', `<div id="regModal" class="regm" role="dialog" aria-modal="true"><form class="regbox" novalidate>
     <h3>${give ? 'ضع رقمك الذي عليه واتساب' : 'ضع رقمك الذي عليه حساب الواتساب كي نعتمد الحجز'}</h3>
     <p class="hint">${give ? 'عليه يراسلك من يحجز غرضك. يُحفظ مرة واحدة.' : 'عليه تتواصل مع صاحب الغرض. يُحفظ مرة واحدة.'}</p>
-    <input class="field ltr" id="rgPh" inputmode="tel" placeholder="05xxxxxxxx" autocomplete="tel">
+    <input class="field ltr" id="rgPh" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone autocomplete="tel">
     <input class="field" id="rgNm" maxlength="30" placeholder="${give ? 'اسمك أو كنيتك (يظهر في إعلانك)' : 'كنيتك (اختياري)، وإلا تظهر باسم «المستفيد»'}">
     <div id="rgMsg"></div>
     <div class="row"><button class="btn primary" type="submit">${give ? 'سجّل رقمي وأعلن' : 'سجّل رقمي واحجز'}</button><button class="btn ghost" type="button" id="rgX">إلغاء</button></div></form></div>`);
@@ -1228,7 +1232,7 @@ $('#wipe').addEventListener('click', async () => {
 /* أدوات الإدارة على الخادم */
 document.querySelectorAll('[data-adm]').forEach(b => b.addEventListener('click', async () => {
   const act = b.dataset.adm, byCode = act === 'unlock_time';
-  const arg = byCode ? normCode($('#admCode').value) : phoneOk($('#admPhone').value);
+  const arg = byCode ? normCode($('#admCode').value) : phoneOkLoose($('#admPhone').value);
   if (!arg) return toast(byCode ? 'اكتب كود الغرض صحيحًا' : 'اكتب رقم جوال صحيحًا');
   const r = await api('jisr_admin', {_act:act, _arg:arg});
   if (r.err) return toast(errMsg(r));
@@ -1957,7 +1961,7 @@ const renderMe = src => {
       <h2>ادخل برقم واتسابك</h2>
       <p>تصفّح المعروضات متاح للجميع بلا تسجيل. وللعرض أو الحجز اكتب رقم واتسابك مرة واحدة، فيصير زرّ تواصل يراه من يحجز غرضك أو تحجز غرضه.</p>
       <label for="ph">رقم واتساب</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${esc(pendingPhoneRaw || '')}">
+      <input class="field ltr" id="ph" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone value="${esc(pendingPhoneRaw || '')}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر بجانب زر «احجز» في إعلاناتك)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
       <button class="btn primary wide" type="submit" style="margin-top:14px">ادخل</button>
@@ -1992,7 +1996,7 @@ const renderMe = src => {
       ${needOnly ? '' : `<label for="em">الإيميل</label>
       <input class="field ltr" id="em" type="email" inputmode="email" autocomplete="email" placeholder="name@gmail.com" value="${esc(pendingEmail)}" ${otp ? 'readonly' : ''}>`}
       ${otp && !needOnly ? '' : `<label for="ph">رقم واتساب ${SRV && !needOnly ? '<span class="hint">(أول مرة فقط)</span>' : ''}</label>
-      <input class="field ltr" id="ph" inputmode="tel" placeholder="05xxxxxxxx" value="${phoneVal}">
+      <input class="field ltr" id="ph" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone value="${phoneVal}">
       <p class="sample" style="text-align:right;margin:4px 0 0">اكتب الرقم الذي عليه واتساب فعلًا، فعليه يراسلك من يحجز غرضك أو تحجز غرضه.</p>
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر للإدارة فقط)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">`}

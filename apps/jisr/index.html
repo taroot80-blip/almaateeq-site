@@ -403,6 +403,9 @@ body.open-mode:not(.is-admin) nav button[data-v="me"]{display:none}body.open-mod
 .lvls div{border-radius:12px;padding:8px;text-align:center;font-size:12.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .lvls b{display:block;font-size:22px}
 .lvls small{display:block;color:inherit;opacity:.85;margin-top:2px}
+.dtf{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.dtf label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700}.dtf .wide{grid-column:1/-1}
+.dtwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px;border-radius:10px}.dtable{display:table;white-space:nowrap;font-size:12.5px}.dtable tr.gv td{background:rgba(45,85,48,.08)}
+.dtp{border:0;background:none;color:var(--green);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
 #printArea .cap{font-size:12pt}
 #printArea section{break-inside:avoid}
 #printArea{display:none}
@@ -690,9 +693,9 @@ window.JISR_SRV = !!(window.JISR_CONFIG && JISR_CONFIG.url && JISR_CONFIG.anonKe
       <h2 style="text-align:center;margin-top:0">الإحصاءات والمؤشرات</h2>
       <p class="hint" style="text-align:center;margin-top:0">للأدمنية فقط: كل ما عُرض وحُجز واستُلم وأُلغي وانتهى ورُفض وأُزيل، بالمناطق والأصناف والأشخاص.</p>
       
-      <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button></div>
+      <div class="stabs"><button class="chip" data-per="week" aria-pressed="true">أسبوعي</button><button class="chip" data-per="month" aria-pressed="false">شهري</button><button class="chip" data-per="report" aria-pressed="false">التقرير الشهري العام</button><button class="chip" data-per="detail" aria-pressed="false">التقرير التفصيلي</button></div>
       <div id="statBox"></div>
-      <div class="row"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
+      <div class="row" id="printRow"><button class="btn primary" id="printStats">اطبع الإحصاء PDF</button></div>
       <div id="printOpts" class="popts" hidden>
         <b>الفترة</b>
         <div class="pick" id="pPer"><button type="button" data-pp="week" aria-pressed="false">أسبوعي</button><button type="button" data-pp="month" aria-pressed="true">شهري</button></div>
@@ -776,6 +779,9 @@ const TAX = {
 };
 const CATS = Object.keys(TAX);
 const AREAS = ['تاروت','القطيف','سيهات','العوامية','صفوى','الأوجام','أم الحمام','الجارودية','الجش','أم الساهك','القديح','الدمام'];
+/* البلد بند أساسي في التسجيل وشرط للحجز */
+const areaSel = (id, v) => `<select class="field" id="${id}" required><option value="">اختر بلدك (إلزامي)</option>${AREAS.map(a => `<option${a === v ? ' selected' : ''}>${a}</option>`).join('')}</select>`;
+const myArea = () => SRV ? (st.profile && st.profile.area) || '' : ((st.pArea || {})[st.me] || '');
 const CONDS = ['جديد','نظيف','ممتاز','فيه عيب بسيط موضّح'];
 const PICKS = ['من بيتي، والنقل على المستفيد','من بيتي، بموعد نتفق عليه في واتساب'];
 /* الأحياء: الحي ← حرفه في الكود. الكود = حرف المدينة + حرف الحي، مثل TM-1012 لتاروت/المناخ.
@@ -851,6 +857,8 @@ const pull = fresh => fresh && pulling ? pulling.then(() => pull()) : pulling ||
 })());
 const ERR = {
   not_confirmed:'الحجز لم يُؤكَّد بعد من الإدارة.',
+  need_area:'اختر بلدك من القائمة، فلا يتم التسجيل ولا الحجز بدونه.',
+  bad_area:'اختر بلدك من القائمة.',
   login:window.JISR_OPEN ? 'اكتب رقم واتسابك أولًا.' : 'سجّل دخولك بإيميلك أولًا.',
   banned:'رقمك موقوف عن الحجز والعرض. تواصل مع إدارة المبادرة.',
   missing:'اختر قبل الإعلان: الصورة والتصنيف والمنطقة.',
@@ -1038,6 +1046,7 @@ const openReg = (after, why) => {
     <p class="hint">${give ? 'عليه يراسلك من يحجز غرضك. يُحفظ مرة واحدة.' : 'عليه تتواصل مع صاحب الغرض. يُحفظ مرة واحدة.'}</p>
     <input class="field ltr" id="rgPh" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone autocomplete="tel">
     <input class="field" id="rgNm" maxlength="30" placeholder="${give ? 'اسمك أو كنيتك (يظهر في إعلانك)' : 'كنيتك (اختياري)، وإلا تظهر باسم «المستفيد»'}">
+    ${areaSel('rgAr')}
     <div id="rgMsg"></div>
     <div class="row"><button class="btn primary" type="submit">${give ? 'سجّل رقمي وأعلن' : 'سجّل رقمي واحجز'}</button><button class="btn ghost" type="button" id="rgX">إلغاء</button></div></form></div>`);
   m = document.getElementById('regModal'); setTimeout(() => $('#rgPh').focus(), 50);
@@ -1045,18 +1054,44 @@ const openReg = (after, why) => {
   m.querySelector('form').onsubmit = async ev => {
     ev.preventDefault();
     const bad = t => { $('#rgMsg').innerHTML = `<div class="result err">${t}</div>`; };
-    const p = phoneOk($('#rgPh').value), nm = $('#rgNm').value.trim();
+    const p = phoneOk($('#rgPh').value), nm = $('#rgNm').value.trim(), ar = $('#rgAr').value;
     if (!p) return bad(ERR.bad_phone);
+    if (!AREAS.includes(ar)) return bad(ERR.need_area);
     if (give && nm.length < 2) return bad('اكتب اسمك أو كنيتك، فيظهر في إعلانك.');
     const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
     try {
       if (SRV) {
         const {data:{session}} = await sb.auth.getSession();
         if (!session) { const {error} = await sb.auth.signInAnonymously(); if (error) return bad('التسجيل بالرقم غير مفعّل في الخادم بعد. أبلغ إدارة المبادرة.'); }
-        const r = await api('jisr_claim_phone', {_name:nm, _phone:p}); if (r.err) return bad(errMsg(r));
+        const r = await api('jisr_claim_phone', {_name:nm, _phone:p, _area:ar}); if (r.err) return bad(errMsg(r));
         await pull(true);
-      } else { st.me = p; (st.people = st.people || {})[p] = nm; save(); }
+      } else { st.me = p; (st.people = st.people || {})[p] = nm; (st.pArea = st.pArea || {})[p] = ar; save(); }
       m.remove(); toast('تم تسجيل الرقم وحفظه'); render(); if (after) setTimeout(after, 400);
+    } catch(err) { bad('تعذّر الاتصال بالخادم. حاول مرة أخرى.'); }
+    finally { btn.disabled = false; }
+  };
+};
+
+/* من سجّل قبل إلزام البلد: يُسأل عنه مرة واحدة قبل أول حجز */
+const askArea = after => {
+  let m = document.getElementById('regModal'); if (m) m.remove();
+  document.body.insertAdjacentHTML('beforeend', `<div id="regModal" class="regm" role="dialog" aria-modal="true"><form class="regbox" novalidate>
+    <h3>اختر بلدك لتكمل الحجز</h3>
+    <p class="hint">يُحفظ في حسابك مرة واحدة، ولا يتم الحجز بدونه.</p>
+    ${areaSel('rgAr')}
+    <div id="rgMsg"></div>
+    <div class="row"><button class="btn primary" type="submit">احفظ بلدي واحجز</button><button class="btn ghost" type="button" id="rgX">إلغاء</button></div></form></div>`);
+  m = document.getElementById('regModal');
+  $('#rgX').onclick = () => m.remove();
+  m.querySelector('form').onsubmit = async ev => {
+    ev.preventDefault();
+    const bad = t => { $('#rgMsg').innerHTML = `<div class="result err">${t}</div>`; }, ar = $('#rgAr').value;
+    if (!AREAS.includes(ar)) return bad(ERR.need_area);
+    const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
+    try {
+      if (SRV) { const r = await api('jisr_set_area', {_area:ar}); if (r.err) return bad(errMsg(r)); await pull(true); }
+      else { (st.pArea = st.pArea || {})[st.me] = ar; save(); }
+      m.remove(); toast('حُفظ بلدك'); if (after) setTimeout(after, 300);
     } catch(err) { bad('تعذّر الاتصال بالخادم. حاول مرة أخرى.'); }
     finally { btn.disabled = false; }
   };
@@ -1408,7 +1443,7 @@ const reportHTML = (forPrint) => {
     ${credP.length ? hbars(credP.sort((a, b) => a.cred - b.cred), x => x.cred, x => `${x.cred}٪ · ${x.o.given} من ${x.o.booked}`) : '<p class="sample">لا بيانات كافية.</p>'}
     ${lowP.length ? `<p class="flagnote">مصداقيتهم أقل من 60٪ (يحجزون ولا يستلمون): ${lowP.map(x => esc(x.name)).join('، ')}</p>` : ''}`;
 };
-const renderStats = () => { if (!isAdmin()) return; $('#statBox').innerHTML = per === 'report' ? reportHTML(false) : statHTML(false); document.querySelectorAll('[data-per]').forEach(b => b.setAttribute('aria-pressed', b.dataset.per === per)); };
+const renderStats = () => { if (!isAdmin()) return; document.querySelectorAll('[data-per]').forEach(b => b.setAttribute('aria-pressed', b.dataset.per === per)); $('#printRow').hidden = per === 'detail'; if (per === 'detail') { $('#printOpts').hidden = true; return renderDetail(); } $('#statBox').innerHTML = per === 'report' ? reportHTML(false) : statHTML(false); };
 document.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => { per = b.dataset.per; renderStats(); }));
 /* الطباعة: يختار المدير الفترة والمؤشرات، ثم يُبنى التقرير ويُطبع أو يُحفظ PDF */
 const PSECS = [
@@ -1463,6 +1498,100 @@ $('#printOpts').addEventListener('click', e => {
   }
 });
 $('#printOpts').addEventListener('change', e => { const c = e.target.closest('[data-ps]'); if (c) c.checked ? pSel.add(c.dataset.ps) : pSel.delete(c.dataset.ps); });
+
+/* التقرير التفصيلي: كل غرض بعارضه ومستلمه، بفلتر بلد واحد أو بلدين، وفلتر فردي برقم أو اسم */
+const DT = {rows:null, at:0, areas:new Set(), basis:'any', who:'', status:'all', from:'', to:''};
+const lp = p => p ? (String(p).startsWith('966') ? '0' + String(p).slice(3) : String(p)) : '';
+const ORD = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة'];
+const seqTxt = n => n ? (ORD[n - 1] || 'المرة ' + n) + (n === 1 ? ' (أول مرة)' : '') : '';
+const dtStatus = r => r.given ? 'تم التسليم' : r.cancelled || r.expired || r.status === 'cancelled' ? 'انتهى دون تسليم' : r.approved === false ? 'ينتظر الموافقة' : r.queueLen ? 'محجوز' : r.status === 'shown' ? 'معروض' : 'في الانتظار للعرض';
+const fmtDT = t => t ? new Intl.DateTimeFormat('ar', {day:'numeric', month:'numeric', year:'numeric'}).format(new Date(t)) : '';
+const demoRows = () => {
+  const hashA = p => AREAS[[...String(p)].reduce((a, c) => a + c.charCodeAt(0), 0) % AREAS.length];
+  const aOf = p => (st.pArea || {})[p] || (p ? hashA(p) : '');
+  const rows = [], seen = new Set();
+  for (const it of st.items) { if (it.test) continue; seen.add(it.code);
+    const tk = it.given ? ((st.log || []).filter(e => e.code === it.code && e.type === 'given').pop() || {}).who || it.queue[0] || null : null;
+    rows.push({code:it.code, t:it.created, owner:it.owner, ownerName:(st.people || {})[it.owner] || '', area:(it.area || '').split('/')[0].trim(), title:it.title, cat:it.cat, status:it.status, given:!!it.given, cancelled:!!it.cancelled, expired:!!it.expired, approved:it.approved, queueLen:it.queue.length, taker:tk, takerName:tk ? (st.people || {})[tk] || '' : '', takerArea:tk ? aOf(tk) : '', givenAt:it.givenAt || null}); }
+  const lg = st.log || [];
+  for (const e of lg) if (e.type === 'posted' && !seen.has(e.code)) { seen.add(e.code);
+    const g = lg.find(x => x.code === e.code && x.type === 'given'), x = lg.find(x => x.code === e.code && x.type === 'cancelled');
+    rows.push({code:e.code, t:e.t, owner:e.who, ownerName:(st.people || {})[e.who] || '', area:e.area, title:e.cat, cat:e.cat, status:g ? 'given' : x ? 'cancelled' : 'shown', given:!!g, cancelled:!!x, queueLen:0, taker:g ? g.who : null, takerName:g ? (st.people || {})[g.who] || '' : '', takerArea:g ? aOf(g.who) : '', givenAt:g ? g.t : null}); }
+  const cnt = {}; [...rows].filter(r => r.given && r.taker).sort((a, b) => (a.givenAt || a.t) - (b.givenAt || b.t)).forEach(r => { r.seq = cnt[r.taker] = (cnt[r.taker] || 0) + 1; });
+  return rows.sort((a, b) => b.t - a.t);
+};
+const loadDetail = async force => {
+  if (!SRV) { DT.rows = demoRows(); return; }
+  if (!force && DT.rows && Date.now() - DT.at < 60e3) return;
+  const r = await api('jisr_report').catch(() => ({err:'net'}));
+  if (r.err) { DT.err = r.err === 'net' ? 'تعذّر الاتصال بالخادم.' : r.err === 'not_admin' ? ERR.not_admin : 'التقرير التفصيلي يحتاج تشغيل تحديث الخادم 14 (migrate-14.sql).'; return; }
+  DT.err = ''; DT.rows = r.rows || []; DT.at = Date.now();
+};
+const dtFilter = () => {
+  const w = digits(DT.who).trim(), wd = w.replace(/\D/g, ''), wp = wd.startsWith('0') ? '966' + wd.slice(1) : wd;
+  const f0 = DT.from ? new Date(DT.from + 'T00:00').getTime() : 0, f1 = DT.to ? new Date(DT.to + 'T23:59:59').getTime() : Infinity;
+  return (DT.rows || []).filter(r => {
+    if (r.t < f0 || r.t > f1) return false;
+    if (DT.areas.size) { const o = DT.areas.has(r.area), t = DT.areas.has(r.takerArea); if (DT.basis === 'owner' ? !o : DT.basis === 'taker' ? !t : !(o || t)) return false; }
+    if (DT.status !== 'all' && dtStatus(r) !== DT.status) return false;
+    if (w) { const hit = wd.length >= 3 ? [r.owner, r.taker].some(p => p && String(p).includes(wp)) : false;
+      if (!hit && ![r.ownerName, r.takerName].some(n => n && n.includes(w))) return false; }
+    return true;
+  });
+};
+const DCOLS = ['م','تاريخ العرض','اسم العارض','رقم العارض','منطقة العارض','نوع المعروض','التصنيف','الحالة','اسم المستلم','رقم المستلم','منطقة المستلم','تاريخ الاستلام','تسلسل الاستلام'];
+const dRow = (r, i) => [i + 1, fmtDT(r.t), r.ownerName || '—', lp(r.owner), r.area || 'غير محدد', r.title, r.cat, dtStatus(r), r.given ? (r.takerName || 'المستفيد') : '', lp(r.taker), r.given ? (r.takerArea || 'غير محدد') : '', fmtDT(r.givenAt), seqTxt(r.seq)];
+const dtSummary = rows => { const g = rows.filter(r => r.given), tk = new Set(g.map(r => r.taker)), rep = g.filter(r => r.seq > 1).length;
+  return `<div class="kpis"><div class="kpi"><b>${rows.length}</b><span>معروض</span></div><div class="kpi"><b>${g.length}</b><span>تم تسليمه</span></div><div class="kpi"><b>${tk.size}</b><span>مستلم مختلف</span></div><div class="kpi r"><b>${rep}</b><span>استلام متكرر</span></div></div>`; };
+const dtTable = rows => rows.length ? `<div class="dtwrap"><table class="ptable dtable"><tr>${DCOLS.map(c => `<th>${c}</th>`).join('')}</tr>${rows.map((r, i) => `<tr class="${r.given ? 'gv' : ''}">${dRow(r, i).map((v, k) => `<td${k === 3 || k === 9 ? ' class="ltr"' : ''}>${(k === 3 || k === 9) && v ? `<button class="dtp" type="button" data-dtwho="${esc(v)}">${esc(v)}</button>` : esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>` : '<p class="sample">لا نتائج بهذه الفلاتر.</p>';
+const dtTitle = () => { const a = [...DT.areas]; return 'التقرير التفصيلي لجسر العطاء' + (a.length ? ' — ' + a.join(' و') + (DT.basis === 'owner' ? ' (العارضون)' : DT.basis === 'taker' ? ' (المستلمون)' : '') : '') + (DT.who ? ' — ' + DT.who : ''); };
+const drawDetailBody = () => { const b = $('#dtBody'); if (!b) return; if (DT.err) { b.innerHTML = `<div class="result err">${esc(DT.err)}</div>`; return; } if (!DT.rows) { b.innerHTML = '<p class="sample">جارٍ تحميل التقرير…</p>'; return; } const rows = dtFilter(); b.innerHTML = dtSummary(rows) + dtTable(rows); };
+const renderDetail = async () => {
+  if (!$('#dtl')) {
+    $('#statBox').innerHTML = `<div id="dtl">
+      <p class="cap">اختر بلدًا أو بلدين (اضغط مرة أخرى لإلغاء الاختيار)</p>
+      <div class="pick" id="dtAreas">${AREAS.map(a => `<button type="button" data-dta="${a}" aria-pressed="false">${a}</button>`).join('')}</div>
+      <div class="dtf">
+        <label>البلد بحسب<select class="field" id="dtBasis"><option value="any">العارض أو المستلم</option><option value="owner">منطقة العارض</option><option value="taker">منطقة المستلم</option></select></label>
+        <label>الحالة<select class="field" id="dtStatus"><option value="all">الكل</option><option>تم التسليم</option><option>معروض</option><option>محجوز</option><option>ينتظر الموافقة</option><option>انتهى دون تسليم</option></select></label>
+        <label>من تاريخ<input class="field" type="date" id="dtFrom"></label>
+        <label>إلى تاريخ<input class="field" type="date" id="dtTo"></label>
+        <label class="wide">تقرير فردي: رقم أو اسم<input class="field" id="dtWho" placeholder="مثل 0501234567 أو أم قاسم"></label>
+      </div>
+      <div class="row"><button class="btn small ghost" type="button" id="dtClear">امسح الفلاتر</button><button class="btn small ghost" type="button" id="dtReload">حدّث البيانات</button></div>
+      <div id="dtBody"></div>
+      <div class="row"><button class="btn primary" type="button" id="dtPrint">اطبع التقرير PDF</button><button class="btn ghost" type="button" id="dtCsv">صدّره Excel</button></div>
+    </div>`;
+  }
+  document.querySelectorAll('[data-dta]').forEach(b => b.setAttribute('aria-pressed', DT.areas.has(b.dataset.dta)));
+  $('#dtBasis').value = DT.basis; $('#dtStatus').value = DT.status; $('#dtFrom').value = DT.from; $('#dtTo').value = DT.to; if (document.activeElement !== $('#dtWho')) $('#dtWho').value = DT.who;
+  drawDetailBody(); await loadDetail(); drawDetailBody();
+};
+document.addEventListener('click', e => {
+  if (!e.target.closest('#dtl')) return;
+  const a = e.target.closest('[data-dta]');
+  if (a) { const v = a.dataset.dta; if (DT.areas.has(v)) DT.areas.delete(v); else { if (DT.areas.size >= 2) return toast('اختر بلدين على الأكثر، وألغِ أحدهما لتختار غيره'); DT.areas.add(v); } return renderDetail(); }
+  const w = e.target.closest('[data-dtwho]'); if (w) { DT.who = w.dataset.dtwho; $('#dtWho').value = DT.who; drawDetailBody(); return $('#dtl').scrollIntoView({behavior:'smooth'}); }
+  if (e.target.id === 'dtClear') { Object.assign(DT, {basis:'any', who:'', status:'all', from:'', to:''}); DT.areas.clear(); return renderDetail(); }
+  if (e.target.id === 'dtReload') { DT.rows = null; drawDetailBody(); return loadDetail(true).then(drawDetailBody); }
+  if (e.target.id === 'dtCsv') {
+    const rows = dtFilter(); if (!rows.length) return toast('لا نتائج لتصديرها');
+    const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`, txt = '﻿' + [DCOLS, ...rows.map(dRow)].map(r => r.map(q).join(',')).join('\r\n');
+    const name = 'تقرير-جسر-العطاء-' + new Date().toISOString().slice(0, 10) + '.csv';
+    try { const u = URL.createObjectURL(new Blob([txt], {type:'text/csv;charset=utf-8'})), l = document.createElement('a'); l.href = u; l.download = name; document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); toast('صُدّر الملف، ويفتح في Excel'); }
+    catch(err) { toast('تعذّر التصدير هنا، افتح المنصة في المتصفح'); }
+    return;
+  }
+  if (e.target.id === 'dtPrint') {
+    const rows = dtFilter(); if (!rows.length) return toast('لا نتائج لطباعتها');
+    $('#printArea').innerHTML = `<style>@page{size:A4 landscape;margin:10mm}#printArea .dtable{display:table;font-size:8.5pt}#printArea .dtable th{-webkit-print-color-adjust:exact;print-color-adjust:exact}#printArea .dtp{all:unset}</style><h2>${esc(dtTitle())}</h2><p class="sub">${DT.from || DT.to ? 'من ' + (DT.from || 'البداية') + ' إلى ' + (DT.to || 'اليوم') + ' · ' : ''}طُبع في ${fmtD(Date.now())}</p>${dtSummary(rows)}${dtTable(rows)}`;
+    if (window.JisrAndroid && JisrAndroid.print) { try { return JisrAndroid.print(dtTitle()); } catch(err) {} }
+    try { window.print(); } catch(err) { toast('تعذّرت الطباعة هنا، افتح المنصة في المتصفح'); }
+  }
+});
+document.addEventListener('change', e => { if (!e.target.closest('#dtl')) return; const id = e.target.id;
+  if (id === 'dtBasis') DT.basis = e.target.value; else if (id === 'dtStatus') DT.status = e.target.value; else if (id === 'dtFrom') DT.from = e.target.value; else if (id === 'dtTo') DT.to = e.target.value; else return; drawDetailBody(); });
+document.addEventListener('input', e => { if (e.target.id === 'dtWho') { DT.who = e.target.value; drawDetailBody(); } });
 
 let taps = 0, tapT = 0;
 document.querySelector('.logo').addEventListener('click', () => { const t = Date.now(); taps = t - tapT < 800 ? taps + 1 : 1; tapT = t; if (taps >= 5) { taps = 0; if (OPEN && !(st.me && isAdmin())) { REVEAL = !REVEAL; try { localStorage.setItem('jisr-reveal', REVEAL ? '1' : ''); } catch(e) {} SND.play(REVEAL ? 'ok' : 'del'); render(); if (REVEAL) go('me'); return toast(REVEAL ? 'ظهر «حسابي» لدخول الإدارة' : 'أُخفي «حسابي»'); } if (isAdmin() && !$('#adminBox').hidden) { $('#adminBox').hidden = true; SND.play('del'); return toast('أُخفيت لوحة الإدارة، واضغط الشعار 5 مرات لإظهارها'); } askPin(); } });
@@ -1927,6 +2056,7 @@ document.addEventListener('click', async e => {
 $('#bookForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (needLogin(() => $('#bookForm').requestSubmit(), 'book')) return;
+  if (!myArea()) return askArea(() => $('#bookForm').requestSubmit());
   tick();
   const out = $('#bookResult'), code = normCode($('#bCode').value);
   if (!code) { out.innerHTML = '<div class="result err">اكتب الكود كما هو: حرفان ثم أربعة أرقام، مثل QT-5780.</div>'; return; }
@@ -1938,6 +2068,7 @@ $('#bookForm').addEventListener('submit', async e => {
       given:'<div class="result">هذا الغرض ذهب لمستفيد. الشكر الجزيل لمن قدّم هذا الشيء.</div>', own:'<div class="result err">هذا غرضك أنت، فلا يمكنك حجزه.</div>',
       not_shown:'<div class="result">هذا الغرض ليس في عرض اليوم. الحجز متاح فقط للنوافذ المعروضة.</div>',
       limit:`<div class="result err">لديك ${r.max || 3} حجوزات لم تُستلم بعد، وهذا هو الحد. استلمها أو ألغِ أحدها، ثم احجز.</div>`};
+    if (r.err === 'need_area') { out.innerHTML = ''; return askArea(() => $('#bookForm').requestSubmit()); }
     if (r.err) { out.innerHTML = M[r.err] || `<div class="result err">${errMsg(r)}</div>`; return; }
     await pull(true);
   }
@@ -1984,6 +2115,8 @@ const renderMe = src => {
       <input class="field ltr" id="ph" inputmode="numeric" maxlength="10" pattern="05[0-9]{8}" placeholder="05xxxxxxxx" data-phone value="${esc(pendingPhoneRaw || '')}">
       <label for="nm">اسمك أو كنيتك <span class="hint">(يظهر بجانب زر «احجز» في إعلاناتك)</span></label>
       <input class="field" id="nm" maxlength="30" placeholder="مثلًا: أم قاسم" value="${esc(pendingName || '')}">
+      <label for="ar">بلدك <span class="hint">(إلزامي)</span></label>
+      ${areaSel('ar')}
       <button class="btn primary wide" type="submit" style="margin-top:14px">ادخل</button>
       <p class="hint">هذه النسخة المفتوحة. وللدخول الموثّق بالإيميل: <a href="https://almaateeq.com/jisr">almaateeq.com/jisr</a></p>
       <div id="loginMsg"></div></form>`;
@@ -1993,12 +2126,13 @@ const renderMe = src => {
       pendingPhoneRaw = $('#ph').value; pendingName = $('#nm').value.trim();
       const p = phoneOk(pendingPhoneRaw); if (!p) return bad(ERR.bad_phone);
       if (pendingName.length < 2) return bad('اكتب اسمك أو كنيتك، فيظهر بجانب زر «احجز» في إعلاناتك.');
-      if (!SRV) { st.me = p; (st.people = st.people || {})[p] = pendingName || ''; save(); toast('أهلًا بك في جسر العطاء'); return renderMe(); }
+      const ar = $('#ar').value; if (!AREAS.includes(ar)) return bad(ERR.need_area);
+      if (!SRV) { st.me = p; (st.people = st.people || {})[p] = pendingName || ''; (st.pArea = st.pArea || {})[p] = ar; save(); toast('أهلًا بك في جسر العطاء'); return renderMe(); }
       const btn = ev.target.querySelector('[type=submit]'); btn.disabled = true;
       try {
         const {data:{session}} = await sb.auth.getSession();
         if (!session) { const {error} = await sb.auth.signInAnonymously(); if (error) return bad('الدخول بالرقم غير مفعّل في الخادم بعد. أبلغ إدارة المبادرة.'); }
-        const r = await api('jisr_claim_phone', {_name:pendingName, _phone:p});
+        const r = await api('jisr_claim_phone', {_name:pendingName, _phone:p, _area:ar});
         if (r.err) return bad(errMsg(r));
         await pull(true); pendingPhoneRaw = ''; toast('أهلًا بك في جسر العطاء'); renderMe();
       } catch(err) { bad('تعذّر الاتصال بالخادم. حاول مرة أخرى.'); }

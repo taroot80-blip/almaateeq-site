@@ -1,4 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.ecl-ctl { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 10px 0; }
+.ecl-seg { display: flex; gap: 8px; } .ecl-seg .btn { min-height: 42px; padding: 6px 16px; }
+.ecl-f { display: inline-flex; align-items: center; gap: 6px; } .ecl-f select { min-height: 40px; }
+.ecl-scroll { max-height: 60vh; overflow: auto; }
+.ecl-legend { margin: 12px 0; } .ecl-legend summary { cursor: pointer; color: var(--gold); }
+.ecl-dl { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 6px; } .ecl-dl .btn { text-decoration: none; }
+</style></head><body>
 <title>المسبار فيء الأخبار</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#070b1f">
@@ -591,6 +597,7 @@ table.p2 td { min-width: 6em; }
       <p class="lede" id="ayatLede"></p>
       <div class="scroll"><table id="ayatTable"></table></div>
     </div>
+    <div class="panel" id="eclTables"></div>
     <div class="panel">
       <h3>صلاة الآيات</h3>
       <p class="ruling">تجب للكسوف والخسوف ولو جزئياً لمن وقع في بلده، ولا تجب للخسوف شبه الظلي ولا لما لا يُرى بالعين المجردة. ووقتها من الشروع إلى تمام الانجلاء. ومن لم يعلم حتى انتهى قضى إن كان كلياً، ولا قضاء في الجزئي. ومن علم وترك عمداً أو نسياناً يقضي.</p>
@@ -739,5 +746,7 @@ table.p2 td { min-width: 6em; }
 <script src="phase2.js"></script>
 <script src="extras.js"></script>
 <script src="fx.js"></script>
+<script src="ecl-data.js"></script>
+<script src="ecl-tables.js"></script>
 
 </body></html>

@@ -142,6 +142,16 @@
       "permanent": false
     },
     {
+      "source": "/maateeq",
+      "destination": "/apps/maateeq/",
+      "permanent": false
+    },
+    {
+      "source": "/maateeq/",
+      "destination": "/apps/maateeq/",
+      "permanent": false
+    },
+    {
       "source": "/Apps/jisr",
       "destination": "/apps/jisr/",
       "permanent": false

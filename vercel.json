@@ -147,6 +147,11 @@
       "permanent": false
     },
     {
+      "source": "/jisr-mohammad",
+      "destination": "/apps/jisr-mohammad/",
+      "permanent": false
+    },
+    {
       "source": "/jisr",
       "destination": "/apps/jisr/",
       "permanent": false

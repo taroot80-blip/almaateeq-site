@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24553f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>جسر محمد</title>
+<meta name="description" content="جسر محمد: منصة لتدوير المقتنيات المنزلية الفائضة وإيصالها لمن ينتفع بها مباشرة.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --g9:#173a2b; --g7:#24553f; --g5:#3a7a5c; --g2:#dcebe2; --g1:#eef5f0;
+  --gold:#c8963e; --gold1:#f7ecd8;
+  --ink:#1d2622; --mut:#66736c; --line:#e3e8e5; --bg:#f6f7f5; --card:#fff;
+  --red:#b3412f; --red1:#f8e3df; --blue:#2c5f8a; --blue1:#e2edf6;
+  --r:14px; --sh:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(23,58,43,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Tajawal,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6;padding-bottom:84px}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--g7)}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+header.top{background:linear-gradient(135deg,var(--g9),var(--g7));color:#fff;padding:18px 0 22px}
+header.top .wrap{display:flex;align-items:center;gap:14px}
+.logo-tile{flex:none;background:#fff;border-radius:16px;padding:6px;height:84px;display:grid;place-items:center;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.logo-tile img{height:72px;width:auto;display:block}
+.brand{flex:1;text-align:center;min-width:0}
+.brand h1{margin:0;font-size:24px;font-weight:800;letter-spacing:0}
+.brand p{margin:0;font-size:13px;opacity:.85}
+.who{margin-top:8px;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+.who button{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:999px;padding:5px 14px;cursor:pointer}
+@media(max-width:520px){.logo-tile{height:62px;padding:4px;border-radius:12px}.logo-tile img{height:54px}.brand h1{font-size:20px}.brand p{font-size:11.5px}header.top .wrap{gap:8px}}
+.banner{background:var(--gold1);color:#6b4b14;border-bottom:1px solid #ecd9b4;font-size:14px;padding:8px 0}
+.trial{background:var(--blue1);color:var(--blue);font-size:13px;padding:6px 0;text-align:center}
+main{padding:18px 0}
+nav.tabs{position:fixed;bottom:0;inset-inline:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs .in{display:flex;max-width:960px;width:100%}
+nav.tabs button{flex:1;background:none;border:0;padding:9px 2px 8px;font-size:12px;color:var(--mut);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--g7);font-weight:700}
+h2.sec{font-size:20px;margin:4px 0 4px;font-weight:800}
+p.sub{margin:0 0 16px;color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.item{padding:0;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .12s}
+.item:hover{transform:translateY(-2px)}
+.item .ph{aspect-ratio:4/3;background:var(--g1) center/cover no-repeat;display:grid;place-items:center;color:var(--g5);position:relative}
+.item .ph>svg{width:52px;height:52px;opacity:.55}
+.stamp{position:absolute;inset:0;margin:auto;width:72%;height:34%;display:grid;place-items:center;transform:rotate(-14deg);border:4px solid #fff;outline:3px solid #c62f25;border-radius:999px;background:rgba(198,47,37,.92);color:#fff;font-weight:800;font-size:clamp(18px,5vw,30px);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.wa{background:#1f9e57}.wa:hover{background:#167a42}
+.prev{white-space:pre-wrap;background:#f1f7ee;border:1px solid #d6e8cf;border-radius:12px;padding:12px;font-size:14px;max-height:260px;overflow:auto}
+textarea.prev{width:100%;min-height:220px;font-family:inherit}
+.previmg{max-width:100%;max-height:260px;border-radius:12px;display:block;margin:0 auto 10px}
+.item .ph .tag{position:absolute;top:8px;inset-inline-start:8px}
+.item .bd{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.item h3{margin:0;font-size:16px;font-weight:700;line-height:1.4}
+.meta{font-size:13px;color:var(--mut);display:flex;flex-wrap:wrap;gap:4px 10px}
+.code{font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:2px;background:var(--g1);color:var(--g9);padding:2px 10px;border-radius:8px;font-size:15px;direction:ltr;display:inline-block}
+.pill{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--g1);color:var(--g7);font-weight:500}
+.pill.gold{background:var(--gold1);color:#7a5514}.pill.red{background:var(--red1);color:var(--red)}.pill.blue{background:var(--blue1);color:var(--blue)}.pill.gray{background:#eef0ef;color:#555}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.btn{border:0;border-radius:12px;padding:11px 18px;font-weight:700;cursor:pointer;background:var(--g7);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{background:var(--g9)}
+.btn.sec{background:var(--g1);color:var(--g9)}.btn.sec:hover{background:var(--g2)}
+.btn.gold{background:var(--gold);}.btn.red{background:var(--red1);color:var(--red)}
+.btn.sm{padding:6px 12px;font-size:13px;border-radius:10px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.55;cursor:default}
+label.f{display:block;margin:0 0 14px}
+label.f>span{display:block;font-weight:700;font-size:14px;margin-bottom:6px}
+label.f>small{display:block;color:var(--mut);font-size:12px;margin-top:4px}
+input[type=text],input[type=tel],input[type=password],input[type=number],input[type=date],input[type=time],input[type=url],select,textarea{width:100%;border:1px solid #cfd8d3;border-radius:10px;padding:10px 12px;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--g5);box-shadow:0 0 0 3px var(--g2)}
+textarea{min-height:80px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{cursor:pointer}
+.chips input{display:none}
+.chips span{display:inline-block;border:1px solid #cfd8d3;border-radius:999px;padding:6px 12px;font-size:13px;background:#fff}
+.chips input:checked+span{background:var(--g7);color:#fff;border-color:var(--g7)}
+.thumbs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.thumbs div{width:82px;height:82px;border-radius:10px;background:center/cover;position:relative;border:1px solid var(--line)}
+.thumbs b{position:absolute;top:-6px;left:-6px;background:var(--red);color:#fff;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;cursor:pointer}
+.pledge{background:var(--gold1);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-bottom:14px}
+.pledge input{width:20px;height:20px;margin-top:3px;flex:none;accent-color:var(--g7)}
+.empty{text-align:center;color:var(--mut);padding:40px 10px}
+.empty svg{width:56px;height:56px;color:var(--g2)}
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--g9);color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;z-index:80;box-shadow:var(--sh);max-width:90vw;text-align:center}
+.toast.err{background:var(--red)}
+.modal{position:fixed;inset:0;background:rgba(10,25,18,.55);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.modal .box{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+@media(min-width:700px){.modal{align-items:center}.modal .box{border-radius:18px}}
+.gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin:-4px 0 12px}
+.gal img{height:240px;border-radius:12px;scroll-snap-align:start;object-fit:cover;max-width:100%}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv b{color:var(--mut);font-weight:500}
+.subtabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px}
+.subtabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap;font-size:14px}
+.subtabs button.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+.list>.card{margin-bottom:10px}
+.mini{width:64px;height:64px;border-radius:10px;background:var(--g1) center/cover;flex:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi b{display:block;font-size:26px;font-weight:800;color:var(--g9);line-height:1.2}
+.kpi span{font-size:13px;color:var(--mut)}
+.bars .r{display:grid;grid-template-columns:150px 1fr 48px;gap:8px;align-items:center;font-size:13px;margin-bottom:6px}
+.bars .t{background:var(--g1);border-radius:6px;height:14px;overflow:hidden}
+.bars .t i{display:block;height:100%;background:var(--g5);border-radius:6px}
+.hero{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.hero .t{flex:1;min-width:220px}
+.hero h2{margin:0 0 4px;font-size:18px}
+.hero p{margin:0;color:var(--mut);font-size:14px}
+.filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filters select,.filters input{width:auto;flex:1;min-width:140px}
+.rules li{margin-bottom:8px}
+.bigcode{font-size:34px;letter-spacing:8px;text-align:center;direction:ltr}
+.ok{background:var(--g1);border:1px solid var(--g2);border-radius:12px;padding:14px;margin-top:14px}
+.hide{display:none!important}
+.spin{width:22px;height:22px;border:3px solid var(--g2);border-top-color:var(--g7);border-radius:50%;animation:s 0.8s linear infinite;margin:30px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:520px){.two{grid-template-columns:1fr}.bars .r{grid-template-columns:110px 1fr 40px}.grid{grid-template-columns:1fr 1fr;gap:10px}.item h3{font-size:14px}.item .bd{padding:10px}}
+@media print{
+  nav.tabs,header.top .who,.noprint,.subtabs,.banner,.trial{display:none!important}
+  body{background:#fff;padding:0}.card,.kpi{box-shadow:none}
+  header.top{background:#fff;color:#000;border-bottom:2px solid var(--g7)}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo-tile" href="#today" title="جسر محمد"><img src="logo.png" alt="شعار جسر محمد"></a>
+    <div class="brand">
+      <h1>جسر محمد</h1>
+      <p>تدوير المقتنيات لمن ينتفع بها — حفظ النعمة وصون الكرامة</p>
+      <div class="who" id="who"></div>
+    </div>
+  </div>
+</header>
+<div class="trial hide" id="trialBar">المنصة في وضع التجربة — المعروضات الحالية للاختبار فقط</div>
+<div class="banner hide" id="annBar"><div class="wrap" id="annText"></div></div>
+
+<main class="wrap" id="view"></main>
+
+<nav class="tabs"><div class="in" id="tabs"></div></nav>
+
+<script>
+/* =========================================================
+   إعدادات الاتصال — مشروع Supabase الخاص بـ«جسر محمد» وحده
+   ========================================================= */
+const SUPABASE_URL = '';   // ضع هنا عنوان مشروع Supabase الجديد
+const SUPABASE_KEY = '';   // والمفتاح العام (anon / publishable)
+const sb = SUPABASE_URL ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:false}}) : null;
+
+/* القوائم — يمكن تعديلها هنا مباشرة */
+const CATEGORIES = ['أثاث منزلي ومكتبي','ملابس وأقمشة','أجهزة كهربائية وإلكترونية ورياضية','مستلزمات أطفال ومواليد','أواني وأدوات مطبخ','أحذية','مفارش وسجاد وستائر','عبايات ومستلزمات صلاة','مواد غذائية وحليب أطفال','حقائب وشنط','ألعاب أطفال','ديكور وتحف وإكسسوارات وأدوات متنوعة','مستلزمات طبية وكبار السن','كتب ومستلزمات دينية','أخرى ومتنوعات'];
+const AREAS = ['الربيعية','تاروت','سنابس','دارين','القطيف','سيهات','صفوى','أم الساهك','عنك','الجش','العوامية','القديح','أم الحمام','الآجام','الدمام','أخرى'];
+const CONDITIONS = ['جديد','شبه جديد','مستعمل بحالة جيدة','يحتاج إصلاحاً بسيطاً'];
+const PICKUP = ['الاستلام من بيت المتبرع','مكان يُتفق عليه','النقل على المستلم'];
+const STATUS = {pending:['بانتظار الاعتماد','gold'],approved:['متاح','green'],booked:['محجوز','blue'],delivered:['تم التسليم','green'],cancelled:['أُلغي','gray'],expired:['انتهت مدته','gray'],rejected:['مرفوض','red']};
+
+/* ---------- الحالة العامة ---------- */
+const S = {token: localStorage.getItem('jisrm_token'), user: null, settings: {}, tab: 'today', adminTab: 'pending', items: []};
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const view = $('#view');
+
+function toast(msg, err){ const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(), err?4500:3000); }
+async function rpc(fn, args={}){
+  const {data, error} = await sb.rpc(fn, args);
+  if (error){
+    const m = error.message || 'حدث خطأ غير متوقع';
+    if (/انتهت الجلسة/.test(m)) { logout(true); }
+    throw new Error(m);
+  }
+  return data;
+}
+const wa = p => 'https://wa.me/966' + String(p||'').replace(/^0/,'');
+const fmtDate = d => d ? new Date(d).toLocaleString('ar-SA-u-ca-gregory-nu-latn',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+function left(d){ if(!d) return ''; const ms=new Date(d)-Date.now(); if(ms<=0) return 'انتهى'; const h=Math.floor(ms/36e5), m=Math.floor(ms%36e5/6e4); return h? `باقي ${h} س ${m} د` : `باقي ${m} دقيقة`; }
+const stPill = s => { const [t,c]=STATUS[s]||[s,'gray']; return `<span class="pill ${c==='green'?'':c}">${t}</span>`; };
+const ico = {
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  offer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4z"/><path d="M14 7v12" stroke-dasharray="2 2"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></svg>',
+  admin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>'
+};
+
+/* ---------- التنقل ---------- */
+function renderTabs(){
+  const tabs = [['today','عرض اليوم'],['offer','اعرض غرضًا'],['book','احجز بالكود'],['me','حسابي'],['help','التعليمات']];
+  if (S.user?.is_admin) tabs.push(['admin','الإدارة']);
+  $('#tabs').innerHTML = tabs.map(([k,t])=>`<button class="${S.tab===k?'on':''}" data-tab="${k}">${ico[k]}<span>${t}</span></button>`).join('');
+  $('#who').innerHTML = S.user ? `<span>أهلاً ${esc(S.user.name)}</span><button id="lo">خروج</button>` : `<button id="li">دخول</button>`;
+  $('#lo')?.addEventListener('click', ()=>logout());
+  $('#li')?.addEventListener('click', ()=>go('me'));
+  $('#trialBar').classList.toggle('hide', !S.settings.trial_mode);
+  const ann = (S.settings.announcement||'').trim();
+  $('#annBar').classList.toggle('hide', !ann); $('#annText').textContent = ann;
+}
+$('#tabs').addEventListener('click', e => { const b=e.target.closest('button[data-tab]'); if(b) go(b.dataset.tab); });
+function go(tab){ S.tab=tab; location.hash=tab; renderTabs(); window.scrollTo(0,0); ({today:showToday,offer:showOffer,book:showBook,me:showMe,help:showHelp,admin:showAdmin})[tab](); }
+function logout(silent){ if(S.token) rpc('jisr_logout',{p_token:S.token}).catch(()=>{}); S.token=null; S.user=null; localStorage.removeItem('jisrm_token'); if(!silent) toast('تم تسجيل الخروج'); renderTabs(); if(S.tab==='admin') go('today'); }
+
+/* ---------- الدخول ---------- */
+function loginBox(after, title='سجّل دخولك للمتابعة'){
+  view.innerHTML = `
+  <h2 class="sec">${title}</h2>
+  <p class="sub">الدخول برقم جوالك ورمز سري من 4 أرقام تختاره أنت أول مرة. رقمك يُستخدم للتواصل الكتابي عبر الواتساب فقط بين صاحب الغرض ومن حجزه.</p>
+  <div class="card" style="max-width:460px">
+    <label class="f"><span>رقم الجوال</span><input type="tel" id="lp" placeholder="05xxxxxxxx" inputmode="tel" autocomplete="tel"></label>
+    <label class="f"><span>الرمز السري (4 أرقام)</span><input type="password" id="lpin" inputmode="numeric" maxlength="4" placeholder="••••"><small>أول مرة؟ اختر أي 4 أرقام واحفظها. نسيت رمزك؟ تواصل مع إدارة المبادرة.</small></label>
+    <div class="hide" id="lnWrap">
+      <label class="f"><span>اسمك (يظهر لصاحب الغرض أو للمستفيد)</span><input type="text" id="ln" maxlength="60" placeholder="مثال: أم محمد"></label>
+      <label class="f"><span>البلدة التي تسكن فيها</span><select id="lt"><option value="">اختر البلدة</option>${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></label>
+    </div>
+    <button class="btn block" id="lgo">دخول</button>
+  </div>`;
+  $('#lgo').onclick = async () => {
+    const b=$('#lgo'); b.disabled=true;
+    try{
+      const reg = !$('#lnWrap').classList.contains('hide');
+      if (reg && (!$('#ln').value.trim() || !$('#lt').value)) throw new Error('اكتب اسمك واختر بلدتك');
+      const r = await rpc('jisr_login',{p_phone:$('#lp').value, p_pin:$('#lpin').value, p_name:$('#ln').value||null, p_town:$('#lt').value||null});
+      if (r.error) throw new Error(r.error);
+      if (r.need_name){ $('#lnWrap').classList.remove('hide'); $('#ln').focus(); toast('رقم جديد — اكتب اسمك وبلدتك لإكمال التسجيل'); b.textContent='تسجيل ودخول'; b.disabled=false; return; }
+      S.token=r.token; S.user=r.user; localStorage.setItem('jisrm_token', r.token);
+      toast('أهلاً ' + r.user.name); renderTabs(); after(); if(!r.user.town) profileModal();
+    }catch(e){ toast(e.message,true); b.disabled=false; }
+  };
+}
+const needLogin = (fn, title) => S.user ? true : (loginBox(fn, title), false);
+
+/* ---------- عرض اليوم ---------- */
+async function showToday(){
+  view.innerHTML = `
+  <div class="hero">
+    <div class="t"><h2>عندك غرض ما له حاجة في البيت؟</h2><p>اعرضه هنا ويصل مباشرة لمن يحتاجه — بلا تخزين، وبكرامة، ومجاناً بالكامل.</p></div>
+    <button class="btn gold" onclick="go('offer')">اعرض غرضًا</button>
+    <button class="btn sec" onclick="go('book')">عندي كود؟ احجز</button>
+  </div>
+  <div class="filters">
+    <select id="fc"><option value="">كل التصنيفات</option>${CATEGORIES.map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="fa"><option value="">كل المناطق</option>${AREAS.map(c=>`<option>${c}</option>`).join('')}</select>
+    <select id="fs"><option value="avail">المتاح فقط</option><option value="all">الكل (مع المحجوز)</option></select>
+  </div>
+  <div id="items"><div class="spin"></div></div>
+  ${S.settings.whatsapp_link ? `<div class="card" style="margin-top:18px;text-align:center"><div style="margin-bottom:8px">تابع الإعلانات اليومية في ${esc(S.settings.whatsapp_name||'المجموعة')}</div><a class="btn" href="${esc(S.settings.whatsapp_link)}" target="_blank" rel="noopener">انضم إلى المجموعة</a></div>`:''}`;
+  ['fc','fa','fs'].forEach(id=>$('#'+id).onchange=drawItems);
+  try{ S.items = await rpc('jisr_public_items') || []; drawItems(); }
+  catch(e){ $('#items').innerHTML = `<div class="empty">تعذّر تحميل المعروضات: ${esc(e.message)}</div>`; }
+}
+function drawItems(){
+  const c=$('#fc').value, a=$('#fa').value, s=$('#fs').value;
+  const list = S.items.filter(i => (!c || i.categories.includes(c)) && (!a || i.area===a) && (s==='all' || i.status==='approved'));
+  if (!list.length){ $('#items').innerHTML = `<div class="empty">${ico.box}<div>لا توجد معروضات ${s==='avail'?'متاحة ':''}حالياً — عُد لاحقاً أو اعرض غرضاً.</div></div>`; return; }
+  $('#items').innerHTML = `<div class="grid">${list.map(i=>`
+    <div class="card item" data-id="${i.id}">
+      <div class="ph" style="${i.photos[0]?`background-image:url('${esc(i.photos[0])}')`:''}">${i.photos[0]?'':ico.box}${['booked','delivered'].includes(i.status)?'<div class="stamp">تم الحجز</div>':''}<span class="tag">${i.status==='approved'?`<span class="pill gold">${left(i.expires_at)}</span>`:stPill(i.status)}</span></div>
+      <div class="bd">
+        <h3>${esc(i.title)}</h3>
+        <div class="meta"><span>${esc(i.area||'')}${i.neighborhood?' — '+esc(i.neighborhood):''}</span><span>${esc(i.condition||'')}</span></div>
+        <div class="row" style="margin-top:auto"><span class="code">${esc(i.code)}</span>${i.is_test?'<span class="pill blue">تجربة</span>':''}</div>
+      </div>
+    </div>`).join('')}</div>`;
+  $('#items').querySelectorAll('.item').forEach(el=>el.onclick=()=>itemModal(S.items.find(x=>x.id==el.dataset.id)));
+}
+function itemModal(i){
+  const m=document.createElement('div'); m.className='modal';
+  m.innerHTML = `<div class="box">
+    ${i.photos.length?`<div class="gal">${i.photos.map(p=>`<img src="${esc(p)}" alt="">`).join('')}</div>`:''}
+    <div class="row"><h2 class="sec" style="margin:0">${esc(i.title)}</h2><span class="sp"></span>${stPill(i.status)}</div>
+    <div class="chips" style="margin:8px 0 12px">${i.categories.map(c=>`<span class="pill">${esc(c)}</span>`).join('')}</div>
+    ${i.details?`<p style="white-space:pre-wrap;margin:0 0 12px">${esc(i.details)}</p>`:''}
+    <div class="kv">
+      <b>الحالة</b><span>${esc(i.condition||'—')}</span>
+      <b>الموقع</b><span>${esc(i.area||'—')}${i.neighborhood?' — '+esc(i.neighborhood):''}</span>
+      <b>الاستلام</b><span>${esc(i.pickup_method||'—')}</span>
+      <b>وقت الاستلام</b><span>${i.pickup_from||i.pickup_to?`من ${esc(i.pickup_from||'')} إلى ${esc(i.pickup_to||'')}`:'يُتفق عليه'}</span>
+      ${i.status==='approved'?`<b>المدة</b><span>${left(i.expires_at)}</span>`:''}
+    </div>
+    <div class="ok" style="text-align:center">
+      <div style="font-size:13px;color:var(--mut)">كود الغرض</div>
+      <div class="bigcode code" style="background:none">${esc(i.code)}</div>
+      ${i.status==='approved'?`<button class="btn block" id="mb">احجز هذا الغرض</button>`:'<div style="color:var(--mut)">هذا الغرض محجوز</div>'}
+    </div>
+    <button class="btn sec block" style="margin-top:10px" id="mc">إغلاق</button></div>`;
+  document.body.appendChild(m);
+  m.onclick = e => { if(e.target===m) m.remove(); };
+  $('#mc',m).onclick = ()=>m.remove();
+  $('#mb',m)?.addEventListener('click', ()=>{ m.remove(); S.pendingCode=i.code; go('book'); });
+}
+
+/* ---------- اعرض غرضًا ---------- */
+let photoFiles = [];
+function showOffer(){
+  if (!needLogin(showOffer, 'سجّل دخولك لعرض غرض')) return;
+  photoFiles = [];
+  view.innerHTML = `
+  <h2 class="sec">اعرض غرضًا</h2>
+  <p class="sub">بعد الإرسال تحصل على كود خاص بالغرض${S.settings.require_approval!==false?'، ويظهر للجميع بعد اعتماده من المشرف':''}. يبقى معروضاً ${S.settings.item_hours||24} ساعة.</p>
+  <div class="card">
+    <label class="f"><span>الصور (اختياري، حتى 3)</span>
+      <input type="file" id="ph" accept="image/*" multiple class="hide">
+      <button class="btn sec" type="button" onclick="$('#ph').click()">صوّر الغرض أو اختر صوره</button>
+      <div class="thumbs" id="th"></div><small>الصورة الأولى تظهر على بطاقة الغرض. تجنّب ظهور الأشخاص أو أرقام المنازل.</small></label>
+    <label class="f"><span>اسم الغرض *</span><input type="text" id="t" maxlength="120" placeholder="مثال: كنبة 3 مقاعد، ملابس أطفال 5 سنوات"></label>
+    <div class="f"><span style="display:block;font-weight:700;font-size:14px;margin-bottom:6px">التصنيف * (واحد أو أكثر)</span>
+      <div class="chips" id="cats">${CATEGORIES.map(c=>`<label><input type="checkbox" value="${c}"><span>${c}</span></label>`).join('')}</div></div>
+    <label class="f"><span>تفاصيل مختصرة (اختياري)</span><textarea id="d" maxlength="600" placeholder="المقاس، العدد، اللون، أي ملاحظة"></textarea></label>
+    <div class="two">
+      <label class="f"><span>حالة الغرض</span><select id="cn">${CONDITIONS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>طريقة الاستلام</span><select id="pm">${PICKUP.map(c=>`<option>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>المنطقة</span><select id="ar">${AREAS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+      <label class="f"><span>الحي (اختياري)</span><input type="text" id="nb" maxlength="80"></label>
+      <label class="f"><span>الاستلام من الساعة</span><input type="time" id="pf" value="16:00"></label>
+      <label class="f"><span>إلى الساعة</span><input type="time" id="pt" value="21:00"></label>
+    </div>
+    <label class="pledge"><input type="checkbox" id="pl"><span>أتعهد أن الغرض صالح للاستخدام ومطابق لصورته ووصفه، وأنني لن أطلب أي مقابل مالي أو رسوم توصيل أو شروطاً من المستفيد.</span></label>
+    <button class="btn block" id="send">أعلن الغرض واحصل على الكود</button>
+    <div id="res"></div>
+  </div>`;
+  $('#ph').onchange = e => { for (const f of e.target.files){ if(photoFiles.length<3) photoFiles.push(f); } e.target.value=''; drawThumbs(); };
+  $('#send').onclick = submitOffer;
+}
+function drawThumbs(){
+  $('#th').innerHTML = photoFiles.map((f,i)=>`<div style="background-image:url('${URL.createObjectURL(f)}')"><b data-i="${i}">×</b></div>`).join('');
+  $('#th').querySelectorAll('b').forEach(b=>b.onclick=()=>{ photoFiles.splice(+b.dataset.i,1); drawThumbs(); });
+}
+function compress(file, max=1280, q=0.78){
+  return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>{ let {width:w,height:h}=img; const k=Math.min(1,max/Math.max(w,h)); w=Math.round(w*k); h=Math.round(h*k);
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); c.toBlob(b=>b?res(b):rej(new Error('تعذّر تجهيز الصورة')),'image/jpeg',q); };
+    img.onerror=()=>rej(new Error('صيغة الصورة غير مدعومة')); img.src=URL.createObjectURL(file); });
+}
+async function submitOffer(){
+  const b=$('#send'); b.disabled=true; b.textContent='جارٍ الإرسال…';
+  try{
+    const cats=[...document.querySelectorAll('#cats input:checked')].map(x=>x.value);
+    if(!$('#t').value.trim()) throw new Error('اكتب اسم الغرض');
+    if(!cats.length) throw new Error('اختر تصنيفاً واحداً على الأقل');
+    if(!$('#pl').checked) throw new Error('يلزم الموافقة على التعهد');
+    const urls=[];
+    for (const f of photoFiles){
+      const blob=await compress(f); const path=`items/${new Date().toISOString().slice(0,10)}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+      const {error}=await sb.storage.from('jisr-photos').upload(path, blob, {contentType:'image/jpeg'});
+      if(error) throw new Error('تعذّر رفع الصورة: '+error.message);
+      urls.push(sb.storage.from('jisr-photos').getPublicUrl(path).data.publicUrl);
+    }
+    const r = await rpc('jisr_offer_item',{p_token:S.token, p:{title:$('#t').value, categories:cats, details:$('#d').value, condition:$('#cn').value,
+      pickup_method:$('#pm').value, area:$('#ar').value, neighborhood:$('#nb').value, pickup_from:$('#pf').value, pickup_to:$('#pt').value, photos:urls, pledge:true}});
+    view.innerHTML = `<div class="card" style="max-width:480px;margin:auto;text-align:center">
+      <div style="font-size:15px;color:var(--mut)">جزاك الله خيراً — كود غرضك</div>
+      <div class="bigcode code" style="background:none;margin:8px 0">${esc(r.code)}</div>
+      <p>${r.status==='pending'?'سيظهر غرضك في «عرض اليوم» بعد اعتماده من المشرف.':'غرضك ظاهر الآن في «عرض اليوم».'} تابع من «حسابي» من حجز الغرض، ثم تواصل معه كتابياً عبر الواتساب.</p>
+      <div class="row" style="justify-content:center"><button class="btn" onclick="go('me')">حسابي</button><button class="btn sec" onclick="go('offer')">اعرض غرضاً آخر</button></div></div>`;
+  }catch(e){ toast(e.message,true); b.disabled=false; b.textContent='أعلن الغرض واحصل على الكود'; }
+}
+
+/* ---------- احجز بالكود ---------- */
+function showBook(){
+  if (!needLogin(showBook, 'سجّل دخولك للحجز')) return;
+  const adminMode = S.settings.booking_mode==='admin';
+  view.innerHTML = `
+  <h2 class="sec">احجز بالكود</h2>
+  <p class="sub">${adminMode?'أدخل كود الغرض لتسجيل طلبك، ويختار المشرف المستفيد بعدالة.':'أول من يُدخل الكود الصحيح يُحجز له الغرض.'} يُرجى الاستلام خلال ${S.settings.pickup_hours||24} ساعة من تأكيد الحجز.</p>
+  <div class="card" style="max-width:460px">
+    <label class="f"><span>كود الغرض</span><input type="text" id="bc" maxlength="8" class="bigcode" style="font-size:26px;text-transform:uppercase" placeholder="QT-7982" autocapitalize="characters" autocomplete="off"></label>
+    <button class="btn block" id="bgo">أكّد الحجز بالكود</button>
+    <div id="bres"></div>
+  </div>`;
+  if (S.pendingCode){ $('#bc').value = S.pendingCode; S.pendingCode = null; }
+  $('#bgo').onclick = async () => {
+    const b=$('#bgo'); b.disabled=true;
+    try{
+      const r = await rpc('jisr_book',{p_token:S.token, p_code:$('#bc').value});
+      if (r.result==='waiting') $('#bres').innerHTML = `<div class="ok"><b>تم تسجيل طلبك على «${esc(r.title)}» (${esc(r.code)}).</b><br>يختار المشرف المستفيد من بين الطلبات، وإن اختارك تصلك رسالة واتساب بتفاصيل التواصل مع صاحب الغرض. تابع النتيجة أيضاً من «حسابي».</div>`;
+      else $('#bres').innerHTML = `<div class="ok"><b>مبروك، حُجز لك «${esc(r.title)}».</b>
+        <div class="kv" style="margin:10px 0"><b>صاحب الغرض</b><span>${esc(r.donor_name)}</span><b>الموقع</b><span>${esc(r.area||'')} ${esc(r.neighborhood||'')}</span><b>وقت الاستلام</b><span>${esc(r.pickup_from||'')} – ${esc(r.pickup_to||'')}</span></div>
+        <a class="btn block" target="_blank" rel="noopener" href="${wa(r.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+r.title+'» عبر منصة جسر محمد. متى يناسبك الاستلام؟')}">راسل صاحب الغرض عبر الواتساب</a>
+        <small style="display:block;margin-top:8px;color:var(--mut)">التواصل كتابي فقط — يُرجى عدم الاتصال.</small></div>`;
+      b.disabled=false;
+    }catch(e){ toast(e.message,true); b.disabled=false; }
+  };
+}
+
+/* ---------- حسابي ---------- */
+async function showMe(){
+  if (!needLogin(showMe, 'الدخول إلى حسابك')) return;
+  view.innerHTML = '<div class="spin"></div>';
+  try{
+    const d = await rpc('jisr_my',{p_token:S.token});
+    view.innerHTML = `
+    <h2 class="sec">حسابي</h2><p class="sub">${esc(d.user.name)} — ${esc(d.user.town||'')} — ${esc(d.user.phone)}</p>
+    <div class="subtabs"><button class="on" data-s="o">معروضاتي (${d.offers.length})</button><button data-s="b">حجوزاتي (${d.bookings.length})</button><button data-s="p">تغيير الرمز السري</button></div>
+    <div id="mo" class="list">${d.offers.length? d.offers.map(o=>`
+      <div class="card"><div class="row" style="align-items:flex-start">
+        <div class="mini" style="${o.photos[0]?`background-image:url('${esc(o.photos[0])}')`:''}"></div>
+        <div style="flex:1;min-width:0"><div class="row"><b>${esc(o.title)}</b>${stPill(o.status)}</div>
+          <div class="meta"><span>الكود <span class="code" style="font-size:13px">${esc(o.code)}</span></span><span>${fmtDate(o.created_at)}</span>${o.status==='approved'?`<span>${left(o.expires_at)}</span>`:''}${o.waiting?`<span>طلبات: ${o.waiting}</span>`:''}</div>
+          ${o.status==='booked'?`<div class="ok" style="margin-top:8px;padding:10px">حجزه: <b>${esc(o.booker_name)}</b>${o.booker_town?' من '+esc(o.booker_town):''} — ${fmtDate(o.booked_at)}
+            <div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(o.booker_phone)}?text=${encodeURIComponent('السلام عليكم، بخصوص غرض «'+o.title+'» من منصة جسر محمد')}">واتساب</a>
+            <button class="btn sm" data-a="delivered" data-id="${o.id}">تم التسليم</button><button class="btn sm red" data-a="no_show" data-id="${o.id}">لم يستلم — أتحه لغيره</button></div></div>`:''}
+          ${['pending','approved','booked'].includes(o.status)?`<button class="btn sm sec" style="margin-top:8px" data-a="cancel" data-id="${o.id}">إلغاء الغرض</button>`:''}
+        </div></div></div>`).join('') : '<div class="empty">لم تعرض أي غرض بعد.</div>'}</div>
+    <div id="mb" class="list hide">${d.bookings.length? d.bookings.map(k=>`
+      <div class="card"><div class="row" style="align-items:flex-start">
+        <div class="mini" style="${k.photos[0]?`background-image:url('${esc(k.photos[0])}')`:''}"></div>
+        <div style="flex:1"><div class="row"><b>${esc(k.title)}</b>${reqPill(k)}</div>
+          <div class="meta"><span>${esc(k.area||'')} ${esc(k.neighborhood||'')}</span><span>${fmtDate(k.requested_at)}</span></div>
+          ${k.req_status==='won'&&k.item_status==='booked'?`<div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(k.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+k.title+'» ('+k.code+') عبر منصة جسر محمد. متى يناسبك الاستلام؟')}">راسل ${esc(k.donor_name)}</a><button class="btn sm" data-a="delivered" data-id="${k.item_id}">تم الاستلام</button><button class="btn sm red" data-w="${k.item_id}">أعتذر عن الاستلام</button></div>`:''}
+          ${k.req_status==='waiting'?`<button class="btn sm sec" style="margin-top:8px" data-w="${k.item_id}">سحب الطلب</button>`:''}
+        </div></div></div>`).join('') : '<div class="empty">لا توجد حجوزات.</div>'}</div>
+    <div id="mp" class="card hide" style="max-width:420px">
+      <label class="f"><span>الرمز الحالي</span><input type="password" id="op" maxlength="4" inputmode="numeric"></label>
+      <label class="f"><span>الرمز الجديد</span><input type="password" id="np" maxlength="4" inputmode="numeric"></label>
+      <button class="btn" id="cp">حفظ</button></div>`;
+    view.querySelectorAll('.subtabs button').forEach(b=>b.onclick=()=>{ view.querySelectorAll('.subtabs button').forEach(x=>x.classList.toggle('on',x===b)); ['o','b','p'].forEach(k=>$('#m'+k).classList.toggle('hide',k!==b.dataset.s)); });
+    view.querySelectorAll('[data-a]').forEach(b=>b.onclick=async()=>{
+      const msg={delivered:'تأكيد أن الغرض تم تسليمه واستلامه؟',cancel:'إلغاء الغرض نهائياً؟',no_show:'إلغاء حجز هذا الشخص وإتاحة الغرض لغيره؟'}[b.dataset.a];
+      if(!confirm(msg)) return;
+      try{ await rpc('jisr_donor_action',{p_token:S.token,p_item:+b.dataset.id,p_action:b.dataset.a}); toast('تم'); showMe(); }catch(e){ toast(e.message,true); } });
+    view.querySelectorAll('[data-w]').forEach(b=>b.onclick=async()=>{ if(!confirm('تأكيد الاعتذار؟ سيُتاح الغرض لغيرك.')) return;
+      try{ await rpc('jisr_withdraw',{p_token:S.token,p_item:+b.dataset.w}); toast('تم'); showMe(); }catch(e){ toast(e.message,true); } });
+    $('#cp').onclick=async()=>{ try{ await rpc('jisr_change_pin',{p_token:S.token,p_old:$('#op').value,p_new:$('#np').value}); toast('تم تغيير الرمز'); $('#op').value=$('#np').value=''; }catch(e){ toast(e.message,true); } };
+  }catch(e){ view.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+function reqPill(k){
+  if(k.req_status==='won') return k.item_status==='delivered'?'<span class="pill">تم الاستلام</span>':'<span class="pill blue">محجوز لك</span>';
+  return {waiting:'<span class="pill gold">بانتظار الاختيار</span>',lost:'<span class="pill gray">لم يُختر</span>',released:'<span class="pill red">أُلغي لعدم الاستلام</span>',withdrawn:'<span class="pill gray">سحبت الطلب</span>'}[k.req_status]||'';
+}
+
+/* ---------- التعليمات ---------- */
+function showHelp(){
+  const h=S.settings.item_hours||24, p=S.settings.pickup_hours||24;
+  view.innerHTML = `
+  <h2 class="sec">عن جسر محمد</h2>
+  <div class="card" style="margin-bottom:14px">
+    <p style="margin-top:0">جسر محمد منصة تطوعية لتدوير المقتنيات المنزلية الفائضة، تربط صاحب الغرض بمن ينتفع به مباشرة، بلا تخزين ولا مقابل.</p>
+    <p style="margin-bottom:0">نستقبل: الأثاث، والملابس، والأجهزة، والشنط، والأحذية، ومستلزمات الأطفال، والأواني، وغيرها — بشرط أن تكون صالحة للاستخدام.</p>
+  </div>
+  <div class="two">
+    <div class="card"><h3 style="margin-top:0">إذا عندك غرض</h3><ol class="rules">
+      <li>ادخل برقم جوالك ورمزك السري.</li><li>من «اعرض غرضًا» أضف الصور والتصنيف والحالة والموقع ووقت الاستلام.</li>
+      <li>تحصل على كود، ويظهر غرضك ${h} ساعة بعد الاعتماد.</li><li>من «حسابي» تعرف من حجزه وتراسله كتابياً.</li><li>بعد التسليم اضغط «تم التسليم».</li></ol></div>
+    <div class="card"><h3 style="margin-top:0">إذا تحتاج غرضاً</h3><ol class="rules">
+      <li>تصفّح «عرض اليوم» واضغط على الغرض لرؤية التفاصيل.</li><li>من «احجز بالكود» أدخل كود الغرض.</li>
+      <li>${S.settings.booking_mode==='admin'?'يختار المشرف المستفيد بعدالة من بين الطلبات.':'أول من يُدخل الكود الصحيح يُحجز له.'}</li>
+      <li>راسل صاحب الغرض عبر الواتساب واستلم خلال ${p} ساعة.</li></ol></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3 style="margin-top:0">الضوابط</h3><ul class="rules">
+    <li>الاستلام خلال ${p} ساعة من تأكيد الحجز، وإلا انتقل الغرض لغيرك.</li>
+    <li>حجز واحد خلال 24 ساعة${S.settings.max_bookings_per_day>1?` (حتى ${S.settings.max_bookings_per_day})`:''} — لإتاحة الفرصة للجميع.</li>
+    <li>يُمنع طلب أي مقابل مالي أو رسوم توصيل أو إعادة بيع الأغراض.</li>
+    <li>التواصل كتابي عبر الواتساب فقط، ويُرجى عدم الاتصال.</li>
+    <li>من يكرر المخالفة أو لا يلتزم بالاستلام قد يُوقف رقمه.</li>
+    <li>بياناتك (الاسم والجوال) تُستخدم فقط لإتمام التواصل بين الطرفين، ولا تُعرض للعموم ولا تُشارك مع أي جهة.</li></ul></div>`;
+}
+
+/* ---------- الإدارة ---------- */
+function showAdmin(){
+  if(!S.user?.is_admin){ go('today'); return; }
+  view.innerHTML = `<h2 class="sec">لوحة الإدارة</h2><p class="sub">إدارة المعروضات والمستخدمين والإعدادات والإحصاء.</p>
+  <div class="subtabs" id="at">${[['pending','العروض الجديدة'],['live','المعروض وطلباته'],['booked','المحجوز'],['items','كل المعروضات'],['users','المستخدمون'],['stats','الإحصاء'],['settings','الإعدادات']].map(([k,t])=>`<button data-k="${k}" class="${S.adminTab===k?'on':''}">${t}</button>`).join('')}</div><div id="ab"></div>`;
+  $('#at').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; S.adminTab=b.dataset.k; showAdmin(); };
+  ({pending:()=>adminItems('pending'),live:()=>adminItems('approved'),booked:()=>adminItems('booked'),items:()=>adminItems(''),users:adminUsers,stats:adminStats,settings:adminSettings})[S.adminTab]();
+}
+async function adminItems(st){
+  const ab=$('#ab');
+  ab.innerHTML = `${st?'':`<div class="filters noprint"><select id="as"><option value="">كل الحالات</option>${Object.entries(STATUS).map(([k,[t]])=>`<option value="${k}">${t}</option>`).join('')}</select><input type="text" id="aq" placeholder="بحث بالكود أو الاسم أو الجوال"><button class="btn sec" id="ag">بحث</button></div>`}<div id="al"><div class="spin"></div></div>`;
+  const load = async () => {
+    try{
+      const list = await rpc('jisr_admin_items',{p_token:S.token,p_status:st||$('#as')?.value||null,p_search:$('#aq')?.value||null}) || [];
+      const mode=S.settings.booking_mode;
+      $('#al').innerHTML = list.length? `<div class="list">${list.map(i=>`
+        <div class="card"><div class="row" style="align-items:flex-start">
+          <div class="mini" style="width:84px;height:84px;${i.photos[0]?`background-image:url('${esc(i.photos[0])}')`:''}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="row"><b>${esc(i.title)}</b>${stPill(i.status)}<span class="code" style="font-size:13px">${esc(i.code)}</span>${i.is_test?'<span class="pill blue">تجربة</span>':''}</div>
+            <div class="meta"><span>${esc(i.categories.join('، '))}</span><span>${esc(i.condition||'')}</span><span>${esc(i.area||'')} ${esc(i.neighborhood||'')}</span><span>${esc(i.pickup_from||'')}–${esc(i.pickup_to||'')}</span></div>
+            ${i.details?`<div style="font-size:14px;white-space:pre-wrap">${esc(i.details)}</div>`:''}
+            <div class="meta">العارض: ${esc(i.donor_name)}${i.donor_town?' ('+esc(i.donor_town)+')':''} <a href="${wa(i.donor_phone)}" target="_blank" rel="noopener">${esc(i.donor_phone)}</a> · ${fmtDate(i.created_at)}${i.status==='approved'?' · '+left(i.expires_at):''}</div>
+            ${i.booker_name?`<div class="meta">حجزه: ${esc(i.booker_name)}${i.booker_town?' ('+esc(i.booker_town)+')':''} <a href="${wa(i.booker_phone)}" target="_blank" rel="noopener">${esc(i.booker_phone)}</a> · ${fmtDate(i.booked_at)}</div>`:''}
+            ${i.photos.length>1?`<div class="thumbs">${i.photos.map(p=>`<a href="${esc(p)}" target="_blank"><div style="background-image:url('${esc(p)}')"></div></a>`).join('')}</div>`:''}
+            ${i.requests.filter(r=>r.status==='waiting').length?`<div class="ok" style="padding:10px"><b>طلبات الحجز (${i.requests.filter(r=>r.status==='waiting').length}) — اختر المستفيد</b>
+              ${i.requests.filter(r=>r.status==='waiting').map(r=>`<div class="row" style="margin-top:6px;border-top:1px solid var(--g2);padding-top:6px"><span><b>${esc(r.name)}</b> — ${esc(r.town||'بلدة غير محددة')} · ${esc(r.phone)}<br><small style="color:var(--mut)">استفاد سابقاً: ${r.past_wins}${r.no_shows?` · لم يستلم: ${r.no_shows}`:''} · ${fmtDate(r.at)}</small></span><span class="sp"></span><button class="btn sm" data-pick="${r.id}" data-item="${i.id}">اختيار</button></div>`).join('')}
+              <button class="btn sm gold" style="margin-top:8px" data-draw="${i.id}">قرعة عشوائية</button></div>`:(i.status==='approved'?'<div class="meta">لا توجد طلبات حجز بعد.</div>':'')}
+            <div class="row" style="margin-top:8px">
+              ${i.status==='pending'?`<button class="btn sm" data-ok="${i.id}">اعتماد ونشر</button><button class="btn sm red" data-no="${i.id}">رفض</button>`:''}
+              ${['expired','rejected','cancelled'].includes(i.status)?`<button class="btn sm sec" data-ok="${i.id}">إعادة نشر</button>`:''}
+              ${i.status==='approved'?`<button class="btn sm wa" data-ann="${i.id}">إعلان في مجموعة الواتساب</button><button class="btn sm sec" data-ext="${i.id}">تمديد 24 ساعة</button><button class="btn sm red" data-no="${i.id}">إيقاف</button>`:''}
+              ${i.status==='booked'?`<button class="btn sm wa" data-msgs="${i.id}">رسائل «تم الحجز»</button><button class="btn sm" data-act="delivered" data-id="${i.id}">تم التسليم</button><button class="btn sm red" data-act="no_show" data-id="${i.id}">لم يستلم — أعِده للطلبات</button>`:''}
+              <button class="btn sm sec" data-edit="${i.id}">تعديل الوقت</button>
+              <button class="btn sm red" data-del="${i.id}">حذف</button>
+            </div>
+          </div></div></div>`).join('')}</div>` : `<div class="empty">${st==='pending'?'لا توجد عروض جديدة بانتظار الاعتماد.':'لا نتائج.'}</div>`;
+      const act = async (fn,args,msg,after) => { if(msg && !confirm(msg)) return; try{ await rpc(fn,{p_token:S.token,...args}); toast('تم'); await load(); if(after) after(); }catch(e){ toast(e.message,true); } };
+      const fresh = async id => (await rpc('jisr_admin_items',{p_token:S.token,p_status:null,p_search:null})).find(x=>x.id==id);
+      $('#al').querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>act('jisr_admin_decide',{p_item:+b.dataset.ok,p_approve:true},null, async()=>{ const it=await fresh(b.dataset.ok); if(it) waPanel(it,'announce'); }));
+      $('#al').querySelectorAll('[data-ann]').forEach(b=>b.onclick=()=>waPanel(list.find(x=>x.id==b.dataset.ann),'announce'));
+      $('#al').querySelectorAll('[data-msgs]').forEach(b=>b.onclick=()=>waPanel(list.find(x=>x.id==b.dataset.msgs),'booked'));
+      $('#al').querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>{ const n=prompt('سبب الرفض (اختياري)'); if(n===null) return; act('jisr_admin_decide',{p_item:+b.dataset.no,p_approve:false,p_note:n}); });
+      $('#al').querySelectorAll('[data-ext]').forEach(b=>b.onclick=()=>act('jisr_admin_edit_item',{p_item:+b.dataset.ext,p:{extend_hours:24}}));
+      $('#al').querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act('jisr_donor_action',{p_item:+b.dataset.id,p_action:b.dataset.act},'تأكيد الإجراء؟'));
+      $('#al').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>act('jisr_admin_pick',{p_request:+b.dataset.pick},'تأكيد أن الغرض لهذا المستفيد؟', async()=>{ const it=await fresh(b.dataset.item); if(it) waPanel(it,'booked'); }));
+      $('#al').querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>act('jisr_admin_draw',{p_item:+b.dataset.draw},'إجراء قرعة واختيار مستفيد عشوائياً؟', async()=>{ const it=await fresh(b.dataset.draw); if(it) waPanel(it,'booked'); }));
+      $('#al').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>act('jisr_admin_delete_item',{p_item:+b.dataset.del},'حذف الغرض نهائياً من السجل؟ لا يمكن التراجع.'));
+      $('#al').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{ const f=prompt('الاستلام من الساعة (مثال 16:00)'); if(f===null) return; const t=prompt('إلى الساعة (مثال 21:00)'); if(t===null) return; act('jisr_admin_edit_item',{p_item:+b.dataset.edit,p:{pickup_from:f,pickup_to:t}}); });
+    }catch(e){ $('#al').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+  };
+  $('#ag')?.addEventListener('click', load); $('#as')?.addEventListener('change', load);
+  load();
+}
+async function adminUsers(){
+  const ab=$('#ab');
+  ab.innerHTML = `<div class="filters"><input type="text" id="uq" placeholder="بحث بالاسم أو الجوال أو البلدة"><button class="btn sec" id="ug">بحث</button></div><div id="ul"><div class="spin"></div></div>`;
+  const load = async () => {
+    try{
+      const list = await rpc('jisr_admin_users',{p_token:S.token,p_search:$('#uq').value||null}) || [];
+      $('#ul').innerHTML = list.length? `<div class="list">${list.map(u=>`
+        <div class="card"><div class="row"><b>${esc(u.name)}</b><span class="pill gray">${esc(u.town||'بدون بلدة')}</span><a href="${wa(u.phone)}" target="_blank" rel="noopener">${esc(u.phone)}</a>
+          ${u.is_admin?'<span class="pill gold">مشرف</span>':''}${u.status==='suspended'?'<span class="pill red">موقوف</span>':''}</div>
+          <div class="meta"><span>عرض: ${u.offers}</span><span>سلّم: ${u.delivered}</span><span>استفاد: ${u.wins}</span><span>لم يستلم: ${u.no_shows}</span><span>منذ ${fmtDate(u.created_at)}</span></div>
+          <div class="row" style="margin-top:8px">
+            ${u.status==='active'?`<button class="btn sm red" data-u="${u.id}" data-a="suspend">إيقاف الرقم</button>`:`<button class="btn sm" data-u="${u.id}" data-a="activate">إعادة التفعيل</button>`}
+            ${u.is_admin?`<button class="btn sm sec" data-u="${u.id}" data-a="unadmin">سحب الإشراف</button>`:`<button class="btn sm sec" data-u="${u.id}" data-a="admin">تعيين مشرفاً</button>`}
+            <button class="btn sm sec" data-u="${u.id}" data-a="reset_pin">إعادة ضبط الرمز</button></div></div>`).join('')}</div>` : '<div class="empty">لا نتائج.</div>';
+      $('#ul').querySelectorAll('[data-u]').forEach(b=>b.onclick=async()=>{
+        const msg={suspend:'إيقاف هذا الرقم؟',activate:'إعادة تفعيل الرقم؟',admin:'منح صلاحية الإشراف؟',unadmin:'سحب صلاحية الإشراف؟',reset_pin:'سيصبح الرمز السري آخر 4 أرقام من جواله. متابعة؟'}[b.dataset.a];
+        if(!confirm(msg)) return;
+        try{ await rpc('jisr_admin_set_user',{p_token:S.token,p_user:+b.dataset.u,p_action:b.dataset.a}); toast('تم'); load(); }catch(e){ toast(e.message,true); } });
+    }catch(e){ $('#ul').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+  };
+  $('#ug').onclick=load; load();
+}
+async function adminSettings(){
+  const ab=$('#ab'); ab.innerHTML='<div class="spin"></div>';
+  try{
+    const s = await rpc('jisr_admin_get_settings',{p_token:S.token});
+    ab.innerHTML = `<div class="card" style="max-width:620px">
+      <label class="f"><span>نمط الحجز</span><select id="s_mode"><option value="auto">تلقائي — أول من يُدخل الكود</option><option value="admin">المشرف يختار من الطلبات (أو قرعة)</option></select></label>
+      <label class="f"><span>اعتماد العروض الجديدة</span><select id="s_appr"><option value="true">تحتاج موافقة المشرف قبل الظهور</option><option value="false">تُنشر مباشرة</option></select></label>
+      <div class="two">
+        <label class="f"><span>مدة ظهور الغرض (ساعة)</span><input type="number" id="s_ih" min="1" max="168"></label>
+        <label class="f"><span>مهلة الاستلام (ساعة)</span><input type="number" id="s_ph" min="1" max="168"></label>
+        <label class="f"><span>حجوزات الشخص في 24 ساعة</span><input type="number" id="s_mx" min="1" max="10"></label>
+        <label class="f"><span>وضع التجربة</span><select id="s_tr"><option value="true">مفعّل</option><option value="false">متوقف (تشغيل فعلي)</option></select></label>
+      </div>
+      <label class="f"><span>اسم مجموعة الواتساب</span><input type="text" id="s_wn"></label>
+      <label class="f"><span>رابط دعوة المجموعة</span><input type="url" id="s_wl" placeholder="https://chat.whatsapp.com/..." dir="ltr"><small>يظهر زر «انضم إلى المجموعة» أسفل عرض اليوم.</small></label>
+      <label class="f"><span>تنبيه أعلى المنصة (اختياري)</span><input type="text" id="s_an" maxlength="200"></label>
+      <div class="row"><button class="btn" id="s_save">حفظ الإعدادات</button>${s.whatsapp_link?`<a class="btn sec" href="${esc(s.whatsapp_link)}" target="_blank" rel="noopener">جرّب الرابط</a>`:''}</div>
+    </div>
+    <div class="card" style="max-width:620px;margin-top:14px"><b>أغراض التجربة</b><p class="sub" style="margin:4px 0 10px">حذف كل المعروضات المعلَّمة «تجربة» قبل الإطلاق الفعلي.</p><button class="btn red" id="s_clear">امسح أغراض التجربة</button></div>`;
+    $('#s_mode').value=s.booking_mode; $('#s_appr').value=String(s.require_approval); $('#s_ih').value=s.item_hours; $('#s_ph').value=s.pickup_hours;
+    $('#s_mx').value=s.max_bookings_per_day; $('#s_tr').value=String(s.trial_mode); $('#s_wn').value=s.whatsapp_name||''; $('#s_wl').value=s.whatsapp_link||''; $('#s_an').value=s.announcement||'';
+    $('#s_save').onclick=async()=>{ try{
+      await rpc('jisr_admin_set_settings',{p_token:S.token,p:{booking_mode:$('#s_mode').value,require_approval:$('#s_appr').value==='true',item_hours:+$('#s_ih').value||24,
+        pickup_hours:+$('#s_ph').value||24,max_bookings_per_day:+$('#s_mx').value||1,trial_mode:$('#s_tr').value==='true',whatsapp_name:$('#s_wn').value,whatsapp_link:$('#s_wl').value.trim(),announcement:$('#s_an').value}});
+      await loadSettings(); renderTabs(); toast('تم حفظ الإعدادات'); }catch(e){ toast(e.message,true); } };
+    $('#s_clear').onclick=async()=>{ if(!confirm('حذف كل أغراض التجربة نهائياً؟')) return; try{ const r=await rpc('jisr_admin_clear_test',{p_token:S.token}); toast(`حُذف ${r.deleted} غرض`); }catch(e){ toast(e.message,true); } };
+  }catch(e){ ab.innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+}
+async function adminStats(){
+  const ab=$('#ab'); const today=new Date().toISOString().slice(0,10);
+  const back = n => new Date(Date.now()-n*864e5).toISOString().slice(0,10);
+  ab.innerHTML = `<div class="filters noprint">
+    <select id="sp"><option value="7">أسبوعي (آخر 7 أيام)</option><option value="30" selected>شهري (آخر 30 يوماً)</option><option value="365">سنوي</option><option value="all">عام (من البداية)</option><option value="c">فترة مخصصة</option></select>
+    <input type="date" id="sf" value="${back(30)}"><input type="date" id="st" value="${today}">
+    <label class="row" style="font-size:14px"><input type="checkbox" id="sx"> تضمين التجربة</label>
+    <button class="btn sec" id="sg">عرض</button><button class="btn" onclick="window.print()">اطبع الإحصاء PDF</button></div><div id="sr"></div>`;
+  $('#sp').onchange=()=>{ const v=$('#sp').value; if(v!=='c'){ $('#sf').value = v==='all'?'2026-01-01':back(+v); $('#st').value=today; } load(); };
+  const load = async () => {
+    $('#sr').innerHTML='<div class="spin"></div>';
+    try{
+      const r = await rpc('jisr_admin_stats',{p_token:S.token,p_from:$('#sf').value,p_to:$('#st').value,p_include_test:$('#sx').checked});
+      const bs=r.by_status||{}; const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+      const bars = (arr,tot) => arr.length? `<div class="bars">${arr.map(x=>`<div class="r"><span>${esc(x.k)}</span><div class="t"><i style="width:${Math.max(2,x.n*100/(arr[0].n||1))}%"></i></div><b>${x.n}</b></div>`).join('')}</div>` : '<div class="empty" style="padding:14px">لا بيانات</div>';
+      $('#sr').innerHTML = `
+        <div class="card" style="margin-bottom:14px"><b>تقرير جسر محمد</b><div class="meta">الفترة من ${$('#sf').value} إلى ${$('#st').value}</div></div>
+        <div class="kpis">
+          <div class="kpi"><b>${r.total}</b><span>إجمالي المعروضات</span></div>
+          <div class="kpi"><b>${bs.delivered||0}</b><span>تم تسليمها (${pct(bs.delivered||0,r.total)})</span></div>
+          <div class="kpi"><b>${bs.booked||0}</b><span>محجوزة بانتظار التسليم</span></div>
+          <div class="kpi"><b>${bs.approved||0}</b><span>متاحة الآن</span></div>
+          <div class="kpi"><b>${(bs.expired||0)+(bs.cancelled||0)}</b><span>انتهت أو أُلغيت</span></div>
+          <div class="kpi"><b>${r.donors}</b><span>متبرعون</span></div>
+          <div class="kpi"><b>${r.beneficiaries}</b><span>مستفيدون</span></div>
+          <div class="kpi"><b>${r.requests}</b><span>طلبات حجز</span></div>
+          <div class="kpi"><b>${r.avg_hours_to_book ?? '—'}</b><span>متوسط ساعات الحجز</span></div>
+          <div class="kpi"><b>${r.new_users}</b><span>مستخدمون جدد</span></div>
+        </div>
+        <div class="two"><div class="card"><b>حسب التصنيف</b><div style="margin-top:10px">${bars(r.by_category)}</div></div>
+          <div class="card"><b>حسب المنطقة</b><div style="margin-top:10px">${bars(r.by_area)}</div></div></div>
+        <div class="card" style="margin-top:14px"><b>المستفيدون حسب البلدة</b><div style="margin-top:10px">${bars(r.by_ben_town||[])}</div></div>
+        <div class="card" style="margin-top:14px"><b>حسب اليوم</b><div style="margin-top:10px">${bars((r.by_day||[]).slice(-31).map(x=>({k:x.k,n:x.n})))}</div></div>`;
+    }catch(e){ $('#sr').innerHTML=`<div class="empty">${esc(e.message)}</div>`; }
+  };
+  $('#sg').onclick=load; load();
+}
+
+/* ---------- رسائل الواتساب والصور ---------- */
+const SITE = location.protocol === 'https:' ? location.origin : 'https://almaateeq.com/jisr-mohammad';
+const bookLink = code => `${SITE}/#b=${code}`;
+function t12(s){ if(!s) return ''; let [h,m]=String(s).split(':').map(Number); if(isNaN(h)) return s; const pm=h>=12; h=h%12||12; return `${h}:${String(m||0).padStart(2,'0')} ${pm?'مساءً':'صباحاً'}`; }
+const pickupTime = i => (i.pickup_from||i.pickup_to) ? `من ${t12(i.pickup_from)} إلى ${t12(i.pickup_to)}` : 'يُتفق عليه مع العارض';
+const place = i => [i.area, i.neighborhood].filter(Boolean).join(' - ');
+
+/* القوالب — عدّل النصوص هنا متى شئت */
+function msgAnnounce(i){
+  const ph = S.settings.pickup_hours || 24;
+  return [
+`⬅️ ${i.code}`,
+`⬆️ كود العرض`,
+``,
+`📍 ${i.title}${i.details ? '\n' + i.details : ''}`,
+``,
+`💫 الحالة: ${i.condition || '—'}`,
+`📸 النوع موضح بالصورة`,
+``,
+`🚫 يمنع الاتصال بأي شكل 📞`,
+`التواصل واتساب فقط`,
+``,
+`🚗 ${i.pickup_method || 'الاستلام على المستفيد'} من:`,
+`*${place(i) || '—'}*`,
+`⏰ وقت الاستلام: ${pickupTime(i)}`,
+``,
+`⛔ الحجز يلغى بعد ${ph} ساعة إذا لم يتم الاستلام`,
+``,
+`🔗 رابط الحجز: ${bookLink(i.code)}`,
+...(S.settings.whatsapp_link ? [``, `${S.settings.whatsapp_name || ''}`, S.settings.whatsapp_link] : [])
+  ].join('\n');
+}
+const msgBookedGroup = i => `✅ تم الحجز ${i.code}\n${i.title}\n\nجزى الله المتبرع خيراً 🌿`;
+function msgBeneficiary(i){
+  const ph = S.settings.pickup_hours || 24;
+  return [
+`السلام عليكم، من منصة جسر محمد ✅`,
+``,
+`حُجز الغرض لك، وتأكد الحجز:`,
+`الغرض: ${i.title} (${i.code})`,
+`المنطقة: ${place(i) || '—'}`,
+`طريقة الاستلام: ${i.pickup_method || '—'}`,
+`وقت الاستلام: ${pickupTime(i)}`,
+``,
+`للتواصل مع العارض: ${i.donor_name || ''}`,
+`${wa(i.donor_phone)}`,
+``,
+`يُرجى المبادرة بالتنسيق مع العارض واستلام الغرض خلال ${ph} ساعة، وإلا انتقل الحجز لغيرك.`,
+`التواصل كتابي عبر الواتساب فقط، ولا يُدفع أي مقابل.`,
+``,
+`بعد الاستلام أكّد من «حسابي»: ${SITE}/#me`
+  ].join('\n');
+}
+function msgDonor(i){
+  const ph = S.settings.pickup_hours || 24;
+  return [
+`السلام عليكم، من منصة جسر محمد 🌿`,
+``,
+`تم حجز غرضك: ${i.title} (${i.code})`,
+`المستفيد: ${i.booker_name || ''}${i.booker_town ? ' — ' + i.booker_town : ''}`,
+`للتواصل: ${wa(i.booker_phone)}`,
+``,
+`سيتواصل معك المستفيد كتابياً لتنسيق الاستلام خلال ${ph} ساعة.`,
+`بعد التسليم أكّد من «حسابي»: ${SITE}/#me`,
+``,
+`جزاك الله خيراً على عطائك.`
+  ].join('\n');
+}
+
+async function loadImg(url){
+  const r = await fetch(url, {mode:'cors'}); if(!r.ok) throw new Error('img');
+  const u = URL.createObjectURL(await r.blob());
+  const img = new Image(); img.src = u; await img.decode(); return img;
+}
+async function itemCanvas(i, stamped){
+  try{ await document.fonts.load('800 80px Tajawal'); }catch(e){}
+  let img = null;
+  if (i.photos && i.photos[0]) { try{ img = await loadImg(i.photos[0]); }catch(e){ img = null; } }
+  const c = document.createElement('canvas'); const x = c.getContext('2d');
+  if (img){ const k = Math.min(1, 1280/Math.max(img.width,img.height)); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k); x.drawImage(img,0,0,c.width,c.height); }
+  else {
+    c.width=1080; c.height=810; const g=x.createLinearGradient(0,0,1080,810); g.addColorStop(0,'#173a2b'); g.addColorStop(1,'#3a7a5c'); x.fillStyle=g; x.fillRect(0,0,1080,810);
+    x.fillStyle='#fff'; x.textAlign='center'; x.direction='rtl'; x.font='800 64px Tajawal, sans-serif'; x.fillText(i.title.slice(0,40),540,360);
+    x.font='700 40px Tajawal, sans-serif'; x.fillStyle='#f7ecd8'; x.fillText('جسر محمد',540,450);
+    x.font='800 72px monospace'; x.fillStyle='#fff'; x.direction='ltr'; x.fillText(i.code,540,580);
+  }
+  if (stamped){
+    const W=c.width, H=c.height, s=Math.min(W,H);
+    x.save(); x.translate(W/2,H/2); x.rotate(-14*Math.PI/180);
+    const w=s*0.78, h=s*0.3, r=h/2;
+    const rr=(pad,fill)=>{ x.beginPath(); x.roundRect(-w/2-pad,-h/2-pad,w+pad*2,h+pad*2,r+pad); x.fillStyle=fill; x.fill(); };
+    x.shadowColor='rgba(0,0,0,.3)'; x.shadowBlur=s*0.03; rr(s*0.02,'#c62f25'); x.shadowBlur=0;
+    rr(s*0.008,'#ffffff'); rr(0,'#c62f25');
+    x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.direction='rtl';
+    x.font=`800 ${Math.round(h*0.52)}px Tajawal, sans-serif`; x.fillText('تم الحجز',0,h*0.04);
+    x.restore();
+    const bh=Math.round(s*0.09); x.fillStyle='rgba(0,0,0,.6)'; x.fillRect(0,H-bh,W,bh);
+    x.fillStyle='#fff'; x.textAlign='center'; x.textBaseline='middle'; x.direction='ltr'; x.font=`700 ${Math.round(bh*0.5)}px Tajawal, sans-serif`;
+    x.fillText(`${i.code}  ✅`, W/2, H-bh/2);
+  }
+  return c;
+}
+const canvasFile = (c,name) => new Promise(res=>c.toBlob(b=>res(new File([b], name, {type:'image/jpeg'})),'image/jpeg',0.85));
+async function itemPhotoFiles(i){
+  const out=[];
+  for (const [n,u] of (i.photos||[]).entries()){ try{ const r=await fetch(u,{mode:'cors'}); const b=await r.blob(); out.push(new File([b], `${i.code}-${n+1}.jpg`, {type:b.type||'image/jpeg'})); }catch(e){} }
+  if (!out.length) out.push(await canvasFile(await itemCanvas(i,false), `${i.code}.jpg`));
+  return out;
+}
+function dl(file){ const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download=file.name; document.body.appendChild(a); a.click(); a.remove(); }
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); return true; }catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); return ok; } }
+async function shareToWA(files, text){
+  await copyText(text);
+  if (files.length && navigator.canShare && navigator.canShare({files})){
+    try{ await navigator.share({files, text}); toast('النص منسوخ أيضاً — الصقه تحت الصورة إن لم يظهر'); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  files.forEach(dl);
+  toast('نُزّلت الصورة ونُسخ النص — أرسلهما في مجموعة الواتساب');
+}
+
+/* لوحة رسائل الواتساب للمشرف */
+async function waPanel(i, kind){
+  if (!i) return;
+  const m=document.createElement('div'); m.className='modal';
+  const sec = (id,title,text,btns) => `<div class="card" style="margin-bottom:12px"><b>${title}</b>
+      <div id="img_${id}" style="margin-top:10px"></div>
+      <textarea class="prev" id="tx_${id}" style="margin-top:8px">${esc(text)}</textarea>
+      <div class="row" style="margin-top:8px">${btns}</div></div>`;
+  let body='';
+  if (kind==='announce'){
+    body = sec('g','إعلان العرض في مجموعة الواتساب', msgAnnounce(i),
+      `<button class="btn wa" data-go="share_g">مشاركة في الواتساب (الصورة + النص)</button><button class="btn sm sec" data-go="copy_g">نسخ النص</button><button class="btn sm sec" data-go="dl_g">تحميل الصورة</button>`);
+  } else {
+    body = sec('g','١) إعلان «تم الحجز» في المجموعة', msgBookedGroup(i),
+        `<button class="btn wa" data-go="share_g">مشاركة الصورة المختومة</button><button class="btn sm sec" data-go="copy_g">نسخ النص</button><button class="btn sm sec" data-go="dl_g">تحميل الصورة</button>`)
+      + sec('b',`٢) رسالة للمستفيد: ${esc(i.booker_name||'')} ${i.booker_town?'('+esc(i.booker_town)+')':''}`, msgBeneficiary(i),
+        `<button class="btn wa" data-go="send_b">إرسال للمستفيد عبر الواتساب</button><button class="btn sm sec" data-go="copy_b">نسخ</button>`)
+      + sec('d',`٣) رسالة للعارض: ${esc(i.donor_name||'')}`, msgDonor(i),
+        `<button class="btn wa" data-go="send_d">إرسال للعارض عبر الواتساب</button><button class="btn sm sec" data-go="copy_d">نسخ</button>`);
+  }
+  m.innerHTML = `<div class="box"><div class="row"><h2 class="sec" style="margin:0">رسائل الواتساب — ${esc(i.code)}</h2><span class="sp"></span><button class="btn sm sec" data-go="close">إغلاق</button></div>
+    <p class="sub" style="margin:4px 0 12px">يمكنك تعديل النص قبل الإرسال. الإرسال يتم من واتساب جوالك.</p>${body}</div>`;
+  document.body.appendChild(m);
+  m.onclick = e => { if(e.target===m) m.remove(); };
+  // تجهيز الصورة
+  let gFiles = null;
+  const ready = (async()=>{
+    const box=$('#img_g',m);
+    box.innerHTML='<div class="spin" style="margin:10px auto"></div>';
+    try{
+      gFiles = kind==='announce' ? await itemPhotoFiles(i) : [await canvasFile(await itemCanvas(i,true), `${i.code}-تم-الحجز.jpg`)];
+      box.innerHTML = `<img class="previmg" src="${URL.createObjectURL(gFiles[0])}" alt="">${gFiles.length>1?`<div class="meta" style="justify-content:center">+ ${gFiles.length-1} صورة أخرى</div>`:''}`;
+    }catch(e){ box.innerHTML='<div class="meta">تعذّر تجهيز الصورة</div>'; gFiles=[]; }
+  })();
+  m.querySelectorAll('[data-go]').forEach(b=>b.onclick=async()=>{
+    const [a,id]=b.dataset.go.split('_'); const tx=id?$('#tx_'+id,m).value:'';
+    if (a==='close') return m.remove();
+    if (a==='copy'){ toast(await copyText(tx)?'تم نسخ النص':'تعذّر النسخ', false); return; }
+    if (a==='dl'){ await ready; (gFiles||[]).forEach(dl); return; }
+    if (a==='share'){ await ready; await shareToWA(gFiles||[], tx); return; }
+    if (a==='send'){ const ph = id==='b'? i.booker_phone : i.donor_phone; window.open(`${wa(ph)}?text=${encodeURIComponent(tx)}`,'_blank'); }
+  });
+}
+
+/* ملف المستخدم: البلدة مطلوبة */
+function profileModal(){
+  const m=document.createElement('div'); m.className='modal';
+  m.innerHTML=`<div class="box"><h2 class="sec">أكمل بياناتك</h2><p class="sub">أضف البلدة التي تسكن فيها لإكمال حسابك.</p>
+    <label class="f"><span>الاسم</span><input type="text" id="pn" maxlength="60" value="${esc(S.user.name||'')}"></label>
+    <label class="f"><span>البلدة</span><select id="pt2"><option value="">اختر البلدة</option>${AREAS.map(a=>`<option>${a}</option>`).join('')}</select></label>
+    <button class="btn block" id="ps">حفظ</button></div>`;
+  document.body.appendChild(m);
+  $('#ps',m).onclick=async()=>{ try{ await rpc('jisr_update_profile',{p_token:S.token,p_name:$('#pn',m).value,p_town:$('#pt2',m).value}); S.user.name=$('#pn',m).value; S.user.town=$('#pt2',m).value; m.remove(); renderTabs(); toast('تم الحفظ'); }catch(e){ toast(e.message,true); } };
+}
+
+/* ---------- التشغيل ---------- */
+async function loadSettings(){ try{ S.settings = await rpc('jisr_public_settings') || {}; }catch(e){ S.settings={}; } }
+(async function init(){
+  if (!sb){ document.getElementById('view').innerHTML = '<div class="card" style="margin-top:18px;text-align:center"><h2 style="margin:0 0 8px">جسر محمد</h2><p class="sub" style="margin:0">المنصة جاهزة، وتنتظر ربطها بخادمها الخاص.</p></div>'; return; }
+  await loadSettings();
+  if (S.token){ try{ S.user = await rpc('jisr_me',{p_token:S.token}); }catch(e){ S.token=null; localStorage.removeItem('jisrm_token'); } }
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h.startsWith('b=')) { S.pendingCode = h.slice(2).toUpperCase(); go('book'); }
+  else go(['today','offer','book','me','help','admin'].includes(h) ? h : 'today');
+  if (S.user && !S.user.town) profileModal();
+  window.addEventListener('hashchange', ()=>{ const x=decodeURIComponent(location.hash.slice(1)); if(x.startsWith('b=')){ S.pendingCode=x.slice(2).toUpperCase(); go('book'); } });
+  setInterval(()=>{ if(S.tab==='today' && $('#items .grid')) drawItems(); }, 60000);
+})();
+</script>
+</body>
+</html>

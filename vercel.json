@@ -2,6 +2,26 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/sahl/android",
+      "destination": "https://github.com/taroot80-blip/sahl-mumtani/releases/download/sahl-latest/sahl.apk",
+      "permanent": false
+    },
+    {
+      "source": "/sahl-apk",
+      "destination": "https://github.com/taroot80-blip/sahl-mumtani/releases/download/sahl-latest/sahl.apk",
+      "permanent": false
+    },
+    {
+      "source": "/sahl",
+      "destination": "/apps/sahl/",
+      "permanent": false
+    },
+    {
+      "source": "/apps/sahl",
+      "destination": "/apps/sahl/",
+      "permanent": false
+    },
+    {
       "source": "/clock",
       "destination": "/apps/clock/",
       "permanent": false
@@ -313,6 +333,15 @@
     },
     {
       "source": "/apps/almisbar/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/apps/sahl/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

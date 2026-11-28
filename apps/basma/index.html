@@ -19,7 +19,7 @@
 @font-face{font-family:Tajawal;font-weight:800;font-display:swap;src:url(fonts/tajawal-latin-800-normal.woff2) format("woff2");unicode-range:U+0000-00FF,U+2000-206F}
 </style>
 <meta name="description" content="بصمتي المرنة: مواعيد بصمات الحضور والتواجد والانصراف لمعلمي وزارة التربية في الكويت وإدارييها. تطبيق مستقل غير تابع للوزارة.">
-<meta name="theme-color" content="#0b0805">
+<meta name="theme-color" content="#173a2b">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-apple-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -421,6 +421,173 @@ nav.tabs button svg{width:19px!important;height:19px!important}
 .id .idside .bud{display:inline-block;margin:0!important;font-size:12px!important;padding:1px 10px!important;border-radius:999px;border:1px solid rgba(20,184,166,.6);background:rgba(20,184,166,.16);color:#99f6e4;font-weight:800;cursor:pointer;white-space:nowrap}
 .id .idside .bud.need{border-color:#EF4444;background:rgba(239,68,68,.18);color:#fecaca;animation:badpulse 1.8s ease-in-out infinite}
 .id .idside .date{display:block!important;margin:0!important;font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* ================================================================
+   واجهة «تسويق» — طبقة مظهر فقط (ألوان وخطوط وأسطح)
+   لا تمس أي وظيفة أو بيانات. للرجوع إلى المظهر السابق: احذف هذا القسم كله.
+   ================================================================ */
+:root{
+  --g9:#173a2b;--g7:#24553f;--g5:#3a7a5c;--g2:#dcebe2;--g1:#eef5f0;--tgold:#c8963e;--tgold1:#f7ecd8;
+  --bg:#f6f7f5;--card:#fff;--line:#e3e8e5;--text:#1d2622;--muted:#66736c;--ink:#1d2622;
+  --tsh:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(23,58,43,.06);
+}
+html,body{background:var(--bg)!important;color:var(--text)}
+body,h1,h2,h3,h4,.ev h4,.bigtime,.aboutName,.verdict,.alarm .ring .t,.iconbtn.about,.cal .d,.dial-center{font-family:Tajawal,system-ui,sans-serif!important}
+::selection{background:var(--g2);color:var(--g9)}
+:focus-visible{outline-color:var(--g7)}
+
+/* الخلفية: فاتحة هادئة بلا صورة ولا شهب */
+.scene .photo,.scene .veil,.laser,.spark,.meteor,.flashsky,#sparks,#meteors{display:none!important}
+.scene{background:var(--bg)}
+
+/* الرأس: شريط أخضر متدرج بعنوان أبيض */
+.hero{background:linear-gradient(135deg,var(--g9),var(--g7));border-radius:0 0 22px 22px;margin:calc(-8px - env(safe-area-inset-top)) -14px 0;
+  padding:calc(env(safe-area-inset-top) + 14px) 12px 14px!important;box-shadow:0 6px 18px rgba(23,58,43,.18)}
+.hero h1{color:#fff!important;text-shadow:none!important;font-weight:800}
+.hero .disc{color:rgba(255,255,255,.8)!important;text-shadow:none!important}
+.hero p{color:rgba(255,255,255,.9)!important;text-shadow:none!important;font-weight:500}
+.hero .iconbtn{background:rgba(255,255,255,.16)!important;color:#fff!important;border:0!important;box-shadow:none!important;animation:none!important}
+.hero .iconbtn.off{color:rgba(255,255,255,.55)!important}
+.hero .iconbtn.testBtn{background:linear-gradient(145deg,#a21caf,#6d28d9)!important}
+
+/* بطاقة الموظف */
+.id{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--tsh);backdrop-filter:none!important;margin-top:10px!important;border-radius:18px!important}
+.id::after{display:none}
+.id .who h2{color:var(--text)}
+.avatar{background:conic-gradient(from 0deg,var(--g7),transparent 30%,var(--tgold) 50%,transparent 70%,var(--g7))!important}
+.avatar #avIn{background:var(--g1)!important;border-color:#fff!important;color:var(--g7)}
+.id .who .role{background:var(--tgold)!important;color:#fff!important}
+.id .who .bud,.id .idside .bud{background:var(--g1)!important;border-color:var(--g2)!important;color:var(--g7)!important}
+.id .who .bud.need,.id .idside .bud.need{background:#f8e3df!important;border-color:#e7b3a9!important;color:#b3412f!important}
+.id .idside .date,.id .who .date{color:var(--muted)!important}
+
+/* البطاقات */
+.card{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--tsh);backdrop-filter:none!important;border-radius:20px!important}
+.card h3{color:var(--g7)!important}
+.card p{color:#3d4a43!important}
+.muted{color:var(--muted)!important}
+#v-rules .card p b,.card p b{color:var(--text)}
+
+/* بطاقة الساعة: لوح أخضر داكن تظهر عليه الساعة بألوانها */
+.card.glow-edge{background:linear-gradient(160deg,var(--g9),var(--g7) 70%)!important;border-color:var(--g7)!important;--text:#f6ead2;--muted:#cfe3d8}
+.card.glow-edge::before{background:conic-gradient(from var(--a,0deg),transparent 0 72%,var(--tgold) 82%,#fff 85%,transparent 90%)!important}
+.card.glow-edge p,.card.glow-edge .muted,.card.glow-edge .legend{color:#d8e9df!important}
+.card.glow-edge .m{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.22)!important;color:#fff!important;box-shadow:none!important}
+.card.glow-edge .m svg{color:#f3d58f!important;filter:none!important}
+.card.glow-edge .m small{color:#cfe3d8!important}
+
+/* الأزرار */
+.btn.primary{background:var(--tgold)!important;color:#fff!important;box-shadow:0 4px 12px rgba(200,150,62,.35)!important;animation:none!important}
+.btn.primary:active{transform:scale(.97)!important;box-shadow:0 2px 6px rgba(200,150,62,.35)!important}
+.btn.ghost{background:#e9f1ec!important;color:var(--g7)!important;border:1px solid var(--g2)!important;box-shadow:none!important;animation:none!important}
+.btn.ghost:active{transform:scale(.97)!important}
+.btn.ghost.reset{background:#f8e3df!important;color:#b3412f!important;border-color:#efc6bd!important}
+.btn.ok{background:var(--g7)!important;color:#fff!important;box-shadow:0 4px 12px rgba(36,85,63,.25)!important;animation:none!important}
+.btn.primary::after,.btn.ghost::after{background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%)!important}
+.btn.moe{background:#fff!important;color:var(--g7)!important;border:1px solid var(--line)!important}
+.btn.moe img{filter:none!important}
+.iconbtn{background:#fff!important;color:var(--g7)!important;border:1px solid var(--line)!important;box-shadow:none!important;animation:none!important}
+.bsel{background:#fff!important;color:var(--text)!important;border:1px solid var(--line)!important}
+.bsel small{color:var(--muted)!important}
+.bsel.on{background:var(--g7)!important;color:#fff!important;border-color:var(--g7)!important}
+.bsel.on small{color:#d8e9df!important}
+.calnav{background:#fff!important;color:var(--g7)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+
+/* طرق الإدخال خارج بطاقة الساعة */
+.m{background:#fff;border-color:var(--line);color:var(--text);box-shadow:var(--tsh)}
+.m svg{color:var(--g7)}
+
+/* بطاقات البصمات الثلاث: بيضاء بلمسة من لون كل عملية */
+.ev{background:color-mix(in srgb,var(--cc,#24553f) 7%,#fff)!important;border:1px solid color-mix(in srgb,var(--cc,#24553f) 40%,#fff)!important;box-shadow:var(--tsh)}
+.ev.live{box-shadow:0 0 0 2px color-mix(in srgb,var(--cc,#24553f) 55%,#fff),var(--tsh)!important}
+.ev.live::before{background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--cc,#24553f) 12%,transparent),transparent)!important}
+.ev h4{color:var(--text)}
+.ev .range{color:var(--text)}
+.ev .range span,.ev .cd{color:var(--muted)!important}
+.ev .ic{color:#fff!important}
+.s-wait{background:#e2edf6!important;color:#2c5f8a!important}
+.s-open{background:var(--tgold1)!important;color:#8a5f14!important}
+.s-done{background:#16a34a!important;color:#fff!important}
+.s-miss{background:#f8e3df!important;color:#b3412f!important}
+.s-ex{background:var(--g1)!important;color:var(--g7)!important}
+
+/* الشرائط */
+.banner.warn{background:#f8e3df!important;border:1px solid #efc6bd!important;color:#8f2f20!important}
+.banner.info{background:#e2edf6!important;border:1px solid #c9dbea!important;color:#2c5f8a!important}
+
+/* شريط التنقل السفلي */
+nav.tabs{background:linear-gradient(180deg,transparent,rgba(246,247,245,.96) 35%)!important}
+nav.tabs .in{background:#fff!important;border:1px solid var(--line)!important;box-shadow:0 -2px 14px rgba(23,58,43,.08)}
+nav.tabs button{color:var(--muted)!important}
+nav.tabs button[aria-selected=true]{color:var(--g7)!important;font-weight:800}
+.pill{background:var(--g1)!important;box-shadow:none!important}
+
+/* الحقول */
+input,select{background:#fff!important;color:var(--text)!important;border:1px solid var(--line)!important}
+input[type=time],input[type=date]{color-scheme:light}
+.field label{color:var(--muted)!important}
+
+/* التقويم */
+.calhead h3{color:var(--g7)}
+.cal .wd{color:var(--muted)}
+.cal .d{background:#fff!important;border-color:var(--line)!important;color:var(--text)!important}
+.cal .d.ok{background:#e3f3e8!important;border-color:#9fd2b0!important}
+.cal .d.bad{background:#f8e3df!important;border-color:#e7a89b!important}
+.cal .d.leave{background:#e0f3f0!important;border-color:#9fd8cf!important}
+.cal .d.live{background:var(--tgold1)!important;border-color:var(--tgold)!important}
+.cal .d.today{box-shadow:0 0 0 2px var(--g7)!important}
+.cal .d.sel{outline-color:var(--tgold)!important}
+.verdict.ok{background:#e3f3e8!important;color:#1f6b3f!important;border-color:#9fd2b0!important}
+.verdict.bad{background:#f8e3df!important;color:#b3412f!important;border-color:#e7a89b!important}
+.verdict.leave,.verdict.live,.verdict.none{background:var(--tgold1)!important;color:#8a5f14!important;border-color:#ecd9b4!important}
+.notes li.b,.lcinfo b.bad,.bad{color:#b3412f!important}
+.notes li.g{color:#1f6b3f!important}
+.notes li::before{color:var(--tgold)!important}
+.legend2{color:var(--muted)}
+
+/* الأرصدة والقوائم */
+.meter{background:#e8ece9!important}
+.meter b{background:linear-gradient(90deg,var(--g5),var(--tgold))!important}
+.li{background:#fff!important;border-color:var(--line)!important;color:var(--text)}
+.li button{color:#b3412f!important}
+.tt th,.tt td{border-bottom-color:var(--line)!important}
+.tt th{color:var(--g7)!important}
+
+/* «إذا نسيت» */
+details.tip{background:#fff!important;border:1px solid var(--line)!important;box-shadow:var(--tsh)}
+details.tip summary{color:var(--text)}
+details.tip[open] summary{color:var(--g7)!important}
+details.tip .body{color:#3d4a43!important}
+details.tip ol li::marker{color:var(--tgold)!important}
+.src{background:#e2edf6!important;color:#2c5f8a!important}
+.mine{background:var(--tgold1)!important;color:#8a5f14!important}
+
+/* النوافذ */
+.modal{background:rgba(23,38,30,.45)!important}
+.sheet{background:#fff!important;border:1px solid var(--line)!important;color:var(--text)}
+.sheet h3{color:var(--g7)!important}
+.bigtime{color:var(--text)}
+.aboutName{color:var(--g7)!important}
+.aboutRole{color:var(--muted)!important}
+.aboutPh{background:conic-gradient(from 0deg,var(--g7),transparent 30%,var(--tgold) 50%,transparent 70%,var(--g7))!important}
+.aboutPh img{border-color:#fff!important}
+.mail{color:#0f766e!important}
+
+/* التنبيه والافتتاحية: لوح أخضر */
+.alarm{background:radial-gradient(circle at 50% 42%,rgba(36,85,63,.97),rgba(23,58,43,.99) 62%)!important}
+.alarm h2,.alarm .ring .t{color:#fff!important}
+.alarm .ring::before,.alarm .ring::after{border-color:var(--tgold)!important}
+.alarm p{color:#d8e9df!important}
+.splash{background:radial-gradient(circle at 50% 40%,var(--g7),var(--g9) 70%)!important}
+.splash h1{color:#fff!important}
+.splash p{color:#d8e9df!important}
+.splash .scan{background:var(--tgold)!important;box-shadow:0 0 14px var(--tgold)!important}
+
+/* الإشعار المنبثق */
+.toast{background:#fff!important;color:var(--text)!important;border:1px solid var(--g7)!important;box-shadow:0 10px 30px rgba(23,58,43,.18)!important}
+
+/* شرر الضغط بلون هادئ */
+.burst{background:var(--tgold)!important;box-shadow:none!important}
 </style>
 </head>
 <body>

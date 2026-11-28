@@ -127,16 +127,19 @@ $$;
 
 create or replace function public.jisr_norm_phone(p text)
 returns text language plpgsql immutable set search_path = public as $$
+-- يقبل الرقمين: السعودي يُحفظ 05xxxxxxxx، والكويتي يُحفظ 8 أرقام تبدأ بـ 5 أو 6 أو 9
 declare d text;
 begin
   d := translate(coalesce(p,''), '٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹', '01234567890123456789');
   d := regexp_replace(d, '\D', '', 'g');
   if d like '00966%' then d := '0' || substr(d, 6);
-  elsif d like '966%' then d := '0' || substr(d, 4);
+  elsif d like '966%' and length(d) = 12 then d := '0' || substr(d, 4);
+  elsif d like '00965%' then d := substr(d, 6);
+  elsif d like '965%' and length(d) = 11 then d := substr(d, 4);
   elsif d like '5%' and length(d) = 9 then d := '0' || d;
   end if;
-  if d !~ '^05[0-9]{8}$' then return null; end if;
-  return d;
+  if d ~ '^05[0-9]{8}$' or d ~ '^[569][0-9]{7}$' then return d; end if;
+  return null;
 end $$;
 
 create or replace function public.jisr_auth(p_token uuid)
@@ -188,7 +191,7 @@ declare
   t uuid;
   first_admin boolean;
 begin
-  if ph is null then raise exception 'رقم الجوال غير صحيح. اكتبه بصيغة 05xxxxxxxx' using errcode = 'P0001'; end if;
+  if ph is null then raise exception 'رقم الجوال غير صحيح. اكتبه سعوديًا 05xxxxxxxx أو كويتيًا من 8 أرقام' using errcode = 'P0001'; end if;
   if coalesce(p_pin,'') !~ '^[0-9]{4}$' then raise exception 'الرمز السري يتكون من 4 أرقام' using errcode = 'P0001'; end if;
 
   select * into u from public.jisr_users where phone = ph;
@@ -709,7 +712,7 @@ declare
   t uuid;
   first_admin boolean;
 begin
-  if ph is null then raise exception 'رقم الجوال غير صحيح. اكتبه بصيغة 05xxxxxxxx' using errcode = 'P0001'; end if;
+  if ph is null then raise exception 'رقم الجوال غير صحيح. اكتبه سعوديًا 05xxxxxxxx أو كويتيًا من 8 أرقام' using errcode = 'P0001'; end if;
   if coalesce(p_pin,'') !~ '^[0-9]{4}$' then raise exception 'الرمز السري يتكون من 4 أرقام' using errcode = 'P0001'; end if;
   select * into u from public.jisr_users where phone = ph;
   if u.id is null then

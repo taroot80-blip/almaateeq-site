@@ -203,7 +203,7 @@ async function rpc(fn, args={}){
   }
   return data;
 }
-const wa = p => 'https://wa.me/966' + String(p||'').replace(/^0/,'');
+const wa = p => { const d = String(p||'').replace(/\D/g,''); return 'https://wa.me/' + (/^[569]\d{7}$/.test(d) ? '965' + d : '966' + d.replace(/^0/,'')); };  // الكويتي 8 أرقام، والسعودي 05xxxxxxxx
 const fmtDate = d => d ? new Date(d).toLocaleString('ar-SA-u-ca-gregory-nu-latn',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
 function left(d){ if(!d) return ''; const ms=new Date(d)-Date.now(); if(ms<=0) return 'انتهى'; const h=Math.floor(ms/36e5), m=Math.floor(ms%36e5/6e4); return h? `باقي ${h} س ${m} د` : `باقي ${m} دقيقة`; }
 const stPill = s => { const [t,c]=STATUS[s]||[s,'gray']; return `<span class="pill ${c==='green'?'':c}">${t}</span>`; };
@@ -239,7 +239,7 @@ function loginBox(after, title='سجّل دخولك للمتابعة'){
   <h2 class="sec">${title}</h2>
   <p class="sub">الدخول برقم جوالك ورمز سري من 4 أرقام تختاره أنت أول مرة. رقمك يُستخدم للتواصل الكتابي عبر الواتساب فقط بين صاحب الغرض ومن حجزه.</p>
   <div class="card" style="max-width:460px">
-    <label class="f"><span>رقم الجوال</span><input type="tel" id="lp" placeholder="05xxxxxxxx" inputmode="tel" autocomplete="tel"></label>
+    <label class="f"><span>رقم الجوال</span><input type="tel" id="lp" placeholder="05xxxxxxxx أو رقم كويتي" inputmode="tel" autocomplete="tel"></label>
     <label class="f"><span>الرمز السري (4 أرقام)</span><input type="password" id="lpin" inputmode="numeric" maxlength="4" placeholder="••••"><small>أول مرة؟ اختر أي 4 أرقام واحفظها. نسيت رمزك؟ تواصل مع إدارة المبادرة.</small></label>
     <div class="hide" id="lnWrap">
       <label class="f"><span>اسمك (يظهر لصاحب الغرض أو للمستفيد)</span><input type="text" id="ln" maxlength="60" placeholder="مثال: أم محمد"></label>

@@ -228,3 +228,6 @@ dialog::backdrop{background:rgba(23,38,30,.4)}
 .flash{display:none}
 
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* وضع الدمج داخل تطبيق آخر (?embed): يخفي زر الرجوع إلى الرئيسية وزر فتح ملف آخر */
+body.embed #btnHome,body.embed #btnAddTab{display:none}

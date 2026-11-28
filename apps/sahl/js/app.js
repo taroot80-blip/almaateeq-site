@@ -1344,8 +1344,28 @@ document.addEventListener('drop', async e => {
 /* ───────── البدء ───────── */
 applyMode(); paintSound(); updateUndo();
 renderRecent();
-const hasIncoming = !!(Bridge?.hasIncoming && Bridge.hasIncoming());
+// فتح كتاب من رابطه مباشرة: index.html?file=books/كتاب.pdf&page=5&name=اسم الكتاب
+// أو من الكود: window.sahlOpenUrl('books/كتاب.pdf', 'اسم الكتاب', 5)
+window.sahlOpenUrl = async (url, name, page) => {
+  try {
+    showReader(); setLoading(true, 'يُفتح الكتاب…');
+    const r = await fetch(url); if (!r.ok) throw new Error(r.status);
+    const u8 = new Uint8Array(await r.arrayBuffer());
+    name ||= decodeURIComponent(String(url).split('?')[0].split('/').pop() || 'كتاب.pdf');
+    await openBytes(u8, name);
+    if (page && S.cur) goPage(page - 1, false);
+  } catch (e) {
+    setLoading(false); Sound.err();
+    dialog({ title: 'تعذّر فتح الكتاب', body: '<p>لم يُعثر على الملف في الرابط المحدد، أو أن الموقع الذي فيه الملف لا يسمح بفتحه من هنا.</p>' });
+    if (!S.docs.length) showHome();
+  }
+};
+const Q = new URLSearchParams(location.search);
+const qFile = Q.get('file');
+if (Q.has('embed')) document.body.classList.add('embed');
+const hasIncoming = !!(Bridge?.hasIncoming && Bridge.hasIncoming()) || !!qFile;
 setTimeout(() => $('#splash').classList.add('gone'), hasIncoming ? 200 : 1100);
 setTimeout(() => $('#splash').remove(), hasIncoming ? 700 : 1700);
-if (hasIncoming) window.sahlIncoming();
+if (qFile) window.sahlOpenUrl(qFile, Q.get('name'), parseInt(Q.get('page'), 10) || 0);
+else if (hasIncoming) window.sahlIncoming();
 window.__sahl = { S, openBytes };

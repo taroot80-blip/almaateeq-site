@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="icon-180.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>جسر محمد</title>
-<meta name="description" content="جسر محمد: منصة لتدوير المقتنيات المنزلية الفائضة وإيصالها لمن ينتفع بها مباشرة.">
+<meta name="description" content="منصة لتدوير المقتنيات المنزلية الفائضة وإيصالها مباشرة لمن يحتاجها، حفظاً للنعمة وصوناً للكرامة.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -137,12 +137,13 @@ textarea{min-height:80px;resize:vertical}
 
 <header class="top">
   <div class="wrap">
-    <a class="logo-tile" href="#today" title="جسر محمد"><img src="logo.png" alt="شعار جسر محمد"></a>
+    <a class="logo-tile" href="#today" id="logoR"><img id="logoRimg" src="logo.png" alt=""></a>
     <div class="brand">
-      <h1>جسر محمد</h1>
-      <p>تدوير المقتنيات لمن ينتفع بها — حفظ النعمة وصون الكرامة</p>
+      <h1 id="appTitle">جسر محمد</h1>
+      <p id="appTag"></p>
       <div class="who" id="who"></div>
     </div>
+    <a class="logo-tile hide" id="logoL" target="_blank" rel="noopener"><img id="logoLimg" alt=""></a>
   </div>
 </header>
 <div class="trial hide" id="trialBar">المنصة في وضع التجربة — المعروضات الحالية للاختبار فقط</div>
@@ -154,11 +155,30 @@ textarea{min-height:80px;resize:vertical}
 
 <script>
 /* =========================================================
-   إعدادات الاتصال — مشروع Supabase الخاص بـ«جسر محمد» وحده
+   ⚙️ الإعدادات — هذا هو المكان الوحيد الذي تحتاج تعديله
    ========================================================= */
-const SUPABASE_URL = '';   // ضع هنا عنوان مشروع Supabase الجديد
-const SUPABASE_KEY = '';   // والمفتاح العام (anon / publishable)
-const sb = SUPABASE_URL ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:false}}) : null;
+const CONFIG = {
+  // ١) قاعدة البيانات: من لوحة Supabase ← Project Settings ← API
+  SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
+  SUPABASE_KEY: 'YOUR-ANON-OR-PUBLISHABLE-KEY',
+
+  // ٢) الهوية
+  APP_NAME:  'جسر محمد',
+  TAGLINE:   'حفظ النعمة وصون الكرامة',
+  ORG_NAME:  '',                 // اسم الجهة المشغّلة (اختياري) مثال: 'جمعية ... للتنمية الاجتماعية'
+  ORG_URL:   '',                 // موقع الجهة (اختياري)
+  LOGO:      'logo.png',         // شعار المنصة (أعلى اليمين)
+  ORG_LOGO:  '',                 // شعار الجهة (أعلى اليسار، اختياري) مثال: 'org-logo.png'
+
+  // ٣) رابط المنصة بعد النشر (يُستخدم في روابط الحجز داخل رسائل الواتساب)
+  SITE_URL:  'https://almaateeq.com/jisr-mohammad',                 // مثال: 'https://jisr.example.org' — اتركه فارغاً ليُؤخذ من رابط الصفحة تلقائياً
+
+  // ٤) نص صفحة «التعليمات» — فقرة التعريف
+  ABOUT: 'مبادرة اجتماعية تطوعية تعمل حلقة وصل مباشرة لتدوير المقتنيات المنزلية الفائضة. تربط المتبرع بالمستفيد فوراً، فتضمن سرعة الوصول وتحفظ كرامة المستلم، وتستغني عن التخزين تماماً.',
+};
+const SUPABASE_URL = CONFIG.SUPABASE_URL, SUPABASE_KEY = CONFIG.SUPABASE_KEY;
+const ORG_LINE = CONFIG.ORG_NAME ? `مبادرة من ${CONFIG.ORG_NAME} — ${CONFIG.TAGLINE}` : CONFIG.TAGLINE;
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:false}});
 
 /* القوائم — يمكن تعديلها هنا مباشرة */
 const CATEGORIES = ['أثاث منزلي ومكتبي','ملابس وأقمشة','أجهزة كهربائية وإلكترونية ورياضية','مستلزمات أطفال ومواليد','أواني وأدوات مطبخ','أحذية','مفارش وسجاد وستائر','عبايات ومستلزمات صلاة','مواد غذائية وحليب أطفال','حقائب وشنط','ألعاب أطفال','ديكور وتحف وإكسسوارات وأدوات متنوعة','مستلزمات طبية وكبار السن','كتب ومستلزمات دينية','أخرى ومتنوعات'];
@@ -387,7 +407,7 @@ function showBook(){
       if (r.result==='waiting') $('#bres').innerHTML = `<div class="ok"><b>تم تسجيل طلبك على «${esc(r.title)}» (${esc(r.code)}).</b><br>يختار المشرف المستفيد من بين الطلبات، وإن اختارك تصلك رسالة واتساب بتفاصيل التواصل مع صاحب الغرض. تابع النتيجة أيضاً من «حسابي».</div>`;
       else $('#bres').innerHTML = `<div class="ok"><b>مبروك، حُجز لك «${esc(r.title)}».</b>
         <div class="kv" style="margin:10px 0"><b>صاحب الغرض</b><span>${esc(r.donor_name)}</span><b>الموقع</b><span>${esc(r.area||'')} ${esc(r.neighborhood||'')}</span><b>وقت الاستلام</b><span>${esc(r.pickup_from||'')} – ${esc(r.pickup_to||'')}</span></div>
-        <a class="btn block" target="_blank" rel="noopener" href="${wa(r.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+r.title+'» عبر منصة جسر محمد. متى يناسبك الاستلام؟')}">راسل صاحب الغرض عبر الواتساب</a>
+        <a class="btn block" target="_blank" rel="noopener" href="${wa(r.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+r.title+'» عبر منصة '+CONFIG.APP_NAME+'. متى يناسبك الاستلام؟')}">راسل صاحب الغرض عبر الواتساب</a>
         <small style="display:block;margin-top:8px;color:var(--mut)">التواصل كتابي فقط — يُرجى عدم الاتصال.</small></div>`;
       b.disabled=false;
     }catch(e){ toast(e.message,true); b.disabled=false; }
@@ -409,7 +429,7 @@ async function showMe(){
         <div style="flex:1;min-width:0"><div class="row"><b>${esc(o.title)}</b>${stPill(o.status)}</div>
           <div class="meta"><span>الكود <span class="code" style="font-size:13px">${esc(o.code)}</span></span><span>${fmtDate(o.created_at)}</span>${o.status==='approved'?`<span>${left(o.expires_at)}</span>`:''}${o.waiting?`<span>طلبات: ${o.waiting}</span>`:''}</div>
           ${o.status==='booked'?`<div class="ok" style="margin-top:8px;padding:10px">حجزه: <b>${esc(o.booker_name)}</b>${o.booker_town?' من '+esc(o.booker_town):''} — ${fmtDate(o.booked_at)}
-            <div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(o.booker_phone)}?text=${encodeURIComponent('السلام عليكم، بخصوص غرض «'+o.title+'» من منصة جسر محمد')}">واتساب</a>
+            <div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(o.booker_phone)}?text=${encodeURIComponent('السلام عليكم، بخصوص غرض «'+o.title+'» من منصة '+CONFIG.APP_NAME)}">واتساب</a>
             <button class="btn sm" data-a="delivered" data-id="${o.id}">تم التسليم</button><button class="btn sm red" data-a="no_show" data-id="${o.id}">لم يستلم — أتحه لغيره</button></div></div>`:''}
           ${['pending','approved','booked'].includes(o.status)?`<button class="btn sm sec" style="margin-top:8px" data-a="cancel" data-id="${o.id}">إلغاء الغرض</button>`:''}
         </div></div></div>`).join('') : '<div class="empty">لم تعرض أي غرض بعد.</div>'}</div>
@@ -418,7 +438,7 @@ async function showMe(){
         <div class="mini" style="${k.photos[0]?`background-image:url('${esc(k.photos[0])}')`:''}"></div>
         <div style="flex:1"><div class="row"><b>${esc(k.title)}</b>${reqPill(k)}</div>
           <div class="meta"><span>${esc(k.area||'')} ${esc(k.neighborhood||'')}</span><span>${fmtDate(k.requested_at)}</span></div>
-          ${k.req_status==='won'&&k.item_status==='booked'?`<div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(k.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+k.title+'» ('+k.code+') عبر منصة جسر محمد. متى يناسبك الاستلام؟')}">راسل ${esc(k.donor_name)}</a><button class="btn sm" data-a="delivered" data-id="${k.item_id}">تم الاستلام</button><button class="btn sm red" data-w="${k.item_id}">أعتذر عن الاستلام</button></div>`:''}
+          ${k.req_status==='won'&&k.item_status==='booked'?`<div class="row" style="margin-top:8px"><a class="btn sm" target="_blank" rel="noopener" href="${wa(k.donor_phone)}?text=${encodeURIComponent('السلام عليكم، حجزت غرض «'+k.title+'» ('+k.code+') عبر منصة '+CONFIG.APP_NAME+'. متى يناسبك الاستلام؟')}">راسل ${esc(k.donor_name)}</a><button class="btn sm" data-a="delivered" data-id="${k.item_id}">تم الاستلام</button><button class="btn sm red" data-w="${k.item_id}">أعتذر عن الاستلام</button></div>`:''}
           ${k.req_status==='waiting'?`<button class="btn sm sec" style="margin-top:8px" data-w="${k.item_id}">سحب الطلب</button>`:''}
         </div></div></div>`).join('') : '<div class="empty">لا توجد حجوزات.</div>'}</div>
     <div id="mp" class="card hide" style="max-width:420px">
@@ -444,9 +464,9 @@ function reqPill(k){
 function showHelp(){
   const h=S.settings.item_hours||24, p=S.settings.pickup_hours||24;
   view.innerHTML = `
-  <h2 class="sec">عن جسر محمد</h2>
+  <h2 class="sec">عن ${esc(CONFIG.APP_NAME)}</h2>
   <div class="card" style="margin-bottom:14px">
-    <p style="margin-top:0">جسر محمد منصة تطوعية لتدوير المقتنيات المنزلية الفائضة، تربط صاحب الغرض بمن ينتفع به مباشرة، بلا تخزين ولا مقابل.</p>
+    <p style="margin-top:0">${esc(CONFIG.ABOUT)}${CONFIG.ORG_NAME?` — <b>${esc(CONFIG.ORG_NAME)}</b>`:''}</p>
     <p style="margin-bottom:0">نستقبل: الأثاث، والملابس، والأجهزة، والشنط، والأحذية، ومستلزمات الأطفال، والأواني، وغيرها — بشرط أن تكون صالحة للاستخدام.</p>
   </div>
   <div class="two">
@@ -587,7 +607,7 @@ async function adminStats(){
       const bs=r.by_status||{}; const pct=(a,b)=>b?Math.round(a*100/b)+'%':'—';
       const bars = (arr,tot) => arr.length? `<div class="bars">${arr.map(x=>`<div class="r"><span>${esc(x.k)}</span><div class="t"><i style="width:${Math.max(2,x.n*100/(arr[0].n||1))}%"></i></div><b>${x.n}</b></div>`).join('')}</div>` : '<div class="empty" style="padding:14px">لا بيانات</div>';
       $('#sr').innerHTML = `
-        <div class="card" style="margin-bottom:14px"><b>تقرير جسر محمد</b><div class="meta">الفترة من ${$('#sf').value} إلى ${$('#st').value}</div></div>
+        <div class="card" style="margin-bottom:14px"><b>تقرير مبادرة ${esc(CONFIG.APP_NAME)}${CONFIG.ORG_NAME?' — '+esc(CONFIG.ORG_NAME):''}</b><div class="meta">الفترة من ${$('#sf').value} إلى ${$('#st').value}</div></div>
         <div class="kpis">
           <div class="kpi"><b>${r.total}</b><span>إجمالي المعروضات</span></div>
           <div class="kpi"><b>${bs.delivered||0}</b><span>تم تسليمها (${pct(bs.delivered||0,r.total)})</span></div>
@@ -610,7 +630,7 @@ async function adminStats(){
 }
 
 /* ---------- رسائل الواتساب والصور ---------- */
-const SITE = location.protocol === 'https:' ? location.origin : 'https://almaateeq.com/jisr-mohammad';
+const SITE = (CONFIG.SITE_URL || (location.origin + location.pathname)).replace(/\/(index\.html)?$/, '');
 const bookLink = code => `${SITE}/#b=${code}`;
 function t12(s){ if(!s) return ''; let [h,m]=String(s).split(':').map(Number); if(isNaN(h)) return s; const pm=h>=12; h=h%12||12; return `${h}:${String(m||0).padStart(2,'0')} ${pm?'مساءً':'صباحاً'}`; }
 const pickupTime = i => (i.pickup_from||i.pickup_to) ? `من ${t12(i.pickup_from)} إلى ${t12(i.pickup_to)}` : 'يُتفق عليه مع العارض';
@@ -645,7 +665,7 @@ const msgBookedGroup = i => `✅ تم الحجز ${i.code}\n${i.title}\n\nجزى
 function msgBeneficiary(i){
   const ph = S.settings.pickup_hours || 24;
   return [
-`السلام عليكم، من منصة جسر محمد ✅`,
+`السلام عليكم، من منصة ${CONFIG.APP_NAME} ✅`,
 ``,
 `حُجز الغرض لك، وتأكد الحجز:`,
 `الغرض: ${i.title} (${i.code})`,
@@ -665,7 +685,7 @@ function msgBeneficiary(i){
 function msgDonor(i){
   const ph = S.settings.pickup_hours || 24;
   return [
-`السلام عليكم، من منصة جسر محمد 🌿`,
+`السلام عليكم، من منصة ${CONFIG.APP_NAME} 🌿`,
 ``,
 `تم حجز غرضك: ${i.title} (${i.code})`,
 `المستفيد: ${i.booker_name || ''}${i.booker_town ? ' — ' + i.booker_town : ''}`,
@@ -692,7 +712,7 @@ async function itemCanvas(i, stamped){
   else {
     c.width=1080; c.height=810; const g=x.createLinearGradient(0,0,1080,810); g.addColorStop(0,'#173a2b'); g.addColorStop(1,'#3a7a5c'); x.fillStyle=g; x.fillRect(0,0,1080,810);
     x.fillStyle='#fff'; x.textAlign='center'; x.direction='rtl'; x.font='800 64px Tajawal, sans-serif'; x.fillText(i.title.slice(0,40),540,360);
-    x.font='700 40px Tajawal, sans-serif'; x.fillStyle='#f7ecd8'; x.fillText('جسر محمد',540,450);
+    x.font='700 40px Tajawal, sans-serif'; x.fillStyle='#f7ecd8'; x.fillText(CONFIG.ORG_NAME ? `${CONFIG.APP_NAME} — ${CONFIG.ORG_NAME}`.slice(0,48) : CONFIG.APP_NAME,540,450);
     x.font='800 72px monospace'; x.fillStyle='#fff'; x.direction='ltr'; x.fillText(i.code,540,580);
   }
   if (stamped){
@@ -787,8 +807,20 @@ function profileModal(){
 
 /* ---------- التشغيل ---------- */
 async function loadSettings(){ try{ S.settings = await rpc('jisr_public_settings') || {}; }catch(e){ S.settings={}; } }
+function applyBrand(){
+  document.title = CONFIG.APP_NAME + (CONFIG.ORG_NAME ? ' — ' + CONFIG.ORG_NAME : '');
+  $('#appTitle').textContent = CONFIG.APP_NAME; $('#appTag').textContent = ORG_LINE;
+  $('#logoRimg').src = CONFIG.LOGO; $('#logoRimg').alt = 'شعار ' + CONFIG.APP_NAME; $('#logoR').title = CONFIG.APP_NAME;
+  if (CONFIG.ORG_LOGO){ $('#logoL').classList.remove('hide'); $('#logoLimg').src = CONFIG.ORG_LOGO; $('#logoLimg').alt = 'شعار ' + (CONFIG.ORG_NAME||''); if (CONFIG.ORG_URL) $('#logoL').href = CONFIG.ORG_URL; else $('#logoL').removeAttribute('href'); $('#logoL').title = CONFIG.ORG_NAME||''; }
+}
 (async function init(){
-  if (!sb){ document.getElementById('view').innerHTML = '<div class="card" style="margin-top:18px;text-align:center"><h2 style="margin:0 0 8px">جسر محمد</h2><p class="sub" style="margin:0">المنصة جاهزة، وتنتظر ربطها بخادمها الخاص.</p></div>'; return; }
+  applyBrand();
+  if (/YOUR-/.test(SUPABASE_URL + SUPABASE_KEY)){
+    view.innerHTML = `<div class="card" style="max-width:620px;margin:auto"><h2 class="sec">المنصة جاهزة للإعداد</h2>
+      <p>لم يُربط الملف بقاعدة بيانات بعد. افتح <b>index.html</b> بمحرر نصوص، وفي قسم <b>CONFIG</b> بأعلى البرمجة ضع عنوان مشروع Supabase ومفتاحه العام، ثم احفظ الملف وأعد فتح الصفحة.</p>
+      <p class="sub">التفاصيل خطوة بخطوة في ملف «دليل التشغيل».</p></div>`;
+    $('#tabs').innerHTML=''; return;
+  }
   await loadSettings();
   if (S.token){ try{ S.user = await rpc('jisr_me',{p_token:S.token}); }catch(e){ S.token=null; localStorage.removeItem('jisrm_token'); } }
   const h = decodeURIComponent(location.hash.slice(1));

@@ -1,0 +1,30 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.almaateeq.namodaj'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.almaateeq.namodaj'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0'
+    }
+    signingConfigs {
+        // مفتاح ثابت حتى يُثبَّت كل تحديث فوق سابقه.
+        test {
+            storeFile rootProject.file('namodaj.keystore')
+            storePassword 'namodaj-key'
+            keyAlias 'namodaj'
+            keyPassword 'namodaj-key'
+        }
+    }
+    buildTypes {
+        debug { signingConfig signingConfigs.test }
+        release { minifyEnabled false; signingConfig signingConfigs.test }
+    }
+    androidResources { noCompress += 'html' }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError false; checkReleaseBuilds false }
+}
+dependencies { implementation 'androidx.core:core:1.13.1' }

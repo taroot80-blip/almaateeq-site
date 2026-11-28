@@ -137,6 +137,16 @@
       "permanent": false
     },
     {
+      "source": "/namodaj/android",
+      "destination": "https://github.com/taroot80-blip/almaateeq-site/releases/download/namodaj-latest/namodaj.apk",
+      "permanent": false
+    },
+    {
+      "source": "/namodaj",
+      "destination": "/apps/namodaj/?open",
+      "permanent": false
+    },
+    {
       "source": "/jisr",
       "destination": "/apps/jisr/",
       "permanent": false

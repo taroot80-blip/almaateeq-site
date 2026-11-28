@@ -1,0 +1,17 @@
+{
+  "name": "نموذج",
+  "short_name": "نموذج",
+  "description": "تدوير المقتنيات لمن ينتفع بها",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F3EC",
+  "theme_color": "#2D5530",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

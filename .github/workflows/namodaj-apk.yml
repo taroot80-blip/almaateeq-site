@@ -1,0 +1,37 @@
+name: نموذج — بناء APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/namodaj/**'
+      - 'android/namodaj/**'
+      - '.github/workflows/namodaj-apk.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.14.3' }
+      - run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+      - name: Build
+        working-directory: android/namodaj
+        run: |
+          mkdir -p app/src/main/assets
+          cp ../../apps/namodaj/index.html ../../apps/namodaj/hero.jpg ../../apps/namodaj/manifest.json ../../apps/namodaj/icon-192.png ../../apps/namodaj/icon-512.png ../../apps/namodaj/config.js ../../apps/namodaj/privacy.html ../../apps/namodaj/logo-96.png ../../apps/namodaj/logo.webp ../../apps/namodaj/offline.html ../../apps/namodaj/qr.js ../../apps/namodaj/stamp-booked.png ../../apps/namodaj/sw.js app/src/main/assets/ && cp -r ../../apps/namodaj/demo app/src/main/assets/
+          gradle :app:assembleRelease --no-daemon --stacktrace
+          mkdir -p ../../out && cp app/build/outputs/apk/release/app-release.apk ../../out/namodaj.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: namodaj, path: out/ }
+      - name: Publish latest APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete namodaj-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create namodaj-latest out/namodaj.apk --title "نموذج — أحدث نسخة" \
+            --notes "تطبيق أندرويد للنموذج المستقل «نموذج»: يفتح نسخة الموقع مع الإنترنت فيظهر آخر تحديث دائمًا، والنسخة المدمجة بلا إنترنت." --latest=false

@@ -421,7 +421,8 @@ nav.tabs button svg{width:19px!important;height:19px!important}
 .id .idside .bud{display:inline-block;margin:0!important;font-size:12px!important;padding:1px 10px!important;border-radius:999px;border:1px solid rgba(20,184,166,.6);background:rgba(20,184,166,.16);color:#99f6e4;font-weight:800;cursor:pointer;white-space:nowrap}
 .id .idside .bud.need{border-color:#EF4444;background:rgba(239,68,68,.18);color:#fecaca;animation:badpulse 1.8s ease-in-out infinite}
 .id .idside .date{display:block!important;margin:0!important;font-size:12px;color:var(--muted);white-space:nowrap}
-
+</style>
+<style id="tasweeq">
 /* ================================================================
    واجهة «تسويق» — طبقة مظهر فقط (ألوان وخطوط وأسطح)
    لا تمس أي وظيفة أو بيانات. للرجوع إلى المظهر السابق: احذف هذا القسم كله.
@@ -588,7 +589,32 @@ details.tip ol li::marker{color:var(--tgold)!important}
 
 /* شرر الضغط بلون هادئ */
 .burst{background:var(--tgold)!important;box-shadow:none!important}
+
 </style>
+<style>/* زر المظهر: يعمل في الوضعين */
+/* زر المظهر في الرأس */
+.iconbtn.themeBtn{width:auto!important;padding:0 9px;font-size:15px;gap:2px;display:inline-flex;align-items:center}
+.themeRow .btn{flex:1}
+/* مساحة العنوان مع زر المظهر في الشاشات الصغيرة */
+.hero .tools{gap:5px!important}
+.hero .tools .iconbtn{width:36px;height:38px}
+.hero .tools .iconbtn.themeBtn{width:auto;padding:0 6px;font-size:13px}
+@media (max-width:400px){.hero .tools .iconbtn{width:32px;height:36px}.hero .tools .iconbtn.about{padding:0 6px!important;font-size:12px!important}.hero h1{font-size:15px!important}}
+</style>
+<script>/* المظهر: «تسويق» الفاتح افتراضيًا، والداكن الأصلي بضغطة؛ يُحفظ الاختيار على الجهاز */
+(function(){var d=false;try{d=localStorage.getItem("basma-theme")==="dark"}catch(e){}
+document.getElementById("tasweeq").disabled=d;
+var m=document.querySelector('meta[name=theme-color]');if(m)m.content=d?"#0b0805":"#173a2b";})();
+function basmaIsDark(){return document.getElementById("tasweeq").disabled}
+function basmaSetTheme(dark){document.getElementById("tasweeq").disabled=dark;try{localStorage.setItem("basma-theme",dark?"dark":"light")}catch(e){}
+var m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?"#0b0805":"#173a2b";basmaPaintTheme()}
+function basmaPaintTheme(){var dk=basmaIsDark();var t=document.getElementById("themeBtn");if(t){t.textContent=dk?"🔘 ☀️":"🔘 🌙";t.setAttribute("aria-label",dk?"التحويل إلى الوضع الفاتح":"التحويل إلى الوضع الداكن");t.title=t.getAttribute("aria-label")}
+document.querySelectorAll("[data-theme-set]").forEach(function(b){var on=(b.getAttribute("data-theme-set")==="dark")===dk;b.classList.toggle("primary",on);b.classList.toggle("ghost",!on)})}
+document.addEventListener("click",function(e){var t=e.target.closest("#themeBtn");if(t){basmaSetTheme(!basmaIsDark());return}
+var s=e.target.closest("[data-theme-set]");if(s)basmaSetTheme(s.getAttribute("data-theme-set")==="dark")});
+new MutationObserver(function(){if(document.querySelector("[data-theme-set]")&&!document.querySelector("[data-theme-set].primary"))basmaPaintTheme()}).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener("DOMContentLoaded",basmaPaintTheme);
+</script>
 </head>
 <body>
 <div class="splash" id="splash" aria-hidden="true">
@@ -608,7 +634,7 @@ details.tip ol li::marker{color:var(--tgold)!important}
 
 <main class="app">
   <div id="testRibbon">⚡ نظام التفعيل مُفعَّل</div>
-  <div class="hero"><div class="tools t1"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button><button class="iconbtn testBtn" id="testBtn" aria-label="نظام التفعيل" title="نظام التفعيل">⚡</button></div><div class="tools"><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
+  <div class="hero"><div class="tools t1"><button class="iconbtn about" id="aboutBtn" aria-label="حول التطبيق">🔘 حول</button><button class="iconbtn testBtn" id="testBtn" aria-label="نظام التفعيل" title="نظام التفعيل">⚡</button></div><div class="tools"><button class="iconbtn themeBtn" id="themeBtn" aria-label="التحويل إلى الوضع الداكن">🔘 🌙</button><button class="iconbtn" id="sndBtn" aria-label="الأصوات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w" d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6" style="display:none"/></svg></button>
     <button class="iconbtn" id="bellBtn" aria-label="تفعيل الإشعارات">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
     </button></div><h1>بصمتي المرنة</h1><p>الحضور · التواجد · الانصراف — لمعلمي وزارة التربية وإدارييها</p><small class="disc">تطبيق مستقل للمساعدة، غير تابع لوزارة التربية</small></div>
@@ -1299,6 +1325,9 @@ function renderRules(){
   <p>• المواعيد مأخوذة من نشرة وكيل وزارة التربية رقم 40/2024 (26/9/2024)؛ وإن صدرت نشرة أحدث فعدّلها أدناه.</p>
   <p>• في مايو 2026 نُشر استمرار إعفاء العاملين في المدارس من البصمة حتى نهاية العام الدراسي 2025/2026؛ تأكد من القسم الإداري أن البصمة الثالثة مفعّلة هذا العام.</p>
   <p>• أرصدة الاستئذانات والعرضية والمرضية قابلة للتعديل بحسب ما يقرره القسم الإداري لك.</p></div>
+  <div class="card"><h3>🔘 المظهر</h3>
+  <p class="muted" style="text-align:center">اختر شكل التطبيق، ولا يتغير شيء من بياناتك أو مواعيدك.</p>
+  <div class="row themeRow" style="margin-top:8px"><button class="btn ghost" data-theme-set="light">☀️ فاتح (تسويق)</button><button class="btn ghost" data-theme-set="dark">🌙 داكن (الأصلي)</button></div></div>
   <div class="card bellcard"><h3>🔔 جرس الهاتف القوي</h3>
   <p class="muted" style="text-align:center">${N?"عند كل تنبيه بصمة يرن الهاتف بنغمة المنبّه وبأعلى صوت مع اهتزاز قوي مدة 15 ثانية، أقوى من صوت الإشعارات المنخفض عادة. يتوقف حين تفتح التطبيق أو تضغط زر الإشعار.":"في نسخة أندرويد يرن الهاتف بنغمة المنبّه وبأعلى صوت عند كل تنبيه. أما هنا فيرن التطبيق بصوت قوي ما دام مفتوحًا."}</p>
   <div class="row" style="margin-top:8px"><button class="btn ${c.loudBell!==false?"primary":"ghost"}" style="flex:1" id="bellLoud">${c.loudBell!==false?"🔔 الجرس القوي: مُفعَّل":"🔕 الجرس القوي: مُطفأ"}</button></div>

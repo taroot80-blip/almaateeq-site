@@ -95,7 +95,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const S = {
   docs: [], cur: null,
   tool: 'hand',
-  color: { marker: '#f3d36b', pen: '#b03a2e', text: '#1f4e79', shape: '#b03a2e' },
+  color: { laser: '#ff2d2d', marker: '#f3d36b', pen: '#b03a2e', text: '#1f4e79', shape: '#b03a2e' },
   shape: 'rect',
   width: { marker: 16, pen: 2.5, shape: 2 },
   mode: localStorage.getItem('sahl.mode') || 'normal',
@@ -104,6 +104,7 @@ const S = {
 const COLORS = {
   marker: ['#f3d36b', '#a9d8b8', '#a8cbe6', '#e2c2a4', '#c9c3e0'],
   pen: ['#b03a2e', '#1f4e79', '#24553f', '#1d2622', '#7a5c2e', '#5b4b8a'],
+  laser: ['#ff2d2d', '#22c55e', '#f2b632', '#38bdf8', '#ff4fd8'],
   shape: ['#b03a2e', '#1f4e79', '#24553f', '#1d2622', '#c8963e', '#5b4b8a'],
   text: ['#1f4e79', '#b03a2e', '#24553f', '#1d2622', '#7a5c2e'],
 };
@@ -717,6 +718,7 @@ const findAnnot = (i, id) => (S.cur.annots[i] || []).find(a => a.id === id);
 const HINTS = {
   marker: 'مرّر إصبعك على السطر لتظليله · للتمرير اختر «قراءة»',
   pen: 'ارسم أو اكتب بإصبعك على الصفحة',
+  laser: 'حرّك إصبعك على الصفحة للإشارة، والخط يتلاشى وحده ولا يُحفظ',
   shape: 'اسحب إصبعك على الصفحة لرسم الشكل، أو اضغط لوضعه بحجم جاهز',
   text: 'اضغط حيث تريد كتابة النص',
   note: 'اضغط حيث تريد وضع الملاحظة',
@@ -726,7 +728,7 @@ const HINTS = {
 function setTool(t) {
   S.tool = t;
   $$('.tool[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
-  viewer.classList.toggle('drawing', ['marker', 'pen', 'shape'].includes(t));
+  viewer.classList.toggle('drawing', ['marker', 'pen', 'shape', 'laser'].includes(t));
   viewer.classList.toggle('erasing', t === 'eraser');
   const h = $('#toolhint');
   if (HINTS[t]) { h.textContent = HINTS[t]; h.hidden = false; clearTimeout(h._t); h._t = setTimeout(() => h.hidden = true, 2600); } else h.hidden = true;
@@ -740,8 +742,10 @@ $$('.tool[data-tool]').forEach(b => b.onclick = async () => {
 });
 function renderColorbar() {
   const bar = $('#colorbar'), t = S.tool;
+  $('#reader').classList.toggle('has-bar', !!COLORS[t]);
   if (!COLORS[t]) { bar.hidden = true; return; }
   bar.innerHTML = ''; bar.hidden = false;
+  requestAnimationFrame(() => $('#reader').style.setProperty('--barh', bar.offsetHeight + 'px'));
   if (t === 'shape') {
     SHAPES.forEach(([k, label, d]) => {
       const b = document.createElement('button'); b.className = 'w sh' + (S.shape === k ? ' on' : ''); b.setAttribute('aria-label', label); b.title = label;
@@ -801,6 +805,69 @@ pagesEl.addEventListener('pointerdown', e => {
     try { el.setPointerCapture(e.pointerId); } catch (er) {}
   }
 });
+/* قلم الليزر: أثر مضيء يتبع الإصبع ويتلاشى من أوله، ولا يُحفظ */
+const Laser = (() => {
+  const cv = $('#laserLayer'), ctx = cv.getContext('2d');
+  const LIFE = 650;
+  let trails = [], cur = null, raf = 0;
+  const fit = () => {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    if (cv.width !== Math.round(innerWidth * d) || cv.height !== Math.round(innerHeight * d)) {
+      cv.width = Math.round(innerWidth * d); cv.height = Math.round(innerHeight * d);
+    }
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  };
+  function frame() {
+    const now = performance.now();
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    trails.forEach(t => { t.pts = t.pts.filter(p => now - p.t < LIFE); });
+    trails = trails.filter(t => t.pts.length || t === cur);
+    for (const t of trails) {
+      const pts = t.pts;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      for (let k = 1; k < pts.length; k++) {
+        const a = pts[k - 1], b = pts[k], life = 1 - (now - b.t) / LIFE;
+        if (life <= 0) continue;
+        ctx.globalAlpha = life;
+        ctx.shadowColor = t.color; ctx.shadowBlur = 16;
+        ctx.strokeStyle = t.color; ctx.lineWidth = 3 + 5 * life;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2 + 1.5 * life;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      // رأس القلم المضيء ما دام الإصبع على الشاشة
+      if (t === cur && pts.length) {
+        const h = pts[pts.length - 1];
+        ctx.globalAlpha = 1; ctx.shadowColor = t.color; ctx.shadowBlur = 22;
+        ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(h.x, h.y, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(h.x, h.y, 2.6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    raf = trails.length ? requestAnimationFrame(frame) : 0;
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  return {
+    start(e) { fit(); cur = { color: S.color.laser, pts: [{ x: e.clientX, y: e.clientY, t: performance.now() }], id: e.pointerId }; trails.push(cur); kick(); },
+    move(e) {
+      if (!cur || e.pointerId !== cur.id) return;
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      for (const ev of evs) cur.pts.push({ x: ev.clientX, y: ev.clientY, t: performance.now() });
+      kick();
+    },
+    end(e) { if (cur && (!e || e.pointerId === cur.id)) { const c = cur; cur = null; c.pts.push({ ...c.pts[c.pts.length - 1], t: performance.now() }); kick(); } },
+    get active() { return !!cur; },
+  };
+})();
+viewer.addEventListener('pointerdown', e => {
+  if (S.tool !== 'laser' || !e.isPrimary) return;
+  e.preventDefault(); Laser.start(e);
+  try { viewer.setPointerCapture(e.pointerId); } catch (er) {}
+});
+viewer.addEventListener('pointermove', e => { if (S.tool === 'laser') Laser.move(e); });
+viewer.addEventListener('pointerup', e => { if (S.tool === 'laser') Laser.end(e); });
+viewer.addEventListener('pointercancel', e => { if (S.tool === 'laser') Laser.end(e); });
+
 let shapeDrag = null;
 function shapeSvg(a, parent) {
   const st = { fill: 'none', stroke: a.color, 'stroke-width': a.w, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };

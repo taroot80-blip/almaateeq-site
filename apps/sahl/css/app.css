@@ -236,3 +236,7 @@ body.embed #btnHome,body.embed #btnAddTab{display:none}
 .colorbar{overflow-x:auto;scrollbar-width:none}
 .colorbar{flex-wrap:wrap;justify-content:center;row-gap:8px}
 .colorbar .c,.colorbar .w{flex-shrink:0}
+.laser-layer{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:4}
+#reader.has-bar .float-left{bottom:calc(var(--bot) + 84px + var(--barh,52px))}
+#reader.has-bar .page-chip{bottom:calc(var(--bot) + 88px + var(--barh,52px))}
+.float-left,.page-chip{transition:bottom .2s cubic-bezier(.23,1,.32,1)}

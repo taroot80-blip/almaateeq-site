@@ -95,16 +95,26 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const S = {
   docs: [], cur: null,
   tool: 'hand',
-  color: { marker: '#f3d36b', pen: '#b03a2e', text: '#1f4e79' },
-  width: { marker: 16, pen: 2.5 },
+  color: { marker: '#f3d36b', pen: '#b03a2e', text: '#1f4e79', shape: '#b03a2e' },
+  shape: 'rect',
+  width: { marker: 16, pen: 2.5, shape: 2 },
   mode: localStorage.getItem('sahl.mode') || 'normal',
   stamp: null,
 };
 const COLORS = {
   marker: ['#f3d36b', '#a9d8b8', '#a8cbe6', '#e2c2a4', '#c9c3e0'],
   pen: ['#b03a2e', '#1f4e79', '#24553f', '#1d2622', '#7a5c2e', '#5b4b8a'],
+  shape: ['#b03a2e', '#1f4e79', '#24553f', '#1d2622', '#c8963e', '#5b4b8a'],
   text: ['#1f4e79', '#b03a2e', '#24553f', '#1d2622', '#7a5c2e'],
 };
+const SHAPES = [
+  ['rect', 'مربع', '<rect x="4" y="6" width="16" height="12" rx="1"/>'],
+  ['ellipse', 'دائرة', '<circle cx="12" cy="12" r="7.5"/>'],
+  ['tri', 'مثلث', '<path d="M12 4.5l8 14H4z"/>'],
+  ['line', 'خط', '<path d="M5 19L19 5"/>'],
+  ['arrow', 'سهم', '<path d="M5 19L19 5M11 5h8v8"/>'],
+];
+const SHAPE_NAME = { rect: 'مربع', ellipse: 'دائرة', tri: 'مثلث', line: 'خط', arrow: 'سهم' };
 const STAMPS = [
   { label: 'تم الاطلاع', color: '#1565c0' },
   { label: 'معتمد', color: '#2e7d32' },
@@ -613,6 +623,9 @@ function drawAnnots(i) {
     if (a.type === 'ink') {
       svgEl('path', { d: pathD(a.pts), fill: 'none', stroke: a.color, 'stroke-width': a.w, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: a.op ?? 1, style: a.op < 1 ? 'mix-blend-mode:multiply' : '' }, g);
       svgEl('path', { d: pathD(a.pts), fill: 'none', stroke: 'transparent', 'stroke-width': a.w + 12, 'stroke-linecap': 'round' }, g);
+    } else if (a.type === 'shape') {
+      g.setAttribute('class', 'hit');
+      shapeSvg(a, g).forEach(n => { const c = n.cloneNode(); c.setAttribute('stroke', 'transparent'); c.setAttribute('stroke-width', a.w + 14); c.setAttribute('fill', 'none'); c.setAttribute('pointer-events', 'stroke'); g.appendChild(c); });
     } else if (a.type === 'hl' || a.type === 'ul' || a.type === 'st') {
       g.setAttribute('class', 'hit');
       for (const [x, y, w, h] of a.rects) {
@@ -632,9 +645,12 @@ function drawAnnots(i) {
       svgEl('rect', { x: rtl ? a.x - w + 4 : a.x - 4, y: a.y - 2, width: w, height: h, fill: 'transparent', stroke: 'rgba(242,182,50,.0)' }, g).classList.add('tbox');
     } else if (a.type === 'note') {
       g.setAttribute('class', 'hit');
-      g.setAttribute('transform', `translate(${a.x - 12} ${a.y - 12})`);
-      svgEl('rect', { x: 0, y: 0, width: 24, height: 24, rx: 5, fill: '#F2B632', stroke: '#8f6310', 'stroke-width': 1.2 }, g);
-      svgEl('path', { d: 'M6 8h12M6 12h12M6 16h7', stroke: '#1a120b', 'stroke-width': 1.8, 'stroke-linecap': 'round' }, g);
+      const L = noteLayout(a, doc.sizes[i]);
+      svgEl('rect', { x: L.cx, y: L.cy, width: L.w, height: L.h, rx: 5, fill: '#fff6cf', stroke: '#d9a52a', 'stroke-width': .9, filter: 'drop-shadow(0 1.5px 2px rgba(0,0,0,.18))' }, g);
+      L.lines.forEach((ln, k) => { const t = svgEl('text', { x: L.cx + L.w - 7, y: L.cy + 15 + k * NOTE_LH, fill: '#3a2a10', 'font-size': NOTE_FS, 'font-family': 'Tajawal, sans-serif', 'font-weight': 500, 'text-anchor': 'start', direction: 'rtl' }, g); t.textContent = ln; });
+      const ic = svgEl('g', { transform: `translate(${a.x - 11} ${a.y - 11})` }, g);
+      svgEl('rect', { x: 0, y: 0, width: 22, height: 22, rx: 5, fill: '#c8963e', stroke: '#8f6310', 'stroke-width': 1 }, ic);
+      svgEl('path', { d: 'M5.5 7.5h11M5.5 11h11M5.5 14.5h6.5', stroke: '#fff', 'stroke-width': 1.7, 'stroke-linecap': 'round', fill: 'none' }, ic);
     } else if (a.type === 'stamp') {
       g.setAttribute('class', 'hit');
       const w = a.w || stampW(a), h = 46;
@@ -649,6 +665,17 @@ function drawAnnots(i) {
   }
 }
 let mctx;
+const NOTE_FS = 10, NOTE_LH = 14, NOTE_MAX = 170;
+function noteLayout(a, size) {
+  mctx ||= document.createElement('canvas').getContext('2d');
+  mctx.font = textFont(NOTE_FS);
+  const lines = wrap(mctx, a.text, NOTE_MAX);
+  const w = Math.min(NOTE_MAX + 14, Math.max(60, ...lines.map(l => mctx.measureText(l).width)) + 14);
+  const h = lines.length * NOTE_LH + 8;
+  let cx = a.x + 11 - w, cy = a.y + 14;
+  if (size) { cx = clamp(cx, 2, size.w - w - 2); if (cy + h > size.h - 2) cy = Math.max(2, a.y - 14 - h); }
+  return { lines, w, h, cx, cy };
+}
 function measure(s, size, bold) { mctx ||= document.createElement('canvas').getContext('2d'); mctx.font = textFont(size, bold); return mctx.measureText(s).width; }
 function stampW(a) { mctx ||= document.createElement('canvas').getContext('2d'); mctx.font = '700 20px Tajawal'; return Math.max(120, mctx.measureText(a.label).width + 44); }
 
@@ -690,6 +717,7 @@ const findAnnot = (i, id) => (S.cur.annots[i] || []).find(a => a.id === id);
 const HINTS = {
   marker: 'مرّر إصبعك على السطر لتظليله · للتمرير اختر «قراءة»',
   pen: 'ارسم أو اكتب بإصبعك على الصفحة',
+  shape: 'اسحب إصبعك على الصفحة لرسم الشكل، أو اضغط لوضعه بحجم جاهز',
   text: 'اضغط حيث تريد كتابة النص',
   note: 'اضغط حيث تريد وضع الملاحظة',
   stamp: 'اضغط حيث تريد وضع الختم',
@@ -698,7 +726,7 @@ const HINTS = {
 function setTool(t) {
   S.tool = t;
   $$('.tool[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === t));
-  viewer.classList.toggle('drawing', ['marker', 'pen'].includes(t));
+  viewer.classList.toggle('drawing', ['marker', 'pen', 'shape'].includes(t));
   viewer.classList.toggle('erasing', t === 'eraser');
   const h = $('#toolhint');
   if (HINTS[t]) { h.textContent = HINTS[t]; h.hidden = false; clearTimeout(h._t); h._t = setTimeout(() => h.hidden = true, 2600); } else h.hidden = true;
@@ -714,6 +742,15 @@ function renderColorbar() {
   const bar = $('#colorbar'), t = S.tool;
   if (!COLORS[t]) { bar.hidden = true; return; }
   bar.innerHTML = ''; bar.hidden = false;
+  if (t === 'shape') {
+    SHAPES.forEach(([k, label, d]) => {
+      const b = document.createElement('button'); b.className = 'w sh' + (S.shape === k ? ' on' : ''); b.setAttribute('aria-label', label); b.title = label;
+      b.innerHTML = `<svg viewBox="0 0 24 24">${d}</svg>`;
+      b.onclick = () => { S.shape = k; Sound.tap(); renderColorbar(); };
+      bar.appendChild(b);
+    });
+    bar.insertAdjacentHTML('beforeend', '<i class="sep"></i>');
+  }
   COLORS[t].forEach(c => {
     const b = document.createElement('button'); b.className = 'c' + (S.color[t] === c ? ' on' : ''); b.style.background = c;
     b.setAttribute('aria-label', 'لون'); b.onclick = () => { S.color[t] = c; Sound.tap(); renderColorbar(); };
@@ -721,7 +758,7 @@ function renderColorbar() {
   });
   if (S.width[t]) {
     bar.insertAdjacentHTML('beforeend', '<i class="sep"></i>');
-    const opts = t === 'pen' ? [[1.5, 'رفيع'], [2.5, 'وسط'], [5, 'عريض']] : [[10, 'رفيع'], [16, 'وسط'], [24, 'عريض']];
+    const opts = t === 'pen' ? [[1.5, 'رفيع'], [2.5, 'وسط'], [5, 'عريض']] : t === 'shape' ? [[1.2, 'رفيع'], [2, 'وسط'], [4, 'عريض']] : [[10, 'رفيع'], [16, 'وسط'], [24, 'عريض']];
     opts.forEach(([w, l]) => {
       const b = document.createElement('button'); b.className = 'w' + (S.width[t] === w ? ' on' : ''); b.textContent = l;
       b.onclick = () => { S.width[t] = w; Sound.tap(); renderColorbar(); };
@@ -741,6 +778,16 @@ function cancelStroke() { if (stroke) { stroke.live.remove(); stroke = null; } }
 pagesEl.addEventListener('pointerdown', e => {
   const el = e.target.closest('.page'); if (!el || !S.cur) return;
   const t = S.tool;
+  if (t === 'shape') {
+    if (shapeDrag) { shapeDrag.live.remove(); shapeDrag = null; return; }
+    if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    const i = +el.dataset.i, s = S.cur.sizes[i], [x, y] = pagePoint(el, e);
+    const live = svgEl('svg', { class: 'live', viewBox: `0 0 ${s.w} ${s.h}`, preserveAspectRatio: 'none' }); el.appendChild(live);
+    shapeDrag = { el, i, live, id: e.pointerId, a: { type: 'shape', kind: S.shape, x1: x, y1: y, x2: x, y2: y, color: S.color.shape, w: S.width.shape } };
+    try { el.setPointerCapture(e.pointerId); } catch (er) {}
+    return;
+  }
   if (t === 'marker' || t === 'pen') {
     if (stroke) { cancelStroke(); return; }
     if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
@@ -754,7 +801,30 @@ pagesEl.addEventListener('pointerdown', e => {
     try { el.setPointerCapture(e.pointerId); } catch (er) {}
   }
 });
+let shapeDrag = null;
+function shapeSvg(a, parent) {
+  const st = { fill: 'none', stroke: a.color, 'stroke-width': a.w, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+  const x = Math.min(a.x1, a.x2), y = Math.min(a.y1, a.y2), w = Math.abs(a.x2 - a.x1), h = Math.abs(a.y2 - a.y1);
+  const out = [];
+  if (a.kind === 'rect') out.push(svgEl('rect', { x, y, width: w, height: h, ...st }, parent));
+  else if (a.kind === 'ellipse') out.push(svgEl('ellipse', { cx: x + w / 2, cy: y + h / 2, rx: w / 2, ry: h / 2, ...st }, parent));
+  else if (a.kind === 'tri') out.push(svgEl('path', { d: `M${x + w / 2} ${y}L${x + w} ${y + h}H${x}Z`, ...st }, parent));
+  else {
+    out.push(svgEl('path', { d: `M${a.x1} ${a.y1}L${a.x2} ${a.y2}`, ...st }, parent));
+    if (a.kind === 'arrow') out.push(svgEl('path', { d: arrowHead(a), ...st }, parent));
+  }
+  return out;
+}
+function arrowHead(a) {
+  const ang = Math.atan2(a.y2 - a.y1, a.x2 - a.x1), L = 6 + a.w * 3, sp = .45;
+  const p1 = [a.x2 - L * Math.cos(ang - sp), a.y2 - L * Math.sin(ang - sp)], p2 = [a.x2 - L * Math.cos(ang + sp), a.y2 - L * Math.sin(ang + sp)];
+  return `M${p1[0]} ${p1[1]}L${a.x2} ${a.y2}L${p2[0]} ${p2[1]}`;
+}
 pagesEl.addEventListener('pointermove', e => {
+  if (shapeDrag && e.pointerId === shapeDrag.id) {
+    const [x, y] = pagePoint(shapeDrag.el, e); shapeDrag.a.x2 = x; shapeDrag.a.y2 = y;
+    shapeDrag.live.innerHTML = ''; shapeSvg(shapeDrag.a, shapeDrag.live); return;
+  }
   if (!stroke || e.pointerId !== stroke.id) return;
   const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of evs) {
@@ -765,7 +835,21 @@ pagesEl.addEventListener('pointermove', e => {
   if (stroke.t === 'marker') pts = straighten(pts);
   stroke.path.setAttribute('d', pathD(pts));
 });
+function finishShape(e) {
+  if (!shapeDrag || (e && e.pointerId !== shapeDrag.id)) return false;
+  const d = shapeDrag; shapeDrag = null; d.live.remove();
+  const a = d.a;
+  if (Math.hypot(a.x2 - a.x1, a.y2 - a.y1) < 6) {
+    // ضغطة بلا سحب: شكل بحجم جاهز حول نقطة الضغط
+    const W = a.kind === 'line' || a.kind === 'arrow' ? 80 : 70, H = a.kind === 'line' || a.kind === 'arrow' ? 0 : 50;
+    if (a.kind === 'line' || a.kind === 'arrow') { a.x2 = a.x1; a.x1 = a.x1 - W; } else { a.x1 -= W / 2; a.y1 -= H / 2; a.x2 = a.x1 + W; a.y2 = a.y1 + H; }
+  }
+  ['x1', 'y1', 'x2', 'y2'].forEach(k => a[k] = +a[k].toFixed(1));
+  addAnnot(d.i, a); Sound.tap(); vibrate(8);
+  return true;
+}
 const finishStroke = e => {
+  if (finishShape(e)) return;
   if (!stroke || (e && e.pointerId !== stroke.id)) return;
   const s = stroke; stroke = null; s.live.remove();
   let pts = s.pts;
@@ -775,7 +859,7 @@ const finishStroke = e => {
   vibrate(6);
 };
 pagesEl.addEventListener('pointerup', finishStroke);
-pagesEl.addEventListener('pointercancel', () => cancelStroke());
+pagesEl.addEventListener('pointercancel', () => { cancelStroke(); if (shapeDrag) { shapeDrag.live.remove(); shapeDrag = null; } });
 // قلم التظليل: الخط الأفقي تقريبًا يُسوّى ليبدو تظليلًا مرتبًا
 function straighten(pts) {
   if (pts.length < 3) return pts;
@@ -803,7 +887,8 @@ pagesEl.addEventListener('click', async e => {
     if (r) { S.color.text = r.color; addAnnot(i, { type: 'text', x, y, ...r }); Sound.ok(); }
   } else if (t === 'note') {
     const r = await noteDialog('');
-    if (r != null && r.trim()) { addAnnot(i, { type: 'note', x, y, text: r }); Sound.ok(); }
+    if (r != null && r.trim()) { addAnnot(i, { type: 'note', x, y, text: r.trim() }); Sound.ok(); toast('وُضعت الملاحظة على الصفحة', 'ok'); }
+    else if (r != null) toast('اكتب نص الملاحظة أولًا', 'err');
   } else if (t === 'stamp' && S.stamp) {
     const a = { type: 'stamp', x, y, label: S.stamp.label, color: S.stamp.color, date: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric' }) };
     a.w = stampW(a); addAnnot(i, a); Sound.ok(); vibrate(20);
@@ -821,7 +906,7 @@ async function editAnnot(i, a) {
     if (r === '__del') return removeAnnot(i, a.id), toast('حُذف النص');
     if (r) updateAnnot(i, a, r);
   } else {
-    const names = { hl: 'تظليل', ul: 'تسطير', st: 'شطب', stamp: 'ختم «' + a.label + '»' };
+    const names = { hl: 'تظليل', ul: 'تسطير', st: 'شطب', stamp: 'ختم «' + a.label + '»', shape: SHAPE_NAME[a.kind] };
     const v = await dialog({
       title: names[a.type] || 'تعليق', body: a.text ? `<p>${esc(a.text)}</p>` : '<p>هل تريد حذف هذا التعليق؟</p>',
       actions: [{ label: 'احذفه', value: 'del', cls: 'danger' }, { label: 'إبقاء', value: 'cancel' }],
@@ -1096,14 +1181,14 @@ async function renderPanel() {
       body.appendChild(b);
     });
   } else {
-    const names = { hl: 'تظليل', ul: 'تسطير', st: 'شطب', ink: 'رسم', text: 'نص', note: 'ملاحظة', stamp: 'ختم' };
+    const names = { hl: 'تظليل', ul: 'تسطير', st: 'شطب', ink: 'رسم', text: 'نص', note: 'ملاحظة', stamp: 'ختم', shape: 'شكل' };
     const rows = [];
     Object.keys(doc.annots).map(Number).sort((a, b) => a - b).forEach(i => doc.annots[i].forEach(a => rows.push([i, a])));
     if (!rows.length) { body.innerHTML = '<div class="empty"><p>لا تعليقات بعد. حدّد نصًا لتظليله، أو اختر أداة من الشريط السفلي.</p></div>'; return; }
     rows.forEach(([i, a], k) => {
       const b = document.createElement('button'); b.className = 'li'; b.style.animationDelay = Math.min(k, 12) * 35 + 'ms';
       const col = a.color || '#F2B632';
-      const label = a.type === 'ink' ? (a.tool === 'marker' ? 'تظليل حر' : 'رسم بالقلم') : names[a.type];
+      const label = a.type === 'shape' ? SHAPE_NAME[a.kind] : a.type === 'ink' ? (a.tool === 'marker' ? 'تظليل حر' : 'رسم بالقلم') : names[a.type];
       const snip = a.text || a.label || '';
       b.innerHTML = `<i class="dot" style="background:${col}"></i><span class="lb"><span class="lt">${label} · صفحة ${fmtNum(i + 1)}</span>${snip ? `<span class="ls">${esc(snip)}</span>` : ''}</span>`;
       b.onclick = () => { goPage(i); closePanel(); };
@@ -1168,13 +1253,23 @@ async function showProps() {
 
 /* ───────── الحفظ والتصدير ───────── */
 // يرسم تعليقات صفحة على لوح بمقياس 1 = نقطة PDF
-function paintAnnots(ctx, list) {
+function paintAnnots(ctx, list, size) {
   for (const a of list) {
     ctx.save();
     if (a.type === 'ink') {
       ctx.globalAlpha = a.op ?? 1; if (a.op < 1) ctx.globalCompositeOperation = 'multiply';
       ctx.strokeStyle = a.color; ctx.lineWidth = a.w; ctx.lineCap = a.tool === 'marker' ? 'butt' : 'round'; ctx.lineJoin = 'round';
       ctx.stroke(new Path2D(pathD(a.pts)));
+    } else if (a.type === 'shape') {
+      ctx.strokeStyle = a.color; ctx.lineWidth = a.w; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      const x = Math.min(a.x1, a.x2), y = Math.min(a.y1, a.y2), w = Math.abs(a.x2 - a.x1), h = Math.abs(a.y2 - a.y1);
+      ctx.beginPath();
+      if (a.kind === 'rect') ctx.rect(x, y, w, h);
+      else if (a.kind === 'ellipse') ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+      else if (a.kind === 'tri') { ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.closePath(); }
+      else { ctx.moveTo(a.x1, a.y1); ctx.lineTo(a.x2, a.y2); }
+      ctx.stroke();
+      if (a.kind === 'arrow') ctx.stroke(new Path2D(arrowHead(a)));
     } else if (a.type === 'hl') {
       ctx.globalAlpha = .42; ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = a.color;
       a.rects.forEach(([x, y, w, h]) => ctx.fillRect(x, y, w, h));
@@ -1185,16 +1280,13 @@ function paintAnnots(ctx, list) {
       const rtl = isRTL(a.text); ctx.fillStyle = a.color; ctx.font = textFont(a.size); ctx.direction = rtl ? 'rtl' : 'ltr'; ctx.textAlign = rtl ? 'right' : 'left';
       a.text.split('\n').forEach((ln, k) => ctx.fillText(ln, a.x, a.y + a.size + k * a.size * 1.35));
     } else if (a.type === 'note') {
-      ctx.translate(a.x - 12, a.y - 12);
-      ctx.fillStyle = '#F2B632'; ctx.strokeStyle = '#8f6310'; ctx.lineWidth = 1.2; rr(ctx, 0, 0, 24, 24, 5); ctx.fill(); ctx.stroke();
-      ctx.strokeStyle = '#1a120b'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.stroke(new Path2D('M6 8h12M6 12h12M6 16h7'));
-      // نص الملاحظة بجوارها حتى يُقرأ في أي برنامج
-      ctx.font = textFont(9); ctx.direction = 'rtl'; ctx.textAlign = 'right';
-      const lines = wrap(ctx, a.text, 170);
-      const h = lines.length * 12 + 10, w = Math.min(180, Math.max(...lines.map(l => ctx.measureText(l).width)) + 14);
-      ctx.translate(24, 28);
-      ctx.fillStyle = 'rgba(255,248,214,.96)'; ctx.strokeStyle = '#d9a52a'; ctx.lineWidth = .8; rr(ctx, -w, 0, w, h, 4); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#3a2a10'; lines.forEach((l, k) => ctx.fillText(l, -7, 15 + k * 12));
+      const L = noteLayout(a, size);
+      ctx.fillStyle = '#fff6cf'; ctx.strokeStyle = '#d9a52a'; ctx.lineWidth = .9; rr(ctx, L.cx, L.cy, L.w, L.h, 5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#3a2a10'; ctx.font = textFont(NOTE_FS); ctx.direction = 'rtl'; ctx.textAlign = 'right';
+      L.lines.forEach((l, k) => ctx.fillText(l, L.cx + L.w - 7, L.cy + 15 + k * NOTE_LH));
+      ctx.translate(a.x - 11, a.y - 11);
+      ctx.fillStyle = '#c8963e'; ctx.strokeStyle = '#8f6310'; ctx.lineWidth = 1; rr(ctx, 0, 0, 22, 22, 5); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.7; ctx.lineCap = 'round'; ctx.stroke(new Path2D('M5.5 7.5h11M5.5 11h11M5.5 14.5h6.5'));
     } else if (a.type === 'stamp') {
       const w = a.w || stampW(a), h = 46;
       ctx.translate(a.x, a.y); ctx.rotate(-8 * Math.PI / 180);
@@ -1236,7 +1328,7 @@ async function exportPdf(mode) {
         const k = Math.min(3, 4096 / Math.max(vp.width, vp.height));
         const c = document.createElement('canvas'); c.width = Math.ceil(vp.width * k); c.height = Math.ceil(vp.height * k);
         const ctx = c.getContext('2d'); ctx.scale(k, k);
-        paintAnnots(ctx, doc.annots[i]);
+        paintAnnots(ctx, doc.annots[i], doc.sizes[i]);
         const img = await pd.embedPng(await canvasBytes(c));
         c.width = c.height = 0;
         const p0 = vp.convertToPdfPoint(0, vp.height), p1 = vp.convertToPdfPoint(1, vp.height);
@@ -1262,7 +1354,7 @@ async function exportImage() {
     const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
     const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    ctx.save(); ctx.scale(k, k); paintAnnots(ctx, doc.annots[curPage] || []); ctx.restore();
+    ctx.save(); ctx.scale(k, k); paintAnnots(ctx, doc.annots[curPage] || [], doc.sizes[curPage]); ctx.restore();
     const bytes = await canvasBytes(c, 'image/jpeg', .92); c.width = c.height = 0;
     setLoading(false);
     await deliver(doc.name.replace(/\.pdf$/i, '') + ' - صفحة ' + (curPage + 1) + '.jpg', bytes, 'image/jpeg', 'share');

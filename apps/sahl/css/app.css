@@ -231,3 +231,8 @@ dialog::backdrop{background:rgba(23,38,30,.4)}
 
 /* وضع الدمج داخل تطبيق آخر (?embed): يخفي زر الرجوع إلى الرئيسية وزر فتح ملف آخر */
 body.embed #btnHome,body.embed #btnAddTab{display:none}
+.colorbar .w.sh{min-width:38px;padding:0;display:grid;place-items:center}
+.colorbar .w.sh svg{width:20px;height:20px}
+.colorbar{overflow-x:auto;scrollbar-width:none}
+.colorbar{flex-wrap:wrap;justify-content:center;row-gap:8px}
+.colorbar .c,.colorbar .w{flex-shrink:0}
